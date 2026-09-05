@@ -18,9 +18,6 @@ export default async function ProtectedLayout({ children }: { children: React.Re
                 Utilisateurs
               </Link>
             )}
-            <Link href="/" className="text-slate-600 hover:text-slate-900">
-              Autres outils
-            </Link>
             {profile && <span className="text-slate-500">{profile.email}</span>}
             <form action={signOut}>
               <button type="submit" className="text-slate-600 hover:text-slate-900">
