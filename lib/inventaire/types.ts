@@ -31,6 +31,7 @@ export interface PropertyDetails {
   syndicPhone: string | null;
   syndicEmail: string | null;
   syndicNotes: string | null;
+  comment: string | null;
 }
 
 export interface PropertyOwner {
@@ -47,6 +48,26 @@ export interface PropertyAgencement {
   propertyId: string;
   capacity: number | null;
   babyBed: boolean;
+  surface: number | null;
+}
+
+export type HotWaterProduction = "individuelle" | "collective";
+
+export interface PropertyWaterElec {
+  propertyId: string;
+  hotWaterProduction: HotWaterProduction | null;
+  hasGas: boolean | null;
+}
+
+export type ElementSection = "water_elec" | "notes";
+
+export interface PropertyElement {
+  id: string;
+  propertyId: string;
+  section: ElementSection;
+  name: string;
+  notes: string | null;
+  position: number;
 }
 
 export interface Room {
@@ -102,7 +123,7 @@ export interface InventoryItem {
   stockUpdatedAt: string;
 }
 
-export type AttachmentEntityType = "property" | "equipment" | "inventory_item";
+export type AttachmentEntityType = "property" | "equipment" | "inventory_item" | "property_element";
 
 export type AttachmentKind =
   | "access_video"
@@ -113,7 +134,8 @@ export type AttachmentKind =
   | "visit_video"
   | "equipment_photo"
   | "equipment_reference_photo"
-  | "inventory_item_photo";
+  | "inventory_item_photo"
+  | "element_photo";
 
 export interface Attachment {
   id: string;

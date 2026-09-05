@@ -28,7 +28,7 @@ export function AgencementTab({
         <ActionForm className="mt-2 space-y-3" autoSave action={(formData) => saveAgencement(propertyId, formData)}>
           {({ pending, error, success }) => (
             <>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700" htmlFor="capacity">
                     Nombre de personnes maximum
@@ -40,6 +40,20 @@ export function AgencementTab({
                     min={0}
                     step={1}
                     defaultValue={agencement?.capacity ?? ""}
+                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700" htmlFor="surface">
+                    Superficie (m²)
+                  </label>
+                  <input
+                    id="surface"
+                    name="surface"
+                    type="number"
+                    min={0}
+                    step="0.1"
+                    defaultValue={agencement?.surface ?? ""}
                     className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
                   />
                 </div>

@@ -22,7 +22,7 @@ export default async function LoginPage({
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-slate-900">Registre des biens</h1>
+        <h1 className="text-xl font-semibold text-slate-900">Melvane Gestion des Biens</h1>
         <p className="mt-1 text-sm text-slate-500">Connectez-vous pour accéder à l&apos;inventaire.</p>
 
         <form action={action} className="mt-6 space-y-4">

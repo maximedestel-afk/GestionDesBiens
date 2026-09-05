@@ -15,6 +15,13 @@ export const STANDARD_EQUIPMENT_NAMES = [
   "Micro-ondes",
 ] as const;
 
+// Bouton "Charger les éléments standards" (onglet Eau/Élec).
+export const STANDARD_WATER_ELEC_ELEMENT_NAMES = [
+  "Robinet d'arrêt eau",
+  "Tableau électrique",
+  "Ballon d'eau chaude",
+] as const;
+
 export interface StandardInventoryItem {
   category: InventoryCategory;
   name: string;

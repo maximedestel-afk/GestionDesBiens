@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Registre des biens",
+  title: "Melvane Gestion des Biens",
   description: "Gestion de l'inventaire du parc de locations meublées.",
 };
 

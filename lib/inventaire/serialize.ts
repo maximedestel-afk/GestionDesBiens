@@ -7,7 +7,9 @@ import type {
   Property,
   PropertyAgencement,
   PropertyDetails,
+  PropertyElement,
   PropertyOwner,
+  PropertyWaterElec,
   Room,
 } from "./types";
 
@@ -40,6 +42,7 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     syndicPhone: row.syndic_phone,
     syndicEmail: row.syndic_email,
     syndicNotes: row.syndic_notes,
+    comment: row.comment,
   };
 }
 
@@ -60,6 +63,26 @@ export function serializeAgencement(row: any): PropertyAgencement {
     propertyId: row.property_id,
     capacity: row.capacity,
     babyBed: row.baby_bed,
+    surface: row.surface,
+  };
+}
+
+export function serializeWaterElec(row: any): PropertyWaterElec {
+  return {
+    propertyId: row.property_id,
+    hotWaterProduction: row.hot_water_production,
+    hasGas: row.has_gas,
+  };
+}
+
+export function serializePropertyElement(row: any): PropertyElement {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    section: row.section,
+    name: row.name,
+    notes: row.notes,
+    position: row.position,
   };
 }
 

@@ -6,10 +6,12 @@ import {
   getPropertyAgencement,
   getPropertyDetails,
   getPropertyOwner,
+  getPropertyWaterElec,
   listActivityLog,
   listAttachmentsForProperty,
   listEquipment,
   listInventoryItems,
+  listPropertyElements,
   listRooms,
 } from "@/lib/inventaire/queries";
 import { PropertyTabs } from "./PropertyTabs";
@@ -21,18 +23,33 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   const property = await getProperty(id);
   if (!property) notFound();
 
-  const [profile, owner, details, agencement, rooms, equipment, inventoryItems, attachments, activityLog] =
-    await Promise.all([
-      getCurrentProfile(),
-      getPropertyOwner(id),
-      getPropertyDetails(id),
-      getPropertyAgencement(id),
-      listRooms(id),
-      listEquipment(id),
-      listInventoryItems(id),
-      listAttachmentsForProperty(id),
-      listActivityLog(id, 30),
-    ]);
+  const [
+    profile,
+    owner,
+    details,
+    waterElec,
+    waterElecElements,
+    agencement,
+    rooms,
+    equipment,
+    inventoryItems,
+    noteElements,
+    attachments,
+    activityLog,
+  ] = await Promise.all([
+    getCurrentProfile(),
+    getPropertyOwner(id),
+    getPropertyDetails(id),
+    getPropertyWaterElec(id),
+    listPropertyElements(id, "water_elec"),
+    getPropertyAgencement(id),
+    listRooms(id),
+    listEquipment(id),
+    listInventoryItems(id),
+    listPropertyElements(id, "notes"),
+    listAttachmentsForProperty(id),
+    listActivityLog(id, 30),
+  ]);
   const isAdmin = profile?.role === "admin";
 
   return (
@@ -56,10 +73,13 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         isAdmin={isAdmin}
         owner={owner}
         details={details}
+        waterElec={waterElec}
+        waterElecElements={waterElecElements}
         agencement={agencement}
         rooms={rooms}
         equipment={equipment}
         inventoryItems={inventoryItems}
+        noteElements={noteElements}
         attachments={attachments}
         activityLog={activityLog}
       />

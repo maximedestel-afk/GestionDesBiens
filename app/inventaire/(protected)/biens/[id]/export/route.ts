@@ -6,6 +6,7 @@ import {
   getPropertyAgencement,
   getPropertyDetails,
   getPropertyOwner,
+  getPropertyWaterElec,
   listEquipment,
   listInventoryItems,
   listRooms,
@@ -30,9 +31,10 @@ export async function GET(
     return NextResponse.json({ error: "Bien introuvable." }, { status: 404 });
   }
 
-  const [owner, details, agencement, rooms, equipment, inventoryItems] = await Promise.all([
+  const [owner, details, waterElec, agencement, rooms, equipment, inventoryItems] = await Promise.all([
     getPropertyOwner(id),
     getPropertyDetails(id),
+    getPropertyWaterElec(id),
     getPropertyAgencement(id),
     listRooms(id),
     listEquipment(id),
@@ -42,7 +44,7 @@ export async function GET(
   const roomNameById = new Map(rooms.map((r) => [r.id, r.name]));
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Registre des biens";
+  workbook.creator = "Melvane Gestion des Biens";
   workbook.created = new Date();
 
   const infoSheet = workbook.addWorksheet("Détails");
@@ -73,7 +75,19 @@ export async function GET(
     { field: "Téléphone syndic", value: details?.syndicPhone ?? "" },
     { field: "Email syndic", value: details?.syndicEmail ?? "" },
     { field: "Capacité d'accueil", value: agencement?.capacity ?? "" },
+    { field: "Superficie (m²)", value: agencement?.surface ?? "" },
     { field: "Lit bébé disponible", value: agencement?.babyBed ? "Oui" : "Non" },
+    {
+      field: "Production eau chaude",
+      value:
+        waterElec?.hotWaterProduction === "individuelle"
+          ? "Individuelle"
+          : waterElec?.hotWaterProduction === "collective"
+            ? "Collective"
+            : "",
+    },
+    { field: "Gaz", value: waterElec?.hasGas === true ? "Oui" : waterElec?.hasGas === false ? "Non" : "" },
+    { field: "Commentaire", value: details?.comment ?? "" },
   ]);
   infoSheet.getRow(1).font = { bold: true };
 

@@ -8,20 +8,25 @@ import {
   serializeProfile,
   serializeProperty,
   serializePropertyDetails,
+  serializePropertyElement,
   serializePropertyOwner,
   serializeRoom,
+  serializeWaterElec,
 } from "./serialize";
 import type {
   ActivityLogEntry,
   Attachment,
   AttachmentEntityType,
+  ElementSection,
   Equipment,
   InventoryItem,
   Profile,
   Property,
   PropertyAgencement,
   PropertyDetails,
+  PropertyElement,
   PropertyOwner,
+  PropertyWaterElec,
   Room,
 } from "./types";
 
@@ -92,6 +97,32 @@ export async function getPropertyAgencement(propertyId: string): Promise<Propert
     .maybeSingle();
   if (error) throw error;
   return data ? serializeAgencement(data) : null;
+}
+
+export async function getPropertyWaterElec(propertyId: string): Promise<PropertyWaterElec | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("property_water_elec")
+    .select("*")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? serializeWaterElec(data) : null;
+}
+
+export async function listPropertyElements(
+  propertyId: string,
+  section: ElementSection
+): Promise<PropertyElement[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("property_elements")
+    .select("*")
+    .eq("property_id", propertyId)
+    .eq("section", section)
+    .order("position", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(serializePropertyElement);
 }
 
 export async function listRooms(propertyId: string): Promise<Room[]> {

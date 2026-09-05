@@ -10,7 +10,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/inventaire" className="text-lg font-semibold text-slate-900">
-            Registre des biens
+            Melvane Gestion des Biens
           </Link>
           <div className="flex items-center gap-4 text-sm">
             {profile?.role === "admin" && (

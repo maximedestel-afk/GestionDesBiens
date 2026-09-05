@@ -180,6 +180,16 @@ export function DetailsTab({
             </div>
             <Field label="Notes" name="syndicNotes" defaultValue={details?.syndicNotes} textarea />
           </Section>
+
+          <Section title="Commentaire">
+            <Field
+              label="Commentaire (nom du voisin, du gardien, etc.)"
+              name="comment"
+              defaultValue={details?.comment}
+              textarea
+              rows={4}
+            />
+          </Section>
         </>
       )}
     </ActionForm>

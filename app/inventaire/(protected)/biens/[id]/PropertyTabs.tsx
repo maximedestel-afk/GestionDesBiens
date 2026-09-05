@@ -10,24 +10,30 @@ import type {
   Property,
   PropertyAgencement,
   PropertyDetails,
+  PropertyElement,
   PropertyOwner,
+  PropertyWaterElec,
   Room,
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { OwnerTab } from "./OwnerTab";
 import { DetailsTab } from "./DetailsTab";
+import { WaterElecTab } from "./WaterElecTab";
 import { AgencementTab } from "./AgencementTab";
 import { EquipmentTab } from "./EquipmentTab";
 import { InventoryTab } from "./InventoryTab";
+import { NotesTab } from "./NotesTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 
 const TABS = [
   { key: "proprietaire", label: "Propriétaire" },
   { key: "details", label: "Détails appartement" },
+  { key: "eauelec", label: "Eau / Élec" },
   { key: "agencement", label: "Agencement" },
   { key: "equipements", label: "Équipements techniques" },
   { key: "inventaire", label: "Inventaire du foyer" },
+  { key: "notes", label: "Notes" },
   { key: "historique", label: "Historique" },
 ] as const;
 
@@ -38,10 +44,13 @@ export function PropertyTabs({
   isAdmin,
   owner,
   details,
+  waterElec,
+  waterElecElements,
   agencement,
   rooms,
   equipment,
   inventoryItems,
+  noteElements,
   attachments,
   activityLog,
 }: {
@@ -49,10 +58,13 @@ export function PropertyTabs({
   isAdmin: boolean;
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
+  waterElec: PropertyWaterElec | null;
+  waterElecElements: PropertyElement[];
   agencement: PropertyAgencement | null;
   rooms: Room[];
   equipment: Equipment[];
   inventoryItems: InventoryItem[];
+  noteElements: PropertyElement[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
@@ -62,6 +74,7 @@ export function PropertyTabs({
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
   const inventoryAttachments = attachments.filter((a) => a.entityType === "inventory_item");
+  const elementAttachments = attachments.filter((a) => a.entityType === "property_element");
 
   return (
     <div>
@@ -108,6 +121,14 @@ export function PropertyTabs({
         {activeTab === "details" && (
           <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
         )}
+        {activeTab === "eauelec" && (
+          <WaterElecTab
+            propertyId={property.id}
+            waterElec={waterElec}
+            elements={waterElecElements}
+            attachments={elementAttachments}
+          />
+        )}
         {activeTab === "agencement" && (
           <AgencementTab
             propertyId={property.id}
@@ -130,6 +151,9 @@ export function PropertyTabs({
             items={inventoryItems}
             attachments={inventoryAttachments}
           />
+        )}
+        {activeTab === "notes" && (
+          <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}
         {activeTab === "historique" && <ActivityLogPanel entries={activityLog} />}
       </div>
