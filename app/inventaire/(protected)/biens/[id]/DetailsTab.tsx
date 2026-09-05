@@ -114,13 +114,24 @@ export function DetailsTab({
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              <Field label="Code & accès — Client" name="accessCodeClient" defaultValue={details?.accessCodeClient} />
+              <Field
+                label="Code & accès — Client"
+                name="accessCodeClient"
+                defaultValue={details?.accessCodeClient}
+                textarea
+              />
               <Field
                 label="Code & accès — Ménage/maintenance"
                 name="accessCodeCleaning"
                 defaultValue={details?.accessCodeCleaning}
+                textarea
               />
-              <Field label="Code & accès — Back up" name="accessCodeBackup" defaultValue={details?.accessCodeBackup} />
+              <Field
+                label="Code & accès — Back up"
+                name="accessCodeBackup"
+                defaultValue={details?.accessCodeBackup}
+                textarea
+              />
             </div>
           </Section>
 
