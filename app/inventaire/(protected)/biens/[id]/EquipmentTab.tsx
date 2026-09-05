@@ -13,11 +13,11 @@ function StandardEquipmentLoader({ propertyId, rooms }: { propertyId: string; ro
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3">
+    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-dashed border-black/15 bg-black/[0.02] p-3.5">
       <select
         value={roomId}
         onChange={(e) => setRoomId(e.target.value)}
-        className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+        className="rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
       >
         <option value="">Choisir une pièce…</option>
         {rooms.map((room) => (
@@ -36,7 +36,7 @@ function StandardEquipmentLoader({ propertyId, rooms }: { propertyId: string; ro
             .catch((e) => setError(e instanceof Error ? e.message : "Erreur."))
             .finally(() => setPending(false));
         }}
-        className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+        className="btn-primary"
       >
         {pending ? "Chargement…" : "Charger les équipements standards"}
       </button>
@@ -53,7 +53,7 @@ function AddEquipmentForm({ propertyId, rooms, defaultRoomId }: { propertyId: st
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-sm font-medium text-slate-600 hover:text-slate-900"
+        className="text-sm font-medium text-[#6e6e73] hover:text-[#1d1d1f]"
       >
         + Ajouter un équipement
       </button>
@@ -61,7 +61,7 @@ function AddEquipmentForm({ propertyId, rooms, defaultRoomId }: { propertyId: st
   }
 
   return (
-    <div className="rounded-lg border border-dashed border-slate-300 p-4">
+    <div className="rounded-2xl border border-dashed border-black/15 p-4">
       <ActionForm
         resetOnSuccess
         action={async (formData) => {
@@ -77,14 +77,14 @@ function AddEquipmentForm({ propertyId, rooms, defaultRoomId }: { propertyId: st
               <button
                 type="submit"
                 disabled={pending}
-                className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800 disabled:opacity-50"
+                className="btn-primary btn-sm"
               >
                 {pending ? "…" : "Ajouter"}
               </button>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
+                className="btn-secondary btn-sm"
               >
                 Annuler
               </button>
@@ -109,7 +109,7 @@ export function EquipmentTab({
 }) {
   if (rooms.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-slate-300 p-6 text-sm text-slate-500">
+      <p className="rounded-2xl border border-dashed border-black/15 p-6 text-[15px] text-[#6e6e73]">
         Aucune pièce définie. Renseignez d&apos;abord les pièces dans l&apos;onglet Agencement pour pouvoir y
         assigner des équipements.
       </p>
@@ -125,11 +125,11 @@ export function EquipmentTab({
         return (
           <section key={room.id}>
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900">{room.name}</h2>
+              <h2 className="text-sm font-semibold text-[#1d1d1f]">{room.name}</h2>
               <AddEquipmentForm propertyId={propertyId} rooms={rooms} defaultRoomId={room.id} />
             </div>
             {roomEquipment.length === 0 ? (
-              <p className="text-sm text-slate-400">Aucun équipement dans cette pièce.</p>
+              <p className="text-sm text-black/35">Aucun équipement dans cette pièce.</p>
             ) : (
               <div className="space-y-3">
                 {roomEquipment.map((item) => (

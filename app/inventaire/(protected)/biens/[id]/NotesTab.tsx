@@ -15,7 +15,7 @@ export function NotesTab({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-[#6e6e73]">
         Pour tout ce qui ne rentre pas dans une autre case : ajoutez un élément avec une photo/fichier et une
         note.
       </p>

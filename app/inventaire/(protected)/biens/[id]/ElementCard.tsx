@@ -18,7 +18,7 @@ export function ElementCard({
   attachments: Attachment[];
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
+    <div className="card p-5">
       <ActionForm autoSave action={(formData) => updatePropertyElement(propertyId, element.id, formData)}>
         {({ pending, error, success }) => (
           <>
@@ -27,7 +27,7 @@ export function ElementCard({
                 name="name"
                 defaultValue={element.name}
                 required
-                className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-900 focus:border-slate-500 focus:outline-none"
+                className="flex-1 rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] font-medium text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
               />
               <ConfirmDeleteButton
                 confirmText={`Supprimer « ${element.name} » ?`}
@@ -39,7 +39,7 @@ export function ElementCard({
               defaultValue={element.notes ?? ""}
               placeholder="Note (emplacement, détails…)"
               rows={2}
-              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              className="mt-2 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
             />
             <div className="mt-1 flex justify-end">
               <SaveStatus pending={pending} error={error} success={success} />

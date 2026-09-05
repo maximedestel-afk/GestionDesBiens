@@ -6,5 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function InventaireLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-full bg-slate-50">{children}</div>;
+  return <div className="min-h-full">{children}</div>;
 }

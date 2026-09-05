@@ -26,7 +26,7 @@ function DetailsButton({
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="text-slate-600 hover:text-slate-900"
+        className="text-[#6e6e73] hover:text-[#1d1d1f]"
       >
         Détails
       </button>
@@ -48,27 +48,27 @@ function DetailsButton({
             });
           }}
         >
-          <h3 className="text-sm font-semibold text-slate-900">Détails — {equipment.name}</h3>
+          <h3 className="text-sm font-semibold text-[#1d1d1f]">Détails — {equipment.name}</h3>
           <textarea
             name="details"
             defaultValue={equipment.notes ?? ""}
             rows={5}
             autoFocus
-            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+            className="mt-2 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
           />
           {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => dialogRef.current?.close()}
-              className="rounded px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+              className="btn-secondary btn-sm"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+              className="btn-primary"
             >
               {pending ? "…" : "Enregistrer"}
             </button>
@@ -98,7 +98,7 @@ export function EquipmentCard({
 
   if (editing) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-4">
+      <div className="card p-5">
         <ActionForm
           action={async (formData) => {
             await updateEquipment(propertyId, equipment.id, formData);
@@ -113,14 +113,14 @@ export function EquipmentCard({
                 <button
                   type="submit"
                   disabled={pending}
-                  className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800 disabled:opacity-50"
+                  className="btn-primary btn-sm"
                 >
                   {pending ? "…" : "Enregistrer"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="rounded px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
+                  className="btn-secondary btn-sm"
                 >
                   Annuler
                 </button>
@@ -133,16 +133,16 @@ export function EquipmentCard({
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
+    <div className="card p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-medium text-slate-900">{equipment.name}</p>
-          <p className="text-sm text-slate-500">
+          <p className="font-medium text-[#1d1d1f]">{equipment.name}</p>
+          <p className="text-sm text-[#6e6e73]">
             {[equipment.brand, equipment.model].filter(Boolean).join(" — ") || "—"}
           </p>
-          {equipment.warranty && <p className="text-sm text-slate-500">Garantie : {equipment.warranty}</p>}
+          {equipment.warranty && <p className="text-sm text-[#6e6e73]">Garantie : {equipment.warranty}</p>}
           {equipment.serialNumber && (
-            <p className="text-sm text-slate-500">N° de série : {equipment.serialNumber}</p>
+            <p className="text-sm text-[#6e6e73]">N° de série : {equipment.serialNumber}</p>
           )}
           {equipment.dryingFunction && (
             <span className="mt-1 inline-block rounded bg-sky-100 px-2 py-0.5 text-xs text-sky-700">
@@ -156,11 +156,11 @@ export function EquipmentCard({
               </a>
             </p>
           )}
-          {equipment.notes && <p className="mt-1 text-sm text-slate-500">{equipment.notes}</p>}
+          {equipment.notes && <p className="mt-1 text-sm text-[#6e6e73]">{equipment.notes}</p>}
         </div>
         <div className="flex shrink-0 gap-3 text-sm">
           <DetailsButton propertyId={propertyId} equipment={equipment} />
-          <button type="button" onClick={() => setEditing(true)} className="text-slate-600 hover:text-slate-900">
+          <button type="button" onClick={() => setEditing(true)} className="text-[#6e6e73] hover:text-[#1d1d1f]">
             Modifier
           </button>
           <ConfirmDeleteButton
@@ -171,7 +171,7 @@ export function EquipmentCard({
       </div>
 
       <div className="mt-3">
-        <p className="text-xs font-medium text-slate-500">Photos (équipement, plaque signalétique…)</p>
+        <p className="text-[12px] font-medium text-[#6e6e73]">Photos (équipement, plaque signalétique…)</p>
         <div className="mt-1 space-y-2">
           <AttachmentGallery
             propertyId={propertyId}

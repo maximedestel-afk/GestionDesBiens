@@ -21,7 +21,7 @@ export function AddElementForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-sm font-medium text-slate-600 hover:text-slate-900"
+        className="text-sm font-medium text-[#6e6e73] hover:text-[#1d1d1f]"
       >
         {label}
       </button>
@@ -31,7 +31,7 @@ export function AddElementForm({
   return (
     <ActionForm
       resetOnSuccess
-      className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-slate-300 p-3"
+      className="flex flex-wrap items-end gap-2 rounded-2xl border border-dashed border-black/15 p-3.5"
       action={async (formData) => {
         await createPropertyElement(propertyId, section, formData);
         setOpen(false);
@@ -40,24 +40,24 @@ export function AddElementForm({
       {({ pending, error }) => (
         <>
           <div className="min-w-[10rem] flex-1">
-            <label className="block text-xs font-medium text-slate-500">Nom</label>
+            <label className="block text-[12px] font-medium text-[#6e6e73]">Nom</label>
             <input
               name="name"
               required
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
             />
           </div>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+            className="btn-primary"
           >
             {pending ? "…" : "Ajouter"}
           </button>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="rounded px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+            className="btn-secondary btn-sm"
           >
             Annuler
           </button>

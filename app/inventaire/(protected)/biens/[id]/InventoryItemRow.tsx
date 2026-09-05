@@ -28,27 +28,27 @@ export function InventoryItemRow({
   const [error, setError] = useState<string | null>(null);
 
   const gapClass =
-    item.gap > 0 ? "text-emerald-600" : item.gap < 0 ? "text-red-600" : "text-slate-500";
+    item.gap > 0 ? "text-emerald-600" : item.gap < 0 ? "text-red-600" : "text-[#6e6e73]";
   const gapLabel = item.gap > 0 ? `+${item.gap}` : String(item.gap);
 
   return (
-    <tr className="border-b border-slate-100 last:border-0">
+    <tr className="border-b border-black/[0.06] last:border-0">
       <td className="py-2 pr-3">
         <button
           type="button"
           onClick={() => dialogRef.current?.showModal()}
-          className="text-left font-medium text-slate-900 hover:underline"
+          className="text-left font-medium text-[#1d1d1f] hover:underline"
         >
           {item.name}
         </button>
         <dialog ref={dialogRef} className="w-[26rem] max-w-[92vw] rounded-xl p-0 backdrop:bg-black/40">
           <div className="p-5">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-900">{item.name}</h3>
+              <h3 className="text-lg font-semibold text-[#1d1d1f]">{item.name}</h3>
               <button
                 type="button"
                 onClick={() => dialogRef.current?.close()}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-black/35 hover:text-[#6e6e73]"
               >
                 ✕
               </button>
@@ -69,11 +69,11 @@ export function InventoryItemRow({
               }}
             >
               <div>
-                <label className="block text-xs font-medium text-slate-500">État</label>
+                <label className="block text-[12px] font-medium text-[#6e6e73]">État</label>
                 <select
                   name="condition"
                   defaultValue={item.condition}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                 >
                   {CONDITIONS.map((c) => (
                     <option key={c} value={c}>
@@ -83,16 +83,16 @@ export function InventoryItemRow({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500">Notes</label>
+                <label className="block text-[12px] font-medium text-[#6e6e73]">Notes</label>
                 <textarea
                   name="notes"
                   defaultValue={item.notes ?? ""}
                   rows={2}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                 />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Photos</p>
+                <p className="text-[12px] font-medium text-[#6e6e73]">Photos</p>
                 <div className="mt-1 space-y-2">
                   <AttachmentGallery propertyId={propertyId} attachments={attachments} emptyLabel="Aucune photo" />
                   <FileUploadButtons
@@ -106,7 +106,7 @@ export function InventoryItemRow({
                 </div>
               </div>
               {error && <p className="text-sm text-red-600">{error}</p>}
-              <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+              <div className="flex justify-end gap-2 border-t border-black/[0.06] pt-3">
                 <ConfirmDeleteButton
                   confirmText={`Supprimer l'article « ${item.name} » ?`}
                   action={async () => {
@@ -117,7 +117,7 @@ export function InventoryItemRow({
                 <button
                   type="submit"
                   disabled={pending}
-                  className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+                  className="btn-primary"
                 >
                   {pending ? "…" : "Enregistrer"}
                 </button>
@@ -135,9 +135,9 @@ export function InventoryItemRow({
       </td>
       <td className="py-2 pr-3">
         {item.isTableware ? (
-          <span className="inline-flex items-center gap-1 rounded border border-slate-300 bg-slate-100 px-2 py-1 font-mono text-base tabular-nums text-slate-600">
+          <span className="inline-flex items-center gap-1 rounded border border-black/10 bg-black/[0.04] px-2 py-1 font-mono text-base tabular-nums text-[#6e6e73]">
             {item.effectiveTarget}
-            <span className="rounded bg-slate-200 px-1 text-[10px] font-sans uppercase tracking-wide">auto</span>
+            <span className="rounded bg-black/[0.06] px-1 text-[10px] font-sans uppercase tracking-wide">auto</span>
           </span>
         ) : (
           <NumericKeypadButton
@@ -148,7 +148,7 @@ export function InventoryItemRow({
         )}
       </td>
       <td className={`py-2 pr-3 font-mono tabular-nums ${gapClass}`}>{gapLabel}</td>
-      <td className="py-2 pr-3 text-sm text-slate-500">{formatDate(item.stockUpdatedAt)}</td>
+      <td className="py-2 pr-3 text-sm text-[#6e6e73]">{formatDate(item.stockUpdatedAt)}</td>
     </tr>
   );
 }

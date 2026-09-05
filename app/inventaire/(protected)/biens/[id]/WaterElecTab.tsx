@@ -27,7 +27,7 @@ function LoadStandardButton({ propertyId }: { propertyId: string }) {
             }
           });
         }}
-        className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+        className="btn-primary"
       >
         {pending ? "Chargement…" : "Charger les éléments standards"}
       </button>
@@ -49,21 +49,21 @@ export function WaterElecTab({
 }) {
   return (
     <div className="space-y-6">
-      <fieldset className="rounded-lg border border-slate-200 bg-white p-4">
-        <legend className="px-1 text-sm font-semibold text-slate-900">Eau / Électricité / Gaz</legend>
+      <fieldset className="card p-5">
+        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Eau / Électricité / Gaz</legend>
         <ActionForm className="mt-2 space-y-3" autoSave action={(formData) => saveWaterElec(propertyId, formData)}>
           {({ pending, error, success }) => (
             <>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700" htmlFor="hotWaterProduction">
+                  <label className="field-label" htmlFor="hotWaterProduction">
                     Production eau chaude
                   </label>
                   <select
                     id="hotWaterProduction"
                     name="hotWaterProduction"
                     defaultValue={waterElec?.hotWaterProduction ?? ""}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                   >
                     <option value="">Non renseigné</option>
                     <option value="individuelle">Individuelle</option>
@@ -71,14 +71,14 @@ export function WaterElecTab({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700" htmlFor="hasGas">
+                  <label className="field-label" htmlFor="hasGas">
                     Gaz
                   </label>
                   <select
                     id="hasGas"
                     name="hasGas"
                     defaultValue={waterElec?.hasGas === true ? "true" : waterElec?.hasGas === false ? "false" : ""}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                   >
                     <option value="">Non renseigné</option>
                     <option value="true">Oui</option>
@@ -93,7 +93,7 @@ export function WaterElecTab({
       </fieldset>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-slate-900">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">
           Éléments (robinet d&apos;arrêt eau, tableau électrique, ballon d&apos;eau chaude…)
         </h2>
         <LoadStandardButton propertyId={propertyId} />

@@ -54,18 +54,18 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
 
   return (
     <div>
-      <div className="mb-4">
-        <Link href="/inventaire" className="text-sm text-slate-500 hover:text-slate-700">
+      <div className="mb-6">
+        <Link href="/inventaire" className="text-[13px] text-[#6e6e73] transition hover:text-[#1d1d1f]">
           ← Tous les biens
         </Link>
         <div className="mt-1 flex items-center">
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-[26px] font-semibold tracking-tight text-[#1d1d1f]">
             {property.reference}
-            {property.name && <span className="ml-2 font-normal text-slate-500">{property.name}</span>}
+            {property.name && <span className="ml-2 font-normal text-[#6e6e73]">{property.name}</span>}
           </h1>
           <EditPropertyDialog property={property} />
         </div>
-        {property.address && <p className="text-sm text-slate-500">{property.address}</p>}
+        {property.address && <p className="text-[14px] text-[#6e6e73]">{property.address}</p>}
       </div>
 
       <PropertyTabs

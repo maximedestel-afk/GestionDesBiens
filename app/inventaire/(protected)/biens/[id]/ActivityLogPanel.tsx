@@ -15,20 +15,20 @@ function formatDate(iso: string) {
 
 export function ActivityLogPanel({ entries }: { entries: ActivityLogEntry[] }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <h2 className="text-sm font-semibold text-slate-900">Historique des modifications</h2>
+    <div className="card p-5">
+      <h2 className="text-sm font-semibold text-[#1d1d1f]">Historique des modifications</h2>
       {entries.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">Aucune modification enregistrée.</p>
+        <p className="mt-2 text-sm text-[#6e6e73]">Aucune modification enregistrée.</p>
       ) : (
         <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto text-sm">
           {entries.map((entry) => (
-            <li key={entry.id} className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2">
+            <li key={entry.id} className="flex items-start justify-between gap-3 border-b border-black/[0.06] pb-2">
               <div>
-                <span className="font-medium text-slate-700">{ACTION_LABELS[entry.action]}</span>{" "}
-                <span className="text-slate-600">{entry.summary}</span>
-                {entry.actorEmail && <span className="text-slate-400"> — {entry.actorEmail}</span>}
+                <span className="font-medium text-[#1d1d1f]">{ACTION_LABELS[entry.action]}</span>{" "}
+                <span className="text-[#6e6e73]">{entry.summary}</span>
+                {entry.actorEmail && <span className="text-black/35"> — {entry.actorEmail}</span>}
               </div>
-              <span className="whitespace-nowrap text-xs text-slate-400">{formatDate(entry.createdAt)}</span>
+              <span className="whitespace-nowrap text-xs text-black/35">{formatDate(entry.createdAt)}</span>
             </li>
           ))}
         </ul>

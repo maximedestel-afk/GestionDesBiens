@@ -14,24 +14,20 @@ export function EditPropertyDialog({ property }: { property: Property }) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="ml-2 align-middle text-sm text-slate-400 hover:text-slate-700"
+        className="ml-2 align-middle text-[15px] text-black/30 transition hover:text-[#1d1d1f]"
         aria-label="Modifier le bien"
         title="Modifier le bien"
       >
         ✏️
       </button>
-      <dialog ref={dialogRef} className="w-96 max-w-[90vw] rounded-xl p-0 backdrop:bg-black/40">
-        <ActionForm
-          className="p-5"
-          autoSave
-          action={(formData) => updateProperty(property.id, formData)}
-        >
+      <dialog ref={dialogRef} className="card w-96 max-w-[90vw] p-0 backdrop:bg-black/30 backdrop:backdrop-blur-sm">
+        <ActionForm className="p-6" autoSave action={(formData) => updateProperty(property.id, formData)}>
           {({ pending, error, success }) => (
             <>
-              <h2 className="text-lg font-semibold text-slate-900">Modifier le bien</h2>
+              <h2 className="text-[19px] font-semibold tracking-tight text-[#1d1d1f]">Modifier le bien</h2>
               <div className="mt-4 space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700" htmlFor="edit-reference">
+                  <label className="field-label" htmlFor="edit-reference">
                     Référence *
                   </label>
                   <input
@@ -39,39 +35,30 @@ export function EditPropertyDialog({ property }: { property: Property }) {
                     name="reference"
                     required
                     defaultValue={property.reference}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                    className="field-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700" htmlFor="edit-name">
+                  <label className="field-label" htmlFor="edit-name">
                     Nom
                   </label>
-                  <input
-                    id="edit-name"
-                    name="name"
-                    defaultValue={property.name ?? ""}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-                  />
+                  <input id="edit-name" name="name" defaultValue={property.name ?? ""} className="field-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700" htmlFor="edit-address">
+                  <label className="field-label" htmlFor="edit-address">
                     Adresse
                   </label>
                   <input
                     id="edit-address"
                     name="address"
                     defaultValue={property.address ?? ""}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                    className="field-input"
                   />
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <SaveStatus pending={pending} error={error} success={success} />
-                <button
-                  type="button"
-                  onClick={() => dialogRef.current?.close()}
-                  className="rounded px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
-                >
+                <button type="button" onClick={() => dialogRef.current?.close()} className="btn-secondary btn-sm">
                   Fermer
                 </button>
               </div>

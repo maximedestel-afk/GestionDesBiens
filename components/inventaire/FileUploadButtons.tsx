@@ -36,14 +36,14 @@ export function FileUploadButtons({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {label && <span className="text-sm text-slate-600">{label}</span>}
+      {label && <span className="text-[13px] text-[#6e6e73]">{label}</span>}
       {showCamera && (
         <>
           <button
             type="button"
             disabled={pending}
             onClick={() => cameraInputRef.current?.click()}
-            className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
+            className="btn-secondary btn-sm"
           >
             {isVideo ? "🎥 Filmer" : "📷 Prendre une photo"}
           </button>
@@ -64,7 +64,7 @@ export function FileUploadButtons({
         type="button"
         disabled={pending}
         onClick={() => galleryInputRef.current?.click()}
-        className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
+        className="btn-secondary btn-sm"
       >
         🖼 Choisir des fichiers
       </button>
@@ -79,8 +79,8 @@ export function FileUploadButtons({
           e.target.value = "";
         }}
       />
-      {pending && <span className="text-sm text-slate-500">Envoi…</span>}
-      {error && <span className="text-sm text-red-600">{error}</span>}
+      {pending && <span className="text-[13px] text-[#6e6e73]">Envoi…</span>}
+      {error && <span className="text-[13px] text-red-600">{error}</span>}
     </div>
   );
 }

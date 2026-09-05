@@ -78,25 +78,25 @@ export function PropertyTabs({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
-        <nav className="flex flex-wrap gap-1">
+      <div className="flex flex-col gap-3 pb-1 sm:flex-row sm:items-center sm:justify-between">
+        <nav className="no-scrollbar -mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           {visibleTabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
-              className={`rounded-t-md px-4 py-2 text-sm font-medium ${
+              className={`pill-tab ${
                 activeTab === tab.key
-                  ? "border-b-2 border-slate-900 text-slate-900"
-                  : "text-slate-500 hover:text-slate-800"
+                  ? "bg-[#1d1d1f] text-white"
+                  : "text-[#6e6e73] hover:bg-black/[0.04] hover:text-[#1d1d1f]"
               }`}
             >
               {tab.label}
             </button>
           ))}
         </nav>
-        <div className="mb-2 flex items-center gap-3 text-sm">
-          <a href={`/inventaire/biens/${property.id}/export`} className="text-slate-600 hover:text-slate-900">
+        <div className="flex shrink-0 items-center gap-4 text-[13px]">
+          <a href={`/inventaire/biens/${property.id}/export`} className="link-quiet text-[13px]">
             Exporter (Excel)
           </a>
           <ConfirmDeleteButton
