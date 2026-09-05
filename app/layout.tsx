@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bail Meublé - Gestion des dossiers",
-  description: "Définissez les champs du bail à compléter et laissez chaque client remplir son dossier en ligne.",
+  title: "Registre des biens",
+  description: "Gestion de l'inventaire du parc de locations meublées.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

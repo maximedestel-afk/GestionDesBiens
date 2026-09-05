@@ -1,0 +1,130 @@
+export type UserRole = "admin" | "menage";
+
+export interface Profile {
+  id: string;
+  email: string;
+  fullName: string | null;
+  role: UserRole;
+}
+
+export interface Property {
+  id: string;
+  reference: string;
+  name: string | null;
+  address: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PropertyDetails {
+  propertyId: string;
+  floor: string | null;
+  hasElevator: boolean | null;
+  accessCodeClient: string | null;
+  accessCodeCleaning: string | null;
+  accessCodeBackup: string | null;
+  wifiNetwork: string | null;
+  wifiCode: string | null;
+  clientReference: string | null;
+  edfPrm: string | null;
+  syndicName: string | null;
+  syndicPhone: string | null;
+  syndicEmail: string | null;
+  syndicNotes: string | null;
+}
+
+export interface PropertyAgencement {
+  propertyId: string;
+  capacity: number | null;
+  babyBed: boolean;
+}
+
+export interface Room {
+  id: string;
+  propertyId: string;
+  name: string;
+  description: string | null;
+  position: number;
+}
+
+export interface Equipment {
+  id: string;
+  propertyId: string;
+  roomId: string;
+  name: string;
+  brand: string | null;
+  warranty: string | null;
+  model: string | null;
+  serialNumber: string | null;
+  dryingFunction: boolean;
+  videoLink: string | null;
+  notes: string | null;
+  position: number;
+}
+
+export const INVENTORY_CATEGORIES = [
+  "Cuisine",
+  "Chambre",
+  "Salle de bain",
+  "Salon",
+  "Produits d'entretien",
+  "Sécurité",
+  "Divers",
+] as const;
+
+export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
+
+export type ItemCondition = "Bon" | "Usé" | "À remplacer";
+
+export interface InventoryItem {
+  id: string;
+  propertyId: string;
+  category: InventoryCategory;
+  name: string;
+  inStock: number;
+  target: number | null;
+  isTableware: boolean;
+  effectiveTarget: number;
+  gap: number;
+  condition: ItemCondition;
+  notes: string | null;
+  position: number;
+  stockUpdatedAt: string;
+}
+
+export type AttachmentEntityType = "property" | "equipment" | "inventory_item";
+
+export type AttachmentKind =
+  | "access_video"
+  | "wifi_contract"
+  | "client_contract"
+  | "edf_contract"
+  | "visit_video"
+  | "equipment_photo"
+  | "equipment_reference_photo"
+  | "inventory_item_photo";
+
+export interface Attachment {
+  id: string;
+  propertyId: string;
+  entityType: AttachmentEntityType;
+  entityId: string;
+  kind: AttachmentKind;
+  filePath: string;
+  fileName: string;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  createdAt: string;
+  url: string | null;
+}
+
+export interface ActivityLogEntry {
+  id: string;
+  propertyId: string;
+  entityType: string;
+  entityId: string | null;
+  action: "create" | "update" | "delete";
+  summary: string;
+  actorEmail: string | null;
+  createdAt: string;
+}
