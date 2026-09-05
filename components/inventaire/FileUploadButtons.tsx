@@ -18,6 +18,7 @@ export function FileUploadButtons({
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const isVideo = accept.startsWith("video/");
 
   function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -44,7 +45,7 @@ export function FileUploadButtons({
             onClick={() => cameraInputRef.current?.click()}
             className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
           >
-            📷 Prendre une photo
+            {isVideo ? "🎥 Filmer" : "📷 Prendre une photo"}
           </button>
           <input
             ref={cameraInputRef}

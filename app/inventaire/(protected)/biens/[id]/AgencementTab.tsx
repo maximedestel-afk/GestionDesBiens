@@ -67,7 +67,6 @@ export function AgencementTab({
           <AttachmentGallery propertyId={propertyId} attachments={visitVideos} />
           <FileUploadButtons
             accept="video/*"
-            showCamera={false}
             target={{ propertyId, entityType: "property", entityId: propertyId, kind: "visit_video" }}
           />
         </div>
