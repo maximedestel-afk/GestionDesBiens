@@ -33,6 +33,16 @@ export interface PropertyDetails {
   syndicNotes: string | null;
 }
 
+export interface PropertyOwner {
+  propertyId: string;
+  lastName: string | null;
+  firstName: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+}
+
 export interface PropertyAgencement {
   propertyId: string;
   capacity: number | null;

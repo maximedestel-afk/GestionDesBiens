@@ -5,6 +5,7 @@ import {
   getProperty,
   getPropertyAgencement,
   getPropertyDetails,
+  getPropertyOwner,
   listEquipment,
   listInventoryItems,
   listRooms,
@@ -29,7 +30,8 @@ export async function GET(
     return NextResponse.json({ error: "Bien introuvable." }, { status: 404 });
   }
 
-  const [details, agencement, rooms, equipment, inventoryItems] = await Promise.all([
+  const [owner, details, agencement, rooms, equipment, inventoryItems] = await Promise.all([
+    getPropertyOwner(id),
     getPropertyDetails(id),
     getPropertyAgencement(id),
     listRooms(id),
@@ -52,6 +54,12 @@ export async function GET(
     { field: "Référence", value: property.reference },
     { field: "Nom", value: property.name ?? "" },
     { field: "Adresse", value: property.address ?? "" },
+    {
+      field: "Propriétaire",
+      value: [owner?.firstName, owner?.lastName].filter(Boolean).join(" ") || "",
+    },
+    { field: "Email propriétaire", value: owner?.email ?? "" },
+    { field: "Téléphone propriétaire", value: owner?.phone ?? "" },
     { field: "Étage", value: details?.floor ?? "" },
     {
       field: "Ascenseur",

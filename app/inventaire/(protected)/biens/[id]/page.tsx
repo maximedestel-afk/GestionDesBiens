@@ -4,6 +4,7 @@ import {
   getProperty,
   getPropertyAgencement,
   getPropertyDetails,
+  getPropertyOwner,
   listActivityLog,
   listAttachmentsForProperty,
   listEquipment,
@@ -18,8 +19,9 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   const property = await getProperty(id);
   if (!property) notFound();
 
-  const [details, agencement, rooms, equipment, inventoryItems, attachments, activityLog] =
+  const [owner, details, agencement, rooms, equipment, inventoryItems, attachments, activityLog] =
     await Promise.all([
+      getPropertyOwner(id),
       getPropertyDetails(id),
       getPropertyAgencement(id),
       listRooms(id),
@@ -44,6 +46,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
 
       <PropertyTabs
         property={property}
+        owner={owner}
         details={details}
         agencement={agencement}
         rooms={rooms}

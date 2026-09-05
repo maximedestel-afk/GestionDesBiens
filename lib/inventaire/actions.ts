@@ -115,6 +115,7 @@ export async function createProperty(formData: FormData) {
 
   await supabase.from("property_agencement").insert({ property_id: data.id });
   await supabase.from("property_details").insert({ property_id: data.id });
+  await supabase.from("property_owner").insert({ property_id: data.id });
   await logActivity(supabase, {
     propertyId: data.id,
     entityType: "property",
@@ -200,6 +201,37 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
     entityType: "property_details",
     action: "update",
     summary: "Détails appartement mis à jour",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
+/* Propriétaire                                                        */
+/* ------------------------------------------------------------------ */
+
+export async function savePropertyOwner(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const patch = {
+    property_id: propertyId,
+    last_name: optionalString(formData.get("lastName")),
+    first_name: optionalString(formData.get("firstName")),
+    email: optionalString(formData.get("email")),
+    phone: optionalString(formData.get("phone")),
+    address: optionalString(formData.get("address")),
+    notes: optionalString(formData.get("notes")),
+  };
+
+  const { error } = await supabase.from("property_owner").upsert(patch);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_owner",
+    action: "update",
+    summary: "Propriétaire mis à jour",
   });
 
   revalidateProperty(propertyId);

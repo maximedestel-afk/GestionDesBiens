@@ -10,10 +10,12 @@ import type {
   Property,
   PropertyAgencement,
   PropertyDetails,
+  PropertyOwner,
   Room,
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
+import { OwnerTab } from "./OwnerTab";
 import { DetailsTab } from "./DetailsTab";
 import { AgencementTab } from "./AgencementTab";
 import { EquipmentTab } from "./EquipmentTab";
@@ -21,6 +23,7 @@ import { InventoryTab } from "./InventoryTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 
 const TABS = [
+  { key: "proprietaire", label: "Propriétaire" },
   { key: "details", label: "Détails appartement" },
   { key: "agencement", label: "Agencement" },
   { key: "equipements", label: "Équipements techniques" },
@@ -31,6 +34,7 @@ type TabKey = (typeof TABS)[number]["key"];
 
 export function PropertyTabs({
   property,
+  owner,
   details,
   agencement,
   rooms,
@@ -40,6 +44,7 @@ export function PropertyTabs({
   activityLog,
 }: {
   property: Property;
+  owner: PropertyOwner | null;
   details: PropertyDetails | null;
   agencement: PropertyAgencement | null;
   rooms: Room[];
@@ -48,7 +53,7 @@ export function PropertyTabs({
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
-  const [activeTab, setActiveTab] = useState<TabKey>("details");
+  const [activeTab, setActiveTab] = useState<TabKey>("proprietaire");
   const [showHistory, setShowHistory] = useState(false);
 
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
@@ -107,6 +112,7 @@ export function PropertyTabs({
       )}
 
       <div className="mt-6">
+        {activeTab === "proprietaire" && <OwnerTab propertyId={property.id} owner={owner} />}
         {activeTab === "details" && (
           <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
         )}
