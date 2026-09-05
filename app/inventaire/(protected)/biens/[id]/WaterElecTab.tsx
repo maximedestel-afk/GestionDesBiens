@@ -99,6 +99,8 @@ export function WaterElecTab({
         <LoadStandardButton propertyId={propertyId} />
       </div>
 
+      <AddElementForm propertyId={propertyId} section="water_elec" label="+ Ajouter un élément (ex. nourrice eau)" />
+
       <div className="space-y-3">
         {elements.map((el) => (
           <ElementCard
@@ -109,8 +111,6 @@ export function WaterElecTab({
           />
         ))}
       </div>
-
-      <AddElementForm propertyId={propertyId} section="water_elec" label="+ Ajouter un élément (ex. nourrice eau)" />
     </div>
   );
 }

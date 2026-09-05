@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  STANDARD_EQUIPMENT_NAMES,
   STANDARD_INVENTORY_ITEMS,
   STANDARD_WATER_ELEC_ELEMENT_NAMES,
+  standardEquipmentNamesForRoom,
 } from "./catalog";
 import type {
   AttachmentEntityType,
@@ -543,6 +543,7 @@ function equipmentPatchFromForm(formData: FormData) {
     serial_number: optionalString(formData.get("serialNumber")),
     drying_function: name.toLowerCase().includes("lave-linge") && formData.get("dryingFunction") === "true",
     video_link: optionalString(formData.get("videoLink")),
+    notes: optionalString(formData.get("notes")),
   };
 }
 
@@ -596,27 +597,6 @@ export async function updateEquipment(propertyId: string, equipmentId: string, f
   revalidateProperty(propertyId);
 }
 
-export async function updateEquipmentDetails(propertyId: string, equipmentId: string, details: string) {
-  const supabase = await createClient();
-  await requireUser(supabase);
-
-  const { error } = await supabase
-    .from("equipment")
-    .update({ notes: details.trim() ? details.trim() : null })
-    .eq("id", equipmentId);
-  if (error) throw error;
-
-  await logActivity(supabase, {
-    propertyId,
-    entityType: "equipment",
-    entityId: equipmentId,
-    action: "update",
-    summary: "Détails de l'équipement mis à jour",
-  });
-
-  revalidateProperty(propertyId);
-}
-
 export async function deleteEquipment(propertyId: string, equipmentId: string) {
   const supabase = await createClient();
   await requireUser(supabase);
@@ -641,9 +621,13 @@ export async function loadStandardEquipment(propertyId: string, roomId: string) 
   const supabase = await createClient();
   await requireUser(supabase);
 
+  const { data: room } = await supabase.from("rooms").select("name").eq("id", roomId).maybeSingle();
+  const standardNames = standardEquipmentNamesForRoom(room?.name ?? "");
+  if (standardNames.length === 0) return;
+
   const { data: existing } = await supabase.from("equipment").select("name").eq("room_id", roomId);
   const existingNames = new Set((existing ?? []).map((r) => r.name));
-  const namesToAdd = STANDARD_EQUIPMENT_NAMES.filter((name) => !existingNames.has(name));
+  const namesToAdd = standardNames.filter((name) => !existingNames.has(name));
   if (namesToAdd.length === 0) return;
 
   const { data: maxPos } = await supabase

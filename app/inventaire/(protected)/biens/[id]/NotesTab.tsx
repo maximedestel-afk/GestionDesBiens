@@ -19,6 +19,7 @@ export function NotesTab({
         Pour tout ce qui ne rentre pas dans une autre case : ajoutez un élément avec une photo/fichier et une
         note.
       </p>
+      <AddElementForm propertyId={propertyId} section="notes" />
       <div className="space-y-3">
         {elements.map((el) => (
           <ElementCard
@@ -29,7 +30,6 @@ export function NotesTab({
           />
         ))}
       </div>
-      <AddElementForm propertyId={propertyId} section="notes" />
     </div>
   );
 }
