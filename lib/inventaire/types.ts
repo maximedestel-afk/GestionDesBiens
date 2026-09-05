@@ -109,6 +109,7 @@ export type AttachmentKind =
   | "wifi_contract"
   | "client_contract"
   | "edf_contract"
+  | "lease_contract"
   | "visit_video"
   | "equipment_photo"
   | "equipment_reference_photo"

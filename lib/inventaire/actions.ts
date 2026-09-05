@@ -185,7 +185,6 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
     access_code_backup: optionalString(formData.get("accessCodeBackup")),
     wifi_network: optionalString(formData.get("wifiNetwork")),
     wifi_code: optionalString(formData.get("wifiCode")),
-    client_reference: optionalString(formData.get("clientReference")),
     edf_prm: optionalString(formData.get("edfPrm")),
     syndic_name: optionalString(formData.get("syndicName")),
     syndic_phone: optionalString(formData.get("syndicPhone")),
@@ -212,7 +211,7 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
 
 export async function savePropertyOwner(propertyId: string, formData: FormData) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const patch = {
     property_id: propertyId,
@@ -676,7 +675,7 @@ export async function recordAttachment(input: {
   sizeBytes: number | null;
 }) {
   const supabase = await createClient();
-  const user = await requireUser(supabase);
+  const user = input.kind === "lease_contract" ? await requireAdmin(supabase) : await requireUser(supabase);
 
   const { error } = await supabase.from("attachments").insert({
     property_id: input.propertyId,
@@ -708,10 +707,11 @@ export async function deleteAttachment(propertyId: string, attachmentId: string)
 
   const { data: attachment } = await supabase
     .from("attachments")
-    .select("file_path, file_name")
+    .select("file_path, file_name, kind")
     .eq("id", attachmentId)
     .maybeSingle();
   if (!attachment) return;
+  if (attachment.kind === "lease_contract") await requireAdmin(supabase);
 
   await supabase.storage.from("property-files").remove([attachment.file_path]);
 

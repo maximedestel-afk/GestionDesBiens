@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
+  getCurrentProfile,
   getProperty,
   getPropertyAgencement,
   getPropertyDetails,
@@ -19,8 +20,9 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   const property = await getProperty(id);
   if (!property) notFound();
 
-  const [owner, details, agencement, rooms, equipment, inventoryItems, attachments, activityLog] =
+  const [profile, owner, details, agencement, rooms, equipment, inventoryItems, attachments, activityLog] =
     await Promise.all([
+      getCurrentProfile(),
       getPropertyOwner(id),
       getPropertyDetails(id),
       getPropertyAgencement(id),
@@ -30,6 +32,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       listAttachmentsForProperty(id),
       listActivityLog(id, 30),
     ]);
+  const isAdmin = profile?.role === "admin";
 
   return (
     <div>
@@ -46,6 +49,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
 
       <PropertyTabs
         property={property}
+        isAdmin={isAdmin}
         owner={owner}
         details={details}
         agencement={agencement}

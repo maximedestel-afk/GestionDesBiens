@@ -1,8 +1,11 @@
 "use client";
 
-import type { PropertyOwner } from "@/lib/inventaire/types";
+import type { Attachment, PropertyOwner } from "@/lib/inventaire/types";
 import { savePropertyOwner } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
+import { SaveStatus } from "@/components/inventaire/SaveStatus";
+import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
+import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 
 function Field({
   label,
@@ -43,40 +46,54 @@ function Field({
   );
 }
 
-export function OwnerTab({ propertyId, owner }: { propertyId: string; owner: PropertyOwner | null }) {
-  return (
-    <ActionForm className="space-y-4" action={(formData) => savePropertyOwner(propertyId, formData)}>
-      {({ pending, error, success }) => (
-        <>
-          <fieldset className="rounded-lg border border-slate-200 bg-white p-4">
-            <legend className="px-1 text-sm font-semibold text-slate-900">Propriétaire</legend>
-            <div className="mt-2 space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Nom" name="lastName" defaultValue={owner?.lastName} />
-                <Field label="Prénom" name="firstName" defaultValue={owner?.firstName} />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Email" name="email" type="email" defaultValue={owner?.email} />
-                <Field label="Téléphone" name="phone" type="tel" defaultValue={owner?.phone} />
-              </div>
-              <Field label="Adresse" name="address" defaultValue={owner?.address} />
-              <Field label="Notes" name="notes" defaultValue={owner?.notes} textarea />
-            </div>
-          </fieldset>
+export function OwnerTab({
+  propertyId,
+  owner,
+  attachments,
+}: {
+  propertyId: string;
+  owner: PropertyOwner | null;
+  attachments: Attachment[];
+}) {
+  const leaseAttachments = attachments.filter((a) => a.kind === "lease_contract");
 
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={pending}
-              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-            >
-              {pending ? "Enregistrement…" : "Enregistrer"}
-            </button>
-            {success && <span className="text-sm text-emerald-600">Enregistré.</span>}
-            {error && <span className="text-sm text-red-600">{error}</span>}
-          </div>
-        </>
-      )}
-    </ActionForm>
+  return (
+    <div className="space-y-4">
+      <ActionForm className="space-y-4" autoSave action={(formData) => savePropertyOwner(propertyId, formData)}>
+        {({ pending, error, success }) => (
+          <>
+            <fieldset className="rounded-lg border border-slate-200 bg-white p-4">
+              <legend className="px-1 text-sm font-semibold text-slate-900">Propriétaire</legend>
+              <div className="mt-2 space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Nom" name="lastName" defaultValue={owner?.lastName} />
+                  <Field label="Prénom" name="firstName" defaultValue={owner?.firstName} />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Email" name="email" type="email" defaultValue={owner?.email} />
+                  <Field label="Téléphone" name="phone" type="tel" defaultValue={owner?.phone} />
+                </div>
+                <Field label="Adresse" name="address" defaultValue={owner?.address} />
+                <Field label="Notes" name="notes" defaultValue={owner?.notes} textarea />
+              </div>
+            </fieldset>
+
+            <SaveStatus pending={pending} error={error} success={success} />
+          </>
+        )}
+      </ActionForm>
+
+      <fieldset className="rounded-lg border border-slate-200 bg-white p-4">
+        <legend className="px-1 text-sm font-semibold text-slate-900">Bail</legend>
+        <div className="mt-2 space-y-2">
+          <AttachmentGallery propertyId={propertyId} attachments={leaseAttachments} emptyLabel="Aucun bail joint" />
+          <FileUploadButtons
+            accept=".pdf,.doc,.docx,image/*"
+            showCamera={false}
+            target={{ propertyId, entityType: "property", entityId: propertyId, kind: "lease_contract" }}
+          />
+        </div>
+      </fieldset>
+    </div>
   );
 }

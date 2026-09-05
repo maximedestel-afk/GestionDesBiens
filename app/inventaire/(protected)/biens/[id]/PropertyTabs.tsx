@@ -28,12 +28,14 @@ const TABS = [
   { key: "agencement", label: "Agencement" },
   { key: "equipements", label: "Équipements techniques" },
   { key: "inventaire", label: "Inventaire du foyer" },
+  { key: "historique", label: "Historique" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
 
 export function PropertyTabs({
   property,
+  isAdmin,
   owner,
   details,
   agencement,
@@ -44,6 +46,7 @@ export function PropertyTabs({
   activityLog,
 }: {
   property: Property;
+  isAdmin: boolean;
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
   agencement: PropertyAgencement | null;
@@ -53,8 +56,8 @@ export function PropertyTabs({
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
-  const [activeTab, setActiveTab] = useState<TabKey>("proprietaire");
-  const [showHistory, setShowHistory] = useState(false);
+  const visibleTabs = TABS.filter((tab) => tab.key !== "proprietaire" || isAdmin);
+  const [activeTab, setActiveTab] = useState<TabKey>(isAdmin ? "proprietaire" : "details");
 
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
@@ -64,7 +67,7 @@ export function PropertyTabs({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
         <nav className="flex flex-wrap gap-1">
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
@@ -80,13 +83,6 @@ export function PropertyTabs({
           ))}
         </nav>
         <div className="mb-2 flex items-center gap-3 text-sm">
-          <button
-            type="button"
-            onClick={() => setShowHistory((v) => !v)}
-            className="text-slate-600 hover:text-slate-900"
-          >
-            Historique
-          </button>
           <a href={`/inventaire/biens/${property.id}/export`} className="text-slate-600 hover:text-slate-900">
             Exporter (Excel)
           </a>
@@ -105,14 +101,10 @@ export function PropertyTabs({
         </div>
       </div>
 
-      {showHistory && (
-        <div className="mt-4">
-          <ActivityLogPanel entries={activityLog} />
-        </div>
-      )}
-
       <div className="mt-6">
-        {activeTab === "proprietaire" && <OwnerTab propertyId={property.id} owner={owner} />}
+        {activeTab === "proprietaire" && isAdmin && (
+          <OwnerTab propertyId={property.id} owner={owner} attachments={propertyAttachments} />
+        )}
         {activeTab === "details" && (
           <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
         )}
@@ -139,6 +131,7 @@ export function PropertyTabs({
             attachments={inventoryAttachments}
           />
         )}
+        {activeTab === "historique" && <ActivityLogPanel entries={activityLog} />}
       </div>
     </div>
   );
