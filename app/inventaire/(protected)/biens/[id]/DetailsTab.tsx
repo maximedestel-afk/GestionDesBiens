@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { Attachment, PropertyDetails } from "@/lib/inventaire/types";
 import { savePropertyDetails } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
+import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 
@@ -13,12 +14,14 @@ function Field({
   defaultValue,
   type = "text",
   textarea = false,
+  rows = 3,
 }: {
   label: string;
   name: string;
   defaultValue?: string | null;
   type?: string;
   textarea?: boolean;
+  rows?: number;
 }) {
   return (
     <div>
@@ -30,7 +33,7 @@ function Field({
           id={name}
           name={name}
           defaultValue={defaultValue ?? ""}
-          rows={3}
+          rows={rows}
           className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
         />
       ) : (
@@ -69,10 +72,15 @@ export function DetailsTab({
   return (
     <ActionForm
       className="space-y-6"
+      autoSave
       action={(formData) => savePropertyDetails(propertyId, formData)}
     >
       {({ pending, error, success }) => (
         <>
+          <div className="flex justify-end">
+            <SaveStatus pending={pending} error={error} success={success} />
+          </div>
+
           <Section title="Appartement">
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Étage" name="floor" defaultValue={details?.floor} />
@@ -102,19 +110,32 @@ export function DetailsTab({
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("access_video")} />
                 <FileUploadButtons
                   accept="video/*"
-                  showCamera={false}
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "access_video" }}
                 />
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              <Field label="Code & accès — Client" name="accessCodeClient" defaultValue={details?.accessCodeClient} />
+              <Field
+                label="Code & accès — Client"
+                name="accessCodeClient"
+                defaultValue={details?.accessCodeClient}
+                textarea
+                rows={6}
+              />
               <Field
                 label="Code & accès — Ménage/maintenance"
                 name="accessCodeCleaning"
                 defaultValue={details?.accessCodeCleaning}
+                textarea
+                rows={6}
               />
-              <Field label="Code & accès — Back up" name="accessCodeBackup" defaultValue={details?.accessCodeBackup} />
+              <Field
+                label="Code & accès — Back up"
+                name="accessCodeBackup"
+                defaultValue={details?.accessCodeBackup}
+                textarea
+                rows={6}
+              />
             </div>
           </Section>
 
@@ -131,21 +152,6 @@ export function DetailsTab({
                   accept=".pdf,.doc,.docx,image/*"
                   showCamera={false}
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "wifi_contract" }}
-                />
-              </div>
-            </div>
-          </Section>
-
-          <Section title="Client">
-            <Field label="Référence client" name="clientReference" defaultValue={details?.clientReference} />
-            <div>
-              <p className="text-sm font-medium text-slate-700">Contrat client</p>
-              <div className="mt-1 space-y-2">
-                <AttachmentGallery propertyId={propertyId} attachments={byKind("client_contract")} />
-                <FileUploadButtons
-                  accept=".pdf,.doc,.docx,image/*"
-                  showCamera={false}
-                  target={{ propertyId, entityType: "property", entityId: propertyId, kind: "client_contract" }}
                 />
               </div>
             </div>
@@ -174,18 +180,6 @@ export function DetailsTab({
             </div>
             <Field label="Notes" name="syndicNotes" defaultValue={details?.syndicNotes} textarea />
           </Section>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={pending}
-              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-            >
-              {pending ? "Enregistrement…" : "Enregistrer"}
-            </button>
-            {success && <span className="text-sm text-emerald-600">Enregistré.</span>}
-            {error && <span className="text-sm text-red-600">{error}</span>}
-          </div>
         </>
       )}
     </ActionForm>

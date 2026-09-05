@@ -7,6 +7,7 @@ import type {
   Property,
   PropertyAgencement,
   PropertyDetails,
+  PropertyOwner,
   Room,
 } from "./types";
 
@@ -39,6 +40,18 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     syndicPhone: row.syndic_phone,
     syndicEmail: row.syndic_email,
     syndicNotes: row.syndic_notes,
+  };
+}
+
+export function serializePropertyOwner(row: any): PropertyOwner {
+  return {
+    propertyId: row.property_id,
+    lastName: row.last_name,
+    firstName: row.first_name,
+    email: row.email,
+    phone: row.phone,
+    address: row.address,
+    notes: row.notes,
   };
 }
 

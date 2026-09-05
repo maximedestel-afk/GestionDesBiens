@@ -115,6 +115,7 @@ export async function createProperty(formData: FormData) {
 
   await supabase.from("property_agencement").insert({ property_id: data.id });
   await supabase.from("property_details").insert({ property_id: data.id });
+  await supabase.from("property_owner").insert({ property_id: data.id });
   await logActivity(supabase, {
     propertyId: data.id,
     entityType: "property",
@@ -184,7 +185,6 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
     access_code_backup: optionalString(formData.get("accessCodeBackup")),
     wifi_network: optionalString(formData.get("wifiNetwork")),
     wifi_code: optionalString(formData.get("wifiCode")),
-    client_reference: optionalString(formData.get("clientReference")),
     edf_prm: optionalString(formData.get("edfPrm")),
     syndic_name: optionalString(formData.get("syndicName")),
     syndic_phone: optionalString(formData.get("syndicPhone")),
@@ -200,6 +200,37 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
     entityType: "property_details",
     action: "update",
     summary: "Détails appartement mis à jour",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
+/* Propriétaire                                                        */
+/* ------------------------------------------------------------------ */
+
+export async function savePropertyOwner(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const patch = {
+    property_id: propertyId,
+    last_name: optionalString(formData.get("lastName")),
+    first_name: optionalString(formData.get("firstName")),
+    email: optionalString(formData.get("email")),
+    phone: optionalString(formData.get("phone")),
+    address: optionalString(formData.get("address")),
+    notes: optionalString(formData.get("notes")),
+  };
+
+  const { error } = await supabase.from("property_owner").upsert(patch);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_owner",
+    action: "update",
+    summary: "Propriétaire mis à jour",
   });
 
   revalidateProperty(propertyId);
@@ -329,7 +360,6 @@ function equipmentPatchFromForm(formData: FormData) {
     serial_number: optionalString(formData.get("serialNumber")),
     drying_function: name.toLowerCase().includes("lave-linge") && formData.get("dryingFunction") === "true",
     video_link: optionalString(formData.get("videoLink")),
-    notes: optionalString(formData.get("notes")),
   };
 }
 
@@ -378,6 +408,27 @@ export async function updateEquipment(propertyId: string, equipmentId: string, f
     entityId: equipmentId,
     action: "update",
     summary: `Équipement « ${patch.name} » mis à jour`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function updateEquipmentDetails(propertyId: string, equipmentId: string, details: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase
+    .from("equipment")
+    .update({ notes: details.trim() ? details.trim() : null })
+    .eq("id", equipmentId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "equipment",
+    entityId: equipmentId,
+    action: "update",
+    summary: "Détails de l'équipement mis à jour",
   });
 
   revalidateProperty(propertyId);
@@ -644,7 +695,7 @@ export async function recordAttachment(input: {
   sizeBytes: number | null;
 }) {
   const supabase = await createClient();
-  const user = await requireUser(supabase);
+  const user = input.kind === "lease_contract" ? await requireAdmin(supabase) : await requireUser(supabase);
 
   const { error } = await supabase.from("attachments").insert({
     property_id: input.propertyId,
@@ -676,10 +727,11 @@ export async function deleteAttachment(propertyId: string, attachmentId: string)
 
   const { data: attachment } = await supabase
     .from("attachments")
-    .select("file_path, file_name")
+    .select("file_path, file_name, kind")
     .eq("id", attachmentId)
     .maybeSingle();
   if (!attachment) return;
+  if (attachment.kind === "lease_contract") await requireAdmin(supabase);
 
   await supabase.storage.from("property-files").remove([attachment.file_path]);
 

@@ -60,6 +60,7 @@ export const STANDARD_INVENTORY_ITEMS: StandardInventoryItem[] = [
 
   // Chambre
   { category: "Chambre", name: "Cintres", target: 10, isTableware: false },
+  { category: "Chambre", name: "Protège-oreillers", target: 4, isTableware: false },
   { category: "Chambre", name: "Valet de nuit / porte-bagages", target: 1, isTableware: false },
   { category: "Chambre", name: "Panière à linge sale", target: 1, isTableware: false },
   { category: "Chambre", name: "Lampes de chevet", target: 2, isTableware: false },

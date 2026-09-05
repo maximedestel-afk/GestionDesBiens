@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "effacer", "0", "⌫"] as const;
+const AUTO_SAVE_DEBOUNCE_MS = 500;
 
 export function NumericKeypadButton({
   value,
@@ -18,33 +19,21 @@ export function NumericKeypadButton({
   suffix?: React.ReactNode;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [draft, setDraft] = useState("0");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   function open() {
     setDraft(String(value));
     setError(null);
+    setSaved(false);
     dialogRef.current?.showModal();
   }
 
-  function pressKey(key: (typeof KEYS)[number]) {
-    if (key === "effacer") {
-      setDraft("0");
-      return;
-    }
-    if (key === "⌫") {
-      setDraft((d) => (d.length > 1 ? d.slice(0, -1) : "0"));
-      return;
-    }
-    setDraft((d) => {
-      const next = d === "0" ? key : d + key;
-      return next.replace(/^0+(?=\d)/, "").slice(0, 4);
-    });
-  }
-
-  function confirm() {
-    const parsed = Number.parseInt(draft, 10);
+  function save(draftValue: string) {
+    const parsed = Number.parseInt(draftValue, 10);
     if (!Number.isInteger(parsed) || parsed < 0) {
       setError("Valeur invalide.");
       return;
@@ -52,10 +41,32 @@ export function NumericKeypadButton({
     startTransition(async () => {
       try {
         await onConfirm(parsed);
-        dialogRef.current?.close();
+        setSaved(true);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Une erreur est survenue.");
       }
+    });
+  }
+
+  function scheduleSave(nextDraft: string) {
+    setError(null);
+    setSaved(false);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => save(nextDraft), AUTO_SAVE_DEBOUNCE_MS);
+  }
+
+  function pressKey(key: (typeof KEYS)[number]) {
+    setDraft((d) => {
+      let next: string;
+      if (key === "effacer") {
+        next = "0";
+      } else if (key === "⌫") {
+        next = d.length > 1 ? d.slice(0, -1) : "0";
+      } else {
+        next = (d === "0" ? key : d + key).replace(/^0+(?=\d)/, "").slice(0, 4);
+      }
+      scheduleSave(next);
+      return next;
     });
   }
 
@@ -71,14 +82,21 @@ export function NumericKeypadButton({
       </button>
       <dialog
         ref={dialogRef}
+        onClose={() => {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+        }}
         className="w-72 max-w-[90vw] rounded-xl p-0 backdrop:bg-black/40"
       >
         <div className="p-4">
           <p className="mb-2 text-sm font-medium text-slate-700">{label}</p>
-          <div className="mb-3 rounded-lg bg-slate-100 px-4 py-3 text-center font-mono text-3xl tabular-nums">
+          <div className="mb-1 rounded-lg bg-slate-100 px-4 py-3 text-center font-mono text-3xl tabular-nums">
             {draft}
           </div>
-          {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
+          <div className="mb-2 h-4 text-center text-xs">
+            {pending && <span className="text-slate-400">Enregistrement…</span>}
+            {!pending && saved && <span className="text-emerald-600">Enregistré ✓</span>}
+            {!pending && error && <span className="text-red-600">{error}</span>}
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {KEYS.map((key) => (
               <button
@@ -95,21 +113,13 @@ export function NumericKeypadButton({
               </button>
             ))}
           </div>
-          <div className="mt-3 flex justify-end gap-2">
+          <div className="mt-3 flex justify-end">
             <button
               type="button"
               onClick={() => dialogRef.current?.close()}
-              className="rounded px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+              className="rounded px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
             >
-              Annuler
-            </button>
-            <button
-              type="button"
-              disabled={pending}
-              onClick={confirm}
-              className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-            >
-              {pending ? "…" : "Valider"}
+              Fermer
             </button>
           </div>
         </div>

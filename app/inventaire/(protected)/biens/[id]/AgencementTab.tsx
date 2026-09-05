@@ -3,6 +3,7 @@
 import type { Attachment, PropertyAgencement, Room } from "@/lib/inventaire/types";
 import { createRoom, saveAgencement } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
+import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { RoomRow } from "./RoomRow";
@@ -24,7 +25,7 @@ export function AgencementTab({
     <div className="space-y-6">
       <fieldset className="rounded-lg border border-slate-200 bg-white p-4">
         <legend className="px-1 text-sm font-semibold text-slate-900">Capacité d&apos;accueil</legend>
-        <ActionForm className="mt-2 space-y-3" action={(formData) => saveAgencement(propertyId, formData)}>
+        <ActionForm className="mt-2 space-y-3" autoSave action={(formData) => saveAgencement(propertyId, formData)}>
           {({ pending, error, success }) => (
             <>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -53,17 +54,7 @@ export function AgencementTab({
                   Lit bébé disponible
                 </label>
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="submit"
-                  disabled={pending}
-                  className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-                >
-                  {pending ? "Enregistrement…" : "Enregistrer"}
-                </button>
-                {success && <span className="text-sm text-emerald-600">Enregistré.</span>}
-                {error && <span className="text-sm text-red-600">{error}</span>}
-              </div>
+              <SaveStatus pending={pending} error={error} success={success} />
             </>
           )}
         </ActionForm>
@@ -76,7 +67,6 @@ export function AgencementTab({
           <AttachmentGallery propertyId={propertyId} attachments={visitVideos} />
           <FileUploadButtons
             accept="video/*"
-            showCamera={false}
             target={{ propertyId, entityType: "property", entityId: propertyId, kind: "visit_video" }}
           />
         </div>

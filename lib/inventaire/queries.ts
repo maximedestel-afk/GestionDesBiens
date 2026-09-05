@@ -8,6 +8,7 @@ import {
   serializeProfile,
   serializeProperty,
   serializePropertyDetails,
+  serializePropertyOwner,
   serializeRoom,
 } from "./serialize";
 import type {
@@ -20,6 +21,7 @@ import type {
   Property,
   PropertyAgencement,
   PropertyDetails,
+  PropertyOwner,
   Room,
 } from "./types";
 
@@ -68,6 +70,17 @@ export async function getPropertyDetails(propertyId: string): Promise<PropertyDe
     .maybeSingle();
   if (error) throw error;
   return data ? serializePropertyDetails(data) : null;
+}
+
+export async function getPropertyOwner(propertyId: string): Promise<PropertyOwner | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("property_owner")
+    .select("*")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? serializePropertyOwner(data) : null;
 }
 
 export async function getPropertyAgencement(propertyId: string): Promise<PropertyAgencement | null> {

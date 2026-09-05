@@ -98,15 +98,6 @@ export function EquipmentFields({
           className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
         />
       </div>
-      <div className="sm:col-span-2">
-        <label className="block text-xs font-medium text-slate-500">Notes</label>
-        <textarea
-          name="notes"
-          defaultValue={equipment?.notes ?? ""}
-          rows={2}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-        />
-      </div>
     </div>
   );
 }
