@@ -99,7 +99,7 @@ export function EquipmentFields({
         />
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-xs font-medium text-slate-500">Notes</label>
+        <label className="block text-xs font-medium text-slate-500">Détails</label>
         <textarea
           name="notes"
           defaultValue={equipment?.notes ?? ""}
