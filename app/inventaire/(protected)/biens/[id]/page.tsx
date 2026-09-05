@@ -13,6 +13,7 @@ import {
   listRooms,
 } from "@/lib/inventaire/queries";
 import { PropertyTabs } from "./PropertyTabs";
+import { EditPropertyDialog } from "@/components/inventaire/EditPropertyDialog";
 
 export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -43,6 +44,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         <h1 className="mt-1 text-2xl font-semibold text-slate-900">
           {property.reference}
           {property.name && <span className="ml-2 font-normal text-slate-500">{property.name}</span>}
+          <EditPropertyDialog property={property} />
         </h1>
         {property.address && <p className="text-sm text-slate-500">{property.address}</p>}
       </div>
