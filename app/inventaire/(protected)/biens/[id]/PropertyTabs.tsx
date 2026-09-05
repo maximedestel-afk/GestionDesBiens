@@ -27,13 +27,13 @@ import { NotesTab } from "./NotesTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 
 const TABS = [
-  { key: "proprietaire", label: "Propriétaire" },
   { key: "details", label: "Détails appartement" },
-  { key: "eauelec", label: "Eau / Élec" },
   { key: "agencement", label: "Agencement" },
-  { key: "equipements", label: "Équipements techniques" },
-  { key: "inventaire", label: "Inventaire du foyer" },
+  { key: "equipements", label: "Équipements" },
+  { key: "inventaire", label: "Inventaire" },
+  { key: "eauelec", label: "Eau / Élec" },
   { key: "notes", label: "Notes" },
+  { key: "proprietaire", label: "Propriétaire" },
   { key: "historique", label: "Historique" },
 ] as const;
 
@@ -69,7 +69,7 @@ export function PropertyTabs({
   activityLog: ActivityLogEntry[];
 }) {
   const visibleTabs = TABS.filter((tab) => tab.key !== "proprietaire" || isAdmin);
-  const [activeTab, setActiveTab] = useState<TabKey>(isAdmin ? "proprietaire" : "details");
+  const [activeTab, setActiveTab] = useState<TabKey>("details");
 
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");

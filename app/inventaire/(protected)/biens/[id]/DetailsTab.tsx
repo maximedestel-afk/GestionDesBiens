@@ -104,12 +104,12 @@ export function DetailsTab({
             </div>
             <div>
               <p className="text-sm font-medium text-slate-700">
-                Vidéo d&apos;accès (comment entrer dans l&apos;immeuble/appartement)
+                Vidéo / photos d&apos;accès (comment entrer dans l&apos;immeuble/appartement)
               </p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("access_video")} />
                 <FileUploadButtons
-                  accept="video/*"
+                  accept="image/*,video/*"
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "access_video" }}
                 />
               </div>
