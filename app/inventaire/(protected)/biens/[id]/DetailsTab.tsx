@@ -14,12 +14,14 @@ function Field({
   defaultValue,
   type = "text",
   textarea = false,
+  rows = 3,
 }: {
   label: string;
   name: string;
   defaultValue?: string | null;
   type?: string;
   textarea?: boolean;
+  rows?: number;
 }) {
   return (
     <div>
@@ -31,7 +33,7 @@ function Field({
           id={name}
           name={name}
           defaultValue={defaultValue ?? ""}
-          rows={3}
+          rows={rows}
           className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
         />
       ) : (
@@ -118,18 +120,21 @@ export function DetailsTab({
                 name="accessCodeClient"
                 defaultValue={details?.accessCodeClient}
                 textarea
+                rows={6}
               />
               <Field
                 label="Code & accès — Ménage/maintenance"
                 name="accessCodeCleaning"
                 defaultValue={details?.accessCodeCleaning}
                 textarea
+                rows={6}
               />
               <Field
                 label="Code & accès — Back up"
                 name="accessCodeBackup"
                 defaultValue={details?.accessCodeBackup}
                 textarea
+                rows={6}
               />
             </div>
           </Section>
