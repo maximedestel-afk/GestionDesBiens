@@ -360,7 +360,6 @@ function equipmentPatchFromForm(formData: FormData) {
     serial_number: optionalString(formData.get("serialNumber")),
     drying_function: name.toLowerCase().includes("lave-linge") && formData.get("dryingFunction") === "true",
     video_link: optionalString(formData.get("videoLink")),
-    notes: optionalString(formData.get("notes")),
   };
 }
 
@@ -409,6 +408,27 @@ export async function updateEquipment(propertyId: string, equipmentId: string, f
     entityId: equipmentId,
     action: "update",
     summary: `Équipement « ${patch.name} » mis à jour`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function updateEquipmentDetails(propertyId: string, equipmentId: string, details: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase
+    .from("equipment")
+    .update({ notes: details.trim() ? details.trim() : null })
+    .eq("id", equipmentId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "equipment",
+    entityId: equipmentId,
+    action: "update",
+    summary: "Détails de l'équipement mis à jour",
   });
 
   revalidateProperty(propertyId);
