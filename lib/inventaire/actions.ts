@@ -79,7 +79,7 @@ export async function signIn(formData: FormData) {
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw new Error(`Identifiants incorrects (${error.status ?? "?"} ${error.message}).`);
+  if (error) throw new Error("Identifiants incorrects.");
 
   const next = optionalString(formData.get("next")) ?? "/inventaire";
   redirect(next);
