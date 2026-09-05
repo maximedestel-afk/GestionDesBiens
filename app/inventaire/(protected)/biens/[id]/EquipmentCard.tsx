@@ -170,38 +170,22 @@ export function EquipmentCard({
         </div>
       </div>
 
-      <div className="mt-3 grid gap-4 sm:grid-cols-2">
-        <div>
-          <p className="text-xs font-medium text-slate-500">Photo de l&apos;équipement</p>
-          <div className="mt-1 space-y-2">
-            <AttachmentGallery propertyId={propertyId} attachments={photos} emptyLabel="Aucune photo" />
-            <FileUploadButtons
-              target={{
-                propertyId,
-                entityType: "equipment",
-                entityId: equipment.id,
-                kind: "equipment_photo",
-              }}
-            />
-          </div>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-slate-500">Photo de la référence (plaque signalétique)</p>
-          <div className="mt-1 space-y-2">
-            <AttachmentGallery
-              propertyId={propertyId}
-              attachments={referencePhotos}
-              emptyLabel="Aucune photo"
-            />
-            <FileUploadButtons
-              target={{
-                propertyId,
-                entityType: "equipment",
-                entityId: equipment.id,
-                kind: "equipment_reference_photo",
-              }}
-            />
-          </div>
+      <div className="mt-3">
+        <p className="text-xs font-medium text-slate-500">Photos (équipement, plaque signalétique…)</p>
+        <div className="mt-1 space-y-2">
+          <AttachmentGallery
+            propertyId={propertyId}
+            attachments={[...photos, ...referencePhotos]}
+            emptyLabel="Aucune photo"
+          />
+          <FileUploadButtons
+            target={{
+              propertyId,
+              entityType: "equipment",
+              entityId: equipment.id,
+              kind: "equipment_photo",
+            }}
+          />
         </div>
       </div>
     </div>
