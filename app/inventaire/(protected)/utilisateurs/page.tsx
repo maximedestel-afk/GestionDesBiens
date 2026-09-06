@@ -1,6 +1,7 @@
 import { getCurrentProfile, listProfiles } from "@/lib/inventaire/queries";
 import { RoleSelect } from "@/components/inventaire/RoleSelect";
 import { InviteUserForm } from "./InviteUserForm";
+import { CreateUserForm } from "./CreateUserForm";
 
 export default async function UsersPage() {
   const profile = await getCurrentProfile();
@@ -19,7 +20,23 @@ export default async function UsersPage() {
       </p>
 
       <div className="mt-6 card p-5">
-        <InviteUserForm />
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Créer directement</h2>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Compte utilisable immédiatement avec l&apos;email et le mot de passe choisis.
+        </p>
+        <div className="mt-3">
+          <CreateUserForm />
+        </div>
+      </div>
+
+      <div className="mt-4 card p-5">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Inviter par email</h2>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Envoie un email pour que la personne choisisse elle-même son mot de passe.
+        </p>
+        <div className="mt-3">
+          <InviteUserForm />
+        </div>
       </div>
 
       <div className="mt-6 overflow-hidden card">

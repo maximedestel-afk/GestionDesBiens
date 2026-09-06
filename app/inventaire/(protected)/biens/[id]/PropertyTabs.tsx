@@ -20,6 +20,7 @@ import { deleteProperty } from "@/lib/inventaire/actions";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { OwnerTab } from "./OwnerTab";
 import { DetailsTab } from "./DetailsTab";
+import { KeysTab } from "./KeysTab";
 import { WaterElecTab } from "./WaterElecTab";
 import { AgencementTab } from "./AgencementTab";
 import { EquipmentTab } from "./EquipmentTab";
@@ -29,6 +30,7 @@ import { ActivityLogPanel } from "./ActivityLogPanel";
 
 const TABS = [
   { key: "details", label: "Détails appartement" },
+  { key: "cles", label: "Clés/Serrure" },
   { key: "agencement", label: "Agencement" },
   { key: "equipements", label: "Équipements" },
   { key: "inventaire", label: "Inventaire" },
@@ -122,12 +124,10 @@ export function PropertyTabs({
           <OwnerTab propertyId={property.id} owner={owner} attachments={propertyAttachments} />
         )}
         {activeTab === "details" && (
-          <DetailsTab
-            propertyId={property.id}
-            details={details}
-            attachments={propertyAttachments}
-            keys={keys}
-          />
+          <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
+        )}
+        {activeTab === "cles" && (
+          <KeysTab propertyId={property.id} details={details} attachments={propertyAttachments} keys={keys} />
         )}
         {activeTab === "eauelec" && (
           <WaterElecTab

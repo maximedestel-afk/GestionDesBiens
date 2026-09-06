@@ -1043,3 +1043,30 @@ export async function inviteUser(formData: FormData) {
 
   revalidatePath("/inventaire/utilisateurs");
 }
+
+export async function createUserDirect(formData: FormData) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const email = requireNonEmpty(formData.get("email"), "L'email");
+  const password = requireNonEmpty(formData.get("password"), "Le mot de passe");
+  const fullName = optionalString(formData.get("fullName"));
+  const role = (optionalString(formData.get("role")) ?? "menage") as UserRole;
+
+  if (password.length < 6) throw new Error("Le mot de passe doit contenir au moins 6 caractères.");
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: fullName ? { full_name: fullName } : undefined,
+  });
+  if (error) throw new Error(error.message);
+
+  if (data.user) {
+    await admin.from("profiles").update({ role, full_name: fullName }).eq("id", data.user.id);
+  }
+
+  revalidatePath("/inventaire/utilisateurs");
+}
