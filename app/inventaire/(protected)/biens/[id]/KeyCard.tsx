@@ -20,7 +20,9 @@ export function KeyCard({
   label: string;
 }) {
   const [keyType, setKeyType] = useState(propertyKey.keyType ?? "");
+  const [keyTypeDetail, setKeyTypeDetail] = useState(propertyKey.keyTypeDetail ?? "");
   const [location, setLocation] = useState(propertyKey.location ?? "");
+  const title = keyType === "autre" && keyTypeDetail.trim() ? keyTypeDetail : label;
 
   return (
     <div className="card p-5">
@@ -28,9 +30,9 @@ export function KeyCard({
         {({ pending, error, success }) => (
           <>
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-sm font-semibold text-[#1d1d1f]">{label}</h3>
+              <h3 className="text-sm font-semibold text-[#1d1d1f]">{title}</h3>
               <ConfirmDeleteButton
-                confirmText={`Supprimer « ${label} » ?`}
+                confirmText={`Supprimer « ${title} » ?`}
                 action={() => deletePropertyKey(propertyId, propertyKey.id)}
               />
             </div>
@@ -53,8 +55,9 @@ export function KeyCard({
                 {keyType === "autre" && (
                   <input
                     name="keyTypeDetail"
-                    defaultValue={propertyKey.keyTypeDetail ?? ""}
-                    placeholder="Préciser le type de clé"
+                    value={keyTypeDetail}
+                    onChange={(e) => setKeyTypeDetail(e.target.value)}
+                    placeholder="Préciser le type de clé (ex. Vigik)"
                     className={inputClass}
                   />
                 )}

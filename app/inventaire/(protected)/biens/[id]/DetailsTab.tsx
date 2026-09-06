@@ -146,9 +146,13 @@ function KeysSection({ propertyId, keys }: { propertyId: string; keys: PropertyK
         <h2 className="text-sm font-semibold text-[#1d1d1f]">Gestion des clés</h2>
         <AddKeyMenu propertyId={propertyId} />
       </div>
-      {keys.map((key, index) => (
-        <KeyCard key={key.id} propertyId={propertyId} propertyKey={key} label={`Clé ${index + 1}`} />
-      ))}
+      {(() => {
+        let keyNumber = 0;
+        return keys.map((key) => {
+          const label = key.keyType === "autre" ? "Autre" : `Clé ${++keyNumber}`;
+          return <KeyCard key={key.id} propertyId={propertyId} propertyKey={key} label={label} />;
+        });
+      })()}
     </div>
   );
 }
