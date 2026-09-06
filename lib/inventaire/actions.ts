@@ -474,7 +474,7 @@ function keyPatchFromForm(formData: FormData) {
   };
 }
 
-export async function createPropertyKey(propertyId: string) {
+export async function createPropertyKey(propertyId: string, keyType?: "autre") {
   const supabase = await createClient();
   await requireUser(supabase);
 
@@ -486,9 +486,11 @@ export async function createPropertyKey(propertyId: string) {
     .limit(1)
     .maybeSingle();
 
-  const { error } = await supabase
-    .from("property_keys")
-    .insert({ property_id: propertyId, position: (maxPos?.position ?? -1) + 1 });
+  const { error } = await supabase.from("property_keys").insert({
+    property_id: propertyId,
+    key_type: keyType ?? null,
+    position: (maxPos?.position ?? -1) + 1,
+  });
   if (error) throw error;
 
   await logActivity(supabase, {
