@@ -67,6 +67,10 @@ export async function GET(
       field: "Ascenseur",
       value: details?.hasElevator === true ? "Oui" : details?.hasElevator === false ? "Non" : "",
     },
+    {
+      field: "Type de serrure",
+      value: details?.lockType === "cle" ? "Clé" : details?.lockType === "connectee" ? "Connectée" : "",
+    },
     { field: "Réseau Wifi", value: details?.wifiNetwork ?? "" },
     { field: "Code Wifi", value: details?.wifiCode ?? "" },
     { field: "Référence client", value: details?.clientReference ?? "" },

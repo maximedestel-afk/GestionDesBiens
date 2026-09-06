@@ -198,6 +198,9 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
     syndic_email: optionalString(formData.get("syndicEmail")),
     syndic_notes: optionalString(formData.get("syndicNotes")),
     comment: optionalString(formData.get("comment")),
+    lock_type: optionalString(formData.get("lockType")),
+    key_content_type: optionalString(formData.get("keyContentType")),
+    key_content_detail: optionalString(formData.get("keyContentDetail")),
   };
 
   const { error } = await supabase.from("property_details").upsert(patch);

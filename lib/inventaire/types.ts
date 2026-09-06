@@ -32,6 +32,9 @@ export interface PropertyDetails {
   syndicEmail: string | null;
   syndicNotes: string | null;
   comment: string | null;
+  lockType: "cle" | "connectee" | null;
+  keyContentType: "cle" | "cle_vigik" | "autre" | null;
+  keyContentDetail: string | null;
 }
 
 export interface PropertyOwner {
@@ -135,7 +138,8 @@ export type AttachmentKind =
   | "equipment_photo"
   | "equipment_reference_photo"
   | "inventory_item_photo"
-  | "element_photo";
+  | "element_photo"
+  | "key_set_photo";
 
 export interface Attachment {
   id: string;

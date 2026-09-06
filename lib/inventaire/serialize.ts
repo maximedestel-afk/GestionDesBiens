@@ -43,6 +43,9 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     syndicEmail: row.syndic_email,
     syndicNotes: row.syndic_notes,
     comment: row.comment,
+    lockType: row.lock_type,
+    keyContentType: row.key_content_type,
+    keyContentDetail: row.key_content_detail,
   };
 }
 

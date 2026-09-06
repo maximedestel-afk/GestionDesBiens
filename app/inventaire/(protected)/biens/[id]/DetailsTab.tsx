@@ -1,12 +1,50 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { Attachment, PropertyDetails } from "@/lib/inventaire/types";
 import { savePropertyDetails } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
+
+function KeyContentField({
+  defaultType,
+  defaultDetail,
+}: {
+  defaultType: PropertyDetails["keyContentType"] | undefined;
+  defaultDetail: string | null | undefined;
+}) {
+  const [type, setType] = useState<"" | "cle" | "cle_vigik" | "autre">(defaultType ?? "");
+
+  return (
+    <div className="mt-3">
+      <label className="field-label" htmlFor="keyContentType">
+        Contenu du trousseau de clé
+      </label>
+      <select
+        id="keyContentType"
+        name="keyContentType"
+        value={type}
+        onChange={(e) => setType(e.target.value as "" | "cle" | "cle_vigik" | "autre")}
+        className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+      >
+        <option value="">Non renseigné</option>
+        <option value="cle">Clé</option>
+        <option value="cle_vigik">Clé + Vigik</option>
+        <option value="autre">Renseigner manuellement</option>
+      </select>
+      {type === "autre" && (
+        <input
+          name="keyContentDetail"
+          defaultValue={defaultDetail ?? ""}
+          placeholder="Préciser le contenu du trousseau"
+          className="mt-2 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+        />
+      )}
+    </div>
+  );
+}
 
 function Field({
   label,
@@ -136,6 +174,35 @@ export function DetailsTab({
                 textarea
                 rows={6}
               />
+            </div>
+          </Section>
+
+          <Section title="Clé / Serrure">
+            <div>
+              <label className="field-label" htmlFor="lockType">
+                Type de serrure
+              </label>
+              <select
+                id="lockType"
+                name="lockType"
+                defaultValue={details?.lockType ?? ""}
+                className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+              >
+                <option value="">Non renseigné</option>
+                <option value="cle">Clé</option>
+                <option value="connectee">Connectée</option>
+              </select>
+            </div>
+            <KeyContentField defaultType={details?.keyContentType} defaultDetail={details?.keyContentDetail} />
+            <div>
+              <p className="text-sm font-medium text-[#1d1d1f]">Photo du trousseau de clé</p>
+              <div className="mt-1 space-y-2">
+                <AttachmentGallery propertyId={propertyId} attachments={byKind("key_set_photo")} />
+                <FileUploadButtons
+                  accept="image/*"
+                  target={{ propertyId, entityType: "property", entityId: propertyId, kind: "key_set_photo" }}
+                />
+              </div>
             </div>
           </Section>
 
