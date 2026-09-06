@@ -11,6 +11,7 @@ import type {
   PropertyAgencement,
   PropertyDetails,
   PropertyElement,
+  PropertyKey,
   PropertyOwner,
   PropertyWaterElec,
   Room,
@@ -44,6 +45,7 @@ export function PropertyTabs({
   isAdmin,
   owner,
   details,
+  keys,
   waterElec,
   waterElecElements,
   agencement,
@@ -58,6 +60,7 @@ export function PropertyTabs({
   isAdmin: boolean;
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
+  keys: PropertyKey[];
   waterElec: PropertyWaterElec | null;
   waterElecElements: PropertyElement[];
   agencement: PropertyAgencement | null;
@@ -119,7 +122,12 @@ export function PropertyTabs({
           <OwnerTab propertyId={property.id} owner={owner} attachments={propertyAttachments} />
         )}
         {activeTab === "details" && (
-          <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
+          <DetailsTab
+            propertyId={property.id}
+            details={details}
+            attachments={propertyAttachments}
+            keys={keys}
+          />
         )}
         {activeTab === "eauelec" && (
           <WaterElecTab

@@ -8,6 +8,7 @@ import type {
   PropertyAgencement,
   PropertyDetails,
   PropertyElement,
+  PropertyKey,
   PropertyOwner,
   PropertyWaterElec,
   Room,
@@ -85,6 +86,21 @@ export function serializePropertyElement(row: any): PropertyElement {
     section: row.section,
     name: row.name,
     notes: row.notes,
+    position: row.position,
+  };
+}
+
+export function serializePropertyKey(row: any): PropertyKey {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    keyType: row.key_type,
+    keyTypeDetail: row.key_type_detail,
+    location: row.location,
+    locationDetail: row.location_detail,
+    boxCode: row.box_code,
+    lockerAddress: row.locker_address,
+    lockerCode: row.locker_code,
     position: row.position,
   };
 }

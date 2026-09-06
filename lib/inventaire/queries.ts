@@ -9,6 +9,7 @@ import {
   serializeProperty,
   serializePropertyDetails,
   serializePropertyElement,
+  serializePropertyKey,
   serializePropertyOwner,
   serializeRoom,
   serializeWaterElec,
@@ -25,6 +26,7 @@ import type {
   PropertyAgencement,
   PropertyDetails,
   PropertyElement,
+  PropertyKey,
   PropertyOwner,
   PropertyWaterElec,
   Room,
@@ -123,6 +125,17 @@ export async function listPropertyElements(
     .order("position", { ascending: true });
   if (error) throw error;
   return (data ?? []).map(serializePropertyElement);
+}
+
+export async function listPropertyKeys(propertyId: string): Promise<PropertyKey[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("property_keys")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("position", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(serializePropertyKey);
 }
 
 export async function listRooms(propertyId: string): Promise<Room[]> {

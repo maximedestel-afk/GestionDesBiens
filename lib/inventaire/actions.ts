@@ -452,6 +452,82 @@ export async function deletePropertyElement(propertyId: string, elementId: strin
   revalidateProperty(propertyId);
 }
 
+function keyPatchFromForm(formData: FormData) {
+  return {
+    key_type: optionalString(formData.get("keyType")),
+    key_type_detail: optionalString(formData.get("keyTypeDetail")),
+    location: optionalString(formData.get("location")),
+    location_detail: optionalString(formData.get("locationDetail")),
+    box_code: optionalString(formData.get("boxCode")),
+    locker_address: optionalString(formData.get("lockerAddress")),
+    locker_code: optionalString(formData.get("lockerCode")),
+  };
+}
+
+export async function createPropertyKey(propertyId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { data: maxPos } = await supabase
+    .from("property_keys")
+    .select("position")
+    .eq("property_id", propertyId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("property_keys")
+    .insert({ property_id: propertyId, position: (maxPos?.position ?? -1) + 1 });
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_key",
+    action: "create",
+    summary: "Clé ajoutée",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function updatePropertyKey(propertyId: string, keyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const patch = keyPatchFromForm(formData);
+  const { error } = await supabase.from("property_keys").update(patch).eq("id", keyId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_key",
+    entityId: keyId,
+    action: "update",
+    summary: "Clé mise à jour",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function deletePropertyKey(propertyId: string, keyId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase.from("property_keys").delete().eq("id", keyId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_key",
+    entityId: keyId,
+    action: "delete",
+    summary: "Clé supprimée",
+  });
+
+  revalidateProperty(propertyId);
+}
+
 export async function createRoom(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);

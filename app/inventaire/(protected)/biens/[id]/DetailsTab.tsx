@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import type { Attachment, PropertyDetails } from "@/lib/inventaire/types";
-import { savePropertyDetails } from "@/lib/inventaire/actions";
+import { useState, useTransition, type ReactNode } from "react";
+import type { Attachment, PropertyDetails, PropertyKey } from "@/lib/inventaire/types";
+import { createPropertyKey, savePropertyDetails } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
+import { KeyCard } from "./KeyCard";
 
 function KeyContentField({
   defaultType,
@@ -87,6 +88,40 @@ function Field({
   );
 }
 
+function KeysSection({ propertyId, keys }: { propertyId: string; keys: PropertyKey[] }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Clés</h2>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => {
+            setError(null);
+            startTransition(async () => {
+              try {
+                await createPropertyKey(propertyId);
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "Erreur.");
+              }
+            });
+          }}
+          className="text-sm font-medium text-[#6e6e73] hover:text-[#1d1d1f]"
+        >
+          {pending ? "…" : "+ Ajouter une clé"}
+        </button>
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {keys.map((key, index) => (
+        <KeyCard key={key.id} propertyId={propertyId} propertyKey={key} label={`Clé ${index + 1}`} />
+      ))}
+    </div>
+  );
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <fieldset className="card p-5">
@@ -100,21 +135,24 @@ export function DetailsTab({
   propertyId,
   details,
   attachments,
+  keys,
 }: {
   propertyId: string;
   details: PropertyDetails | null;
   attachments: Attachment[];
+  keys: PropertyKey[];
 }) {
   const byKind = (kind: Attachment["kind"]) => attachments.filter((a) => a.kind === kind);
 
   return (
-    <ActionForm
-      className="space-y-6"
-      autoSave
-      action={(formData) => savePropertyDetails(propertyId, formData)}
-    >
-      {({ pending, error, success }) => (
-        <>
+    <div className="space-y-6">
+      <ActionForm
+        className="space-y-6"
+        autoSave
+        action={(formData) => savePropertyDetails(propertyId, formData)}
+      >
+        {({ pending, error, success }) => (
+          <>
           <div className="flex justify-end">
             <SaveStatus pending={pending} error={error} success={success} />
           </div>
@@ -257,8 +295,10 @@ export function DetailsTab({
               rows={4}
             />
           </Section>
-        </>
-      )}
-    </ActionForm>
+          </>
+        )}
+      </ActionForm>
+      <KeysSection propertyId={propertyId} keys={keys} />
+    </div>
   );
 }

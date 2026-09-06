@@ -62,6 +62,22 @@ export interface PropertyWaterElec {
   hasGas: boolean | null;
 }
 
+export type KeyType = "guest" | "menage" | "backup" | "autre";
+export type KeyLocation = "boite_a_cle" | "locker" | "autre";
+
+export interface PropertyKey {
+  id: string;
+  propertyId: string;
+  keyType: KeyType | null;
+  keyTypeDetail: string | null;
+  location: KeyLocation | null;
+  locationDetail: string | null;
+  boxCode: string | null;
+  lockerAddress: string | null;
+  lockerCode: string | null;
+  position: number;
+}
+
 export type ElementSection = "water_elec" | "notes";
 
 export interface PropertyElement {
