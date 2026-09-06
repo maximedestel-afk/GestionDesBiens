@@ -84,7 +84,7 @@ export function PropertyTabs({
   return (
     <div>
       <div className="flex flex-col gap-3 pb-1 sm:flex-row sm:items-center sm:justify-between">
-        <nav className="no-scrollbar -mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <nav className="flex flex-wrap gap-1">
           {visibleTabs.map((tab) => (
             <button
               key={tab.key}
