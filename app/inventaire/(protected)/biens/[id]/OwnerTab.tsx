@@ -22,7 +22,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700" htmlFor={name}>
+      <label className="field-label" htmlFor={name}>
         {label}
       </label>
       {textarea ? (
@@ -31,7 +31,7 @@ function Field({
           name={name}
           defaultValue={defaultValue ?? ""}
           rows={3}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+          className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
         />
       ) : (
         <input
@@ -39,7 +39,7 @@ function Field({
           name={name}
           type={type}
           defaultValue={defaultValue ?? ""}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+          className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
         />
       )}
     </div>
@@ -62,8 +62,8 @@ export function OwnerTab({
       <ActionForm className="space-y-4" autoSave action={(formData) => savePropertyOwner(propertyId, formData)}>
         {({ pending, error, success }) => (
           <>
-            <fieldset className="rounded-lg border border-slate-200 bg-white p-4">
-              <legend className="px-1 text-sm font-semibold text-slate-900">Propriétaire</legend>
+            <fieldset className="card p-5">
+              <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Propriétaire</legend>
               <div className="mt-2 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Nom" name="lastName" defaultValue={owner?.lastName} />
@@ -83,8 +83,8 @@ export function OwnerTab({
         )}
       </ActionForm>
 
-      <fieldset className="rounded-lg border border-slate-200 bg-white p-4">
-        <legend className="px-1 text-sm font-semibold text-slate-900">Bail</legend>
+      <fieldset className="card p-5">
+        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Bail</legend>
         <div className="mt-2 space-y-2">
           <AttachmentGallery propertyId={propertyId} attachments={leaseAttachments} emptyLabel="Aucun bail joint" />
           <FileUploadButtons

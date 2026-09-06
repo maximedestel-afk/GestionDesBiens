@@ -1,18 +1,36 @@
 import type { InventoryCategory } from "./types";
 
-// Bouton "Charger les équipements standards" (onglet Équipements techniques) :
-// ajoute ces équipements d'un coup dans la pièce choisie.
-export const STANDARD_EQUIPMENT_NAMES = [
-  "Radiateurs",
-  "Téléviseur",
-  "Box internet/Wifi",
-  "Lave-vaisselle",
-  "Lave-linge",
-  "Plaques de cuisson",
-  "Hotte aspirante",
-  "Réfrigérateur",
-  "Four",
-  "Micro-ondes",
+// Bouton "Charger les standards" (onglet Équipements techniques) : les
+// équipements standards dépendent du type de pièce (déduit du nom de la
+// pièce). Permet toujours d'ajouter d'autres équipements manuellement.
+const STANDARD_EQUIPMENT_BY_ROOM_TYPE = {
+  cuisine: ["Lave-vaisselle", "Plaques de cuisson", "Hotte aspirante", "Réfrigérateur", "Four", "Micro-ondes"],
+  salon: ["Box internet/Wifi", "Climatisation", "Téléviseur", "Radiateurs"],
+  chambre: ["Téléviseur", "Radiateurs", "Climatisation"],
+  "salle de bain": ["Radiateurs"],
+} as const;
+
+export type RoomType = keyof typeof STANDARD_EQUIPMENT_BY_ROOM_TYPE;
+
+export function detectRoomType(roomName: string): RoomType | null {
+  const n = roomName.toLowerCase();
+  if (n.includes("cuisine")) return "cuisine";
+  if (n.includes("salon") || n.includes("séjour") || n.includes("sejour")) return "salon";
+  if (n.includes("chambre")) return "chambre";
+  if (n.includes("salle de bain") || n.includes("salle d'eau") || n.includes("sdb")) return "salle de bain";
+  return null;
+}
+
+export function standardEquipmentNamesForRoom(roomName: string): readonly string[] {
+  const type = detectRoomType(roomName);
+  return type ? STANDARD_EQUIPMENT_BY_ROOM_TYPE[type] : [];
+}
+
+// Bouton "Charger les éléments standards" (onglet Eau/Élec).
+export const STANDARD_WATER_ELEC_ELEMENT_NAMES = [
+  "Robinet d'arrêt eau",
+  "Tableau électrique",
+  "Ballon d'eau chaude",
 ] as const;
 
 export interface StandardInventoryItem {

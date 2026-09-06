@@ -11,7 +11,7 @@ function AddItemForm({ propertyId, category }: { propertyId: string; category: s
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="text-sm font-medium text-slate-600 hover:text-slate-900">
+      <button type="button" onClick={() => setOpen(true)} className="text-sm font-medium text-[#6e6e73] hover:text-[#1d1d1f]">
         + Ajouter un article
       </button>
     );
@@ -29,40 +29,40 @@ function AddItemForm({ propertyId, category }: { propertyId: string; category: s
       {({ pending, error }) => (
         <>
           <div>
-            <label className="block text-xs font-medium text-slate-500">Nom</label>
+            <label className="block text-[12px] font-medium text-[#6e6e73]">Nom</label>
             <input
               name="name"
               required
-              className="mt-1 w-48 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              className="mt-1 w-48 rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500">En stock</label>
+            <label className="block text-[12px] font-medium text-[#6e6e73]">En stock</label>
             <input
               name="inStock"
               type="number"
               min={0}
               defaultValue={0}
-              className="mt-1 w-20 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              className="mt-1 w-20 rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500">Cible</label>
+            <label className="block text-[12px] font-medium text-[#6e6e73]">Cible</label>
             <input
               name="target"
               type="number"
               min={0}
-              className="mt-1 w-20 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              className="mt-1 w-20 rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
             />
           </div>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+            className="btn-primary btn-sm"
           >
             {pending ? "…" : "Ajouter"}
           </button>
-          <button type="button" onClick={() => setOpen(false)} className="rounded px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">
+          <button type="button" onClick={() => setOpen(false)} className="btn-secondary btn-sm">
             Annuler
           </button>
           {error && <span className="text-sm text-red-600">{error}</span>}
@@ -91,7 +91,7 @@ function LoadStandardListButton({ propertyId }: { propertyId: string }) {
             }
           });
         }}
-        className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+        className="btn-primary"
       >
         {pending ? "Chargement…" : "Charger la liste standard"}
       </button>
@@ -111,8 +111,8 @@ export function InventoryTab({
 }) {
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3">
-        <p className="text-sm text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-black/15 bg-black/[0.02] p-3.5">
+        <p className="text-sm text-[#6e6e73]">
           ~70 articles standards (hors linge de maison loué à chaque ménage).
         </p>
         <LoadStandardListButton propertyId={propertyId} />
@@ -122,12 +122,12 @@ export function InventoryTab({
         const categoryItems = items.filter((i) => i.category === category);
         return (
           <section key={category}>
-            <h2 className="text-sm font-semibold text-slate-900">{category}</h2>
+            <h2 className="text-sm font-semibold text-[#1d1d1f]">{category}</h2>
             {categoryItems.length > 0 && (
-              <div className="mt-2 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+              <div className="mt-2 overflow-x-auto card">
                 <table className="w-full min-w-[36rem] text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400">
+                    <tr className="border-b border-black/[0.06] text-left text-xs uppercase tracking-wide text-black/35">
                       <th className="py-2 pl-3 pr-3 font-medium">Article</th>
                       <th className="py-2 pr-3 font-medium">En stock</th>
                       <th className="py-2 pr-3 font-medium">Cible</th>

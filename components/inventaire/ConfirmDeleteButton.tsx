@@ -7,7 +7,7 @@ export function ConfirmDeleteButton({
   label = "Supprimer",
   confirmText,
   action,
-  className = "text-sm font-medium text-red-600 hover:text-red-700",
+  className = "text-[13px] font-medium text-red-600 transition hover:text-red-700",
 }: {
   label?: string;
   confirmText: string;
@@ -34,17 +34,13 @@ export function ConfirmDeleteButton({
       <dialog
         ref={dialogRef}
         onClick={(event) => event.stopPropagation()}
-        className="w-80 max-w-[90vw] rounded-lg p-0 backdrop:bg-black/40"
+        className="card w-80 max-w-[90vw] p-0 backdrop:bg-black/30 backdrop:backdrop-blur-sm"
       >
         <div className="p-5">
-          <p className="text-sm text-slate-700">{confirmText}</p>
-          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+          <p className="text-[15px] text-[#1d1d1f]">{confirmText}</p>
+          {error && <p className="mt-2 text-[13px] text-red-600">{error}</p>}
           <div className="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => dialogRef.current?.close()}
-              className="rounded px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
-            >
+            <button type="button" onClick={() => dialogRef.current?.close()} className="btn-secondary btn-sm">
               Annuler
             </button>
             <button
@@ -62,7 +58,7 @@ export function ConfirmDeleteButton({
                   }
                 });
               }}
-              className="rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              className="btn-danger btn-sm"
             >
               {pending ? "Suppression…" : "Confirmer la suppression"}
             </button>

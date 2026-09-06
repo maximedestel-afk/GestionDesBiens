@@ -1,31 +1,48 @@
 import { getCurrentProfile, listProfiles } from "@/lib/inventaire/queries";
 import { RoleSelect } from "@/components/inventaire/RoleSelect";
 import { InviteUserForm } from "./InviteUserForm";
+import { CreateUserForm } from "./CreateUserForm";
 
 export default async function UsersPage() {
   const profile = await getCurrentProfile();
 
   if (profile?.role !== "admin") {
-    return <p className="text-sm text-slate-500">Réservé aux administrateurs.</p>;
+    return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
   }
 
   const profiles = await listProfiles();
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">Utilisateurs</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="text-[26px] font-semibold tracking-tight text-[#1d1d1f]">Utilisateurs</h1>
+      <p className="mt-1 text-[15px] text-[#6e6e73]">
         Gérez les rôles de l&apos;équipe (admin / ménage) et invitez de nouveaux membres.
       </p>
 
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4">
-        <InviteUserForm />
+      <div className="mt-6 card p-5">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Créer directement</h2>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Compte utilisable immédiatement avec l&apos;email et le mot de passe choisis.
+        </p>
+        <div className="mt-3">
+          <CreateUserForm />
+        </div>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="mt-4 card p-5">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Inviter par email</h2>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Envoie un email pour que la personne choisisse elle-même son mot de passe.
+        </p>
+        <div className="mt-3">
+          <InviteUserForm />
+        </div>
+      </div>
+
+      <div className="mt-6 overflow-hidden card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400">
+            <tr className="border-b border-black/[0.06] text-left text-xs uppercase tracking-wide text-black/35">
               <th className="px-4 py-2 font-medium">Email</th>
               <th className="px-4 py-2 font-medium">Nom</th>
               <th className="px-4 py-2 font-medium">Rôle</th>
@@ -33,7 +50,7 @@ export default async function UsersPage() {
           </thead>
           <tbody>
             {profiles.map((p) => (
-              <tr key={p.id} className="border-b border-slate-100 last:border-0">
+              <tr key={p.id} className="border-b border-black/[0.06] last:border-0">
                 <td className="px-4 py-2">{p.email}</td>
                 <td className="px-4 py-2">{p.fullName ?? "—"}</td>
                 <td className="px-4 py-2">

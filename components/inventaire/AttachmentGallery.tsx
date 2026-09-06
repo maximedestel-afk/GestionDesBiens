@@ -22,7 +22,7 @@ export function AttachmentGallery({
   emptyLabel?: string;
 }) {
   if (attachments.length === 0) {
-    return <p className="text-sm text-slate-400">{emptyLabel}</p>;
+    return <p className="text-[13px] text-black/35">{emptyLabel}</p>;
   }
 
   return (
@@ -30,7 +30,7 @@ export function AttachmentGallery({
       {attachments.map((attachment) => (
         <div
           key={attachment.id}
-          className="group relative w-28 overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+          className="group relative w-28 overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.02] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
         >
           <a href={attachment.url ?? "#"} target="_blank" rel="noreferrer" className="block">
             {isImage(attachment.mimeType) && attachment.url ? (
@@ -45,18 +45,18 @@ export function AttachmentGallery({
             ) : isVideo(attachment.mimeType) && attachment.url ? (
               <video src={attachment.url} className="h-28 w-28 object-cover" muted />
             ) : (
-              <div className="flex h-28 w-28 flex-col items-center justify-center gap-1 p-2 text-center text-xs text-slate-500">
+              <div className="flex h-28 w-28 flex-col items-center justify-center gap-1 p-2 text-center text-xs text-[#6e6e73]">
                 <span className="text-2xl">📄</span>
                 <span className="line-clamp-2 break-all">{attachment.fileName}</span>
               </div>
             )}
           </a>
-          <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="absolute right-1.5 top-1.5 opacity-80 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
             <ConfirmDeleteButton
               label="✕"
               confirmText={`Supprimer « ${attachment.fileName} » ?`}
               action={() => deleteAttachment(propertyId, attachment.id)}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-xs text-red-600 shadow hover:bg-white"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-xs text-red-600 shadow-sm transition hover:bg-white"
             />
           </div>
         </div>

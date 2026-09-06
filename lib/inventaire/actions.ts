@@ -4,10 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { STANDARD_EQUIPMENT_NAMES, STANDARD_INVENTORY_ITEMS } from "./catalog";
+import {
+  STANDARD_INVENTORY_ITEMS,
+  STANDARD_WATER_ELEC_ELEMENT_NAMES,
+  standardEquipmentNamesForRoom,
+} from "./catalog";
 import type {
   AttachmentEntityType,
   AttachmentKind,
+  ElementSection,
+  HotWaterProduction,
   InventoryCategory,
   ItemCondition,
   UserRole,
@@ -116,6 +122,7 @@ export async function createProperty(formData: FormData) {
   await supabase.from("property_agencement").insert({ property_id: data.id });
   await supabase.from("property_details").insert({ property_id: data.id });
   await supabase.from("property_owner").insert({ property_id: data.id });
+  await supabase.from("property_water_elec").insert({ property_id: data.id });
   await logActivity(supabase, {
     propertyId: data.id,
     entityType: "property",
@@ -172,25 +179,38 @@ export async function deleteProperty(propertyId: string) {
 /* Détails appartement                                                 */
 /* ------------------------------------------------------------------ */
 
+// Le formulaire "Détails appartement" est scindé en plusieurs <form> (la
+// section "Gestion des clés" a ses propres formulaires par clé, imbriqués
+// entre deux morceaux du formulaire principal). Chaque morceau n'envoie donc
+// que ses propres champs : on ne patch que les champs réellement présents
+// dans le FormData pour ne pas écraser les champs gérés par l'autre morceau.
+const PROPERTY_DETAILS_STRING_FIELDS: [string, string][] = [
+  ["floor", "floor"],
+  ["accessCodeClient", "access_code_client"],
+  ["accessCodeCleaning", "access_code_cleaning"],
+  ["accessCodeBackup", "access_code_backup"],
+  ["wifiNetwork", "wifi_network"],
+  ["wifiCode", "wifi_code"],
+  ["edfPrm", "edf_prm"],
+  ["syndicName", "syndic_name"],
+  ["syndicPhone", "syndic_phone"],
+  ["syndicEmail", "syndic_email"],
+  ["syndicNotes", "syndic_notes"],
+  ["comment", "comment"],
+  ["lockType", "lock_type"],
+  ["keyContentType", "key_content_type"],
+  ["keyContentDetail", "key_content_detail"],
+];
+
 export async function savePropertyDetails(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
 
-  const patch = {
-    property_id: propertyId,
-    floor: optionalString(formData.get("floor")),
-    has_elevator: formData.has("hasElevator") ? formData.get("hasElevator") === "true" : null,
-    access_code_client: optionalString(formData.get("accessCodeClient")),
-    access_code_cleaning: optionalString(formData.get("accessCodeCleaning")),
-    access_code_backup: optionalString(formData.get("accessCodeBackup")),
-    wifi_network: optionalString(formData.get("wifiNetwork")),
-    wifi_code: optionalString(formData.get("wifiCode")),
-    edf_prm: optionalString(formData.get("edfPrm")),
-    syndic_name: optionalString(formData.get("syndicName")),
-    syndic_phone: optionalString(formData.get("syndicPhone")),
-    syndic_email: optionalString(formData.get("syndicEmail")),
-    syndic_notes: optionalString(formData.get("syndicNotes")),
-  };
+  const patch: Record<string, unknown> = { property_id: propertyId };
+  for (const [formKey, columnKey] of PROPERTY_DETAILS_STRING_FIELDS) {
+    if (formData.has(formKey)) patch[columnKey] = optionalString(formData.get(formKey));
+  }
+  if (formData.has("hasElevator")) patch.has_elevator = formData.get("hasElevator") === "true";
 
   const { error } = await supabase.from("property_details").upsert(patch);
   if (error) throw error;
@@ -250,10 +270,15 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
     throw new Error("La capacité doit être un nombre entier positif.");
   }
   const babyBed = formData.get("babyBed") === "true";
+  const surfaceRaw = optionalString(formData.get("surface"));
+  const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
+  if (surface !== null && (!Number.isFinite(surface) || surface < 0)) {
+    throw new Error("La superficie doit être un nombre positif.");
+  }
 
   const { error } = await supabase
     .from("property_agencement")
-    .upsert({ property_id: propertyId, capacity, baby_bed: babyBed });
+    .upsert({ property_id: propertyId, capacity, baby_bed: babyBed, surface });
   if (error) throw error;
 
   await logActivity(supabase, {
@@ -261,6 +286,255 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
     entityType: "property_agencement",
     action: "update",
     summary: "Agencement mis à jour",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
+/* Eau / Élec                                                           */
+/* ------------------------------------------------------------------ */
+
+export async function saveWaterElec(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const hotWaterProductionRaw = optionalString(formData.get("hotWaterProduction"));
+  const hotWaterProduction =
+    hotWaterProductionRaw === "individuelle" || hotWaterProductionRaw === "collective"
+      ? (hotWaterProductionRaw as HotWaterProduction)
+      : null;
+  const hasGas = formData.has("hasGas") ? formData.get("hasGas") === "true" : null;
+
+  const { error } = await supabase
+    .from("property_water_elec")
+    .upsert({ property_id: propertyId, hot_water_production: hotWaterProduction, has_gas: hasGas });
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_water_elec",
+    action: "update",
+    summary: "Eau / Élec mis à jour",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function loadStandardWaterElecElements(propertyId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { data: existing } = await supabase
+    .from("property_elements")
+    .select("name")
+    .eq("property_id", propertyId)
+    .eq("section", "water_elec");
+  const existingNames = new Set((existing ?? []).map((r) => r.name));
+
+  const toAdd = STANDARD_WATER_ELEC_ELEMENT_NAMES.filter((name) => !existingNames.has(name));
+  if (toAdd.length === 0) return;
+
+  const { data: maxPos } = await supabase
+    .from("property_elements")
+    .select("position")
+    .eq("property_id", propertyId)
+    .eq("section", "water_elec")
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let position = (maxPos?.position ?? -1) + 1;
+  const rows = toAdd.map((name) => ({
+    property_id: propertyId,
+    section: "water_elec" as const,
+    name,
+    position: position++,
+  }));
+
+  const { error } = await supabase.from("property_elements").insert(rows);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_element",
+    action: "create",
+    summary: `Éléments standards Eau/Élec chargés (${rows.length})`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
+/* Éléments (Eau/Élec + Notes)                                          */
+/* ------------------------------------------------------------------ */
+
+export async function createPropertyElement(
+  propertyId: string,
+  section: ElementSection,
+  formData: FormData
+) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const name = requireNonEmpty(formData.get("name"), "Le nom");
+  const notes = optionalString(formData.get("notes"));
+
+  const { data: maxPos } = await supabase
+    .from("property_elements")
+    .select("position")
+    .eq("property_id", propertyId)
+    .eq("section", section)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = await supabase
+    .from("property_elements")
+    .insert({
+      property_id: propertyId,
+      section,
+      name,
+      notes,
+      position: (maxPos?.position ?? -1) + 1,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_element",
+    entityId: data.id,
+    action: "create",
+    summary: `Élément « ${name} » ajouté`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function updatePropertyElement(propertyId: string, elementId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const name = requireNonEmpty(formData.get("name"), "Le nom");
+  const notes = optionalString(formData.get("notes"));
+
+  const { error } = await supabase
+    .from("property_elements")
+    .update({ name, notes })
+    .eq("id", elementId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_element",
+    entityId: elementId,
+    action: "update",
+    summary: `Élément « ${name} » mis à jour`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function deletePropertyElement(propertyId: string, elementId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { data: element } = await supabase
+    .from("property_elements")
+    .select("name")
+    .eq("id", elementId)
+    .maybeSingle();
+
+  const { error } = await supabase.from("property_elements").delete().eq("id", elementId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_element",
+    entityId: elementId,
+    action: "delete",
+    summary: `Élément « ${element?.name ?? elementId} » supprimé`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+function keyPatchFromForm(formData: FormData) {
+  return {
+    key_type: optionalString(formData.get("keyType")),
+    key_type_detail: optionalString(formData.get("keyTypeDetail")),
+    location: optionalString(formData.get("location")),
+    location_detail: optionalString(formData.get("locationDetail")),
+    box_location: optionalString(formData.get("boxLocation")),
+    box_code: optionalString(formData.get("boxCode")),
+    locker_address: optionalString(formData.get("lockerAddress")),
+    locker_code: optionalString(formData.get("lockerCode")),
+  };
+}
+
+export async function createPropertyKey(propertyId: string, keyType?: "autre") {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { data: maxPos } = await supabase
+    .from("property_keys")
+    .select("position")
+    .eq("property_id", propertyId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error } = await supabase.from("property_keys").insert({
+    property_id: propertyId,
+    key_type: keyType ?? null,
+    position: (maxPos?.position ?? -1) + 1,
+  });
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_key",
+    action: "create",
+    summary: "Clé ajoutée",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function updatePropertyKey(propertyId: string, keyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const patch = keyPatchFromForm(formData);
+  const { error } = await supabase.from("property_keys").update(patch).eq("id", keyId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_key",
+    entityId: keyId,
+    action: "update",
+    summary: "Clé mise à jour",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function deletePropertyKey(propertyId: string, keyId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase.from("property_keys").delete().eq("id", keyId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_key",
+    entityId: keyId,
+    action: "delete",
+    summary: "Clé supprimée",
   });
 
   revalidateProperty(propertyId);
@@ -360,6 +634,7 @@ function equipmentPatchFromForm(formData: FormData) {
     serial_number: optionalString(formData.get("serialNumber")),
     drying_function: name.toLowerCase().includes("lave-linge") && formData.get("dryingFunction") === "true",
     video_link: optionalString(formData.get("videoLink")),
+    notes: optionalString(formData.get("notes")),
   };
 }
 
@@ -413,27 +688,6 @@ export async function updateEquipment(propertyId: string, equipmentId: string, f
   revalidateProperty(propertyId);
 }
 
-export async function updateEquipmentDetails(propertyId: string, equipmentId: string, details: string) {
-  const supabase = await createClient();
-  await requireUser(supabase);
-
-  const { error } = await supabase
-    .from("equipment")
-    .update({ notes: details.trim() ? details.trim() : null })
-    .eq("id", equipmentId);
-  if (error) throw error;
-
-  await logActivity(supabase, {
-    propertyId,
-    entityType: "equipment",
-    entityId: equipmentId,
-    action: "update",
-    summary: "Détails de l'équipement mis à jour",
-  });
-
-  revalidateProperty(propertyId);
-}
-
 export async function deleteEquipment(propertyId: string, equipmentId: string) {
   const supabase = await createClient();
   await requireUser(supabase);
@@ -458,6 +712,15 @@ export async function loadStandardEquipment(propertyId: string, roomId: string) 
   const supabase = await createClient();
   await requireUser(supabase);
 
+  const { data: room } = await supabase.from("rooms").select("name").eq("id", roomId).maybeSingle();
+  const standardNames = standardEquipmentNamesForRoom(room?.name ?? "");
+  if (standardNames.length === 0) return;
+
+  const { data: existing } = await supabase.from("equipment").select("name").eq("room_id", roomId);
+  const existingNames = new Set((existing ?? []).map((r) => r.name));
+  const namesToAdd = standardNames.filter((name) => !existingNames.has(name));
+  if (namesToAdd.length === 0) return;
+
   const { data: maxPos } = await supabase
     .from("equipment")
     .select("position")
@@ -467,7 +730,7 @@ export async function loadStandardEquipment(propertyId: string, roomId: string) 
     .maybeSingle();
 
   let position = (maxPos?.position ?? -1) + 1;
-  const rows = STANDARD_EQUIPMENT_NAMES.map((name) => ({
+  const rows = namesToAdd.map((name) => ({
     property_id: propertyId,
     room_id: roomId,
     name,
@@ -481,7 +744,7 @@ export async function loadStandardEquipment(propertyId: string, roomId: string) 
     propertyId,
     entityType: "equipment",
     action: "create",
-    summary: `Équipements standards chargés (${STANDARD_EQUIPMENT_NAMES.length} éléments)`,
+    summary: `Équipements standards chargés (${rows.length} éléments)`,
   });
 
   revalidateProperty(propertyId);
@@ -776,6 +1039,33 @@ export async function inviteUser(formData: FormData) {
 
   if (data.user) {
     await admin.from("profiles").update({ role }).eq("id", data.user.id);
+  }
+
+  revalidatePath("/inventaire/utilisateurs");
+}
+
+export async function createUserDirect(formData: FormData) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const email = requireNonEmpty(formData.get("email"), "L'email");
+  const password = requireNonEmpty(formData.get("password"), "Le mot de passe");
+  const fullName = optionalString(formData.get("fullName"));
+  const role = (optionalString(formData.get("role")) ?? "menage") as UserRole;
+
+  if (password.length < 6) throw new Error("Le mot de passe doit contenir au moins 6 caractères.");
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: fullName ? { full_name: fullName } : undefined,
+  });
+  if (error) throw new Error(error.message);
+
+  if (data.user) {
+    await admin.from("profiles").update({ role, full_name: fullName }).eq("id", data.user.id);
   }
 
   revalidatePath("/inventaire/utilisateurs");

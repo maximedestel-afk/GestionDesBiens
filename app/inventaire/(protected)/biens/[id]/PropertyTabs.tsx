@@ -10,24 +10,33 @@ import type {
   Property,
   PropertyAgencement,
   PropertyDetails,
+  PropertyElement,
+  PropertyKey,
   PropertyOwner,
+  PropertyWaterElec,
   Room,
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { OwnerTab } from "./OwnerTab";
 import { DetailsTab } from "./DetailsTab";
+import { KeysTab } from "./KeysTab";
+import { WaterElecTab } from "./WaterElecTab";
 import { AgencementTab } from "./AgencementTab";
 import { EquipmentTab } from "./EquipmentTab";
 import { InventoryTab } from "./InventoryTab";
+import { NotesTab } from "./NotesTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 
 const TABS = [
-  { key: "proprietaire", label: "Propriétaire" },
   { key: "details", label: "Détails appartement" },
+  { key: "cles", label: "Clés/Serrure" },
   { key: "agencement", label: "Agencement" },
-  { key: "equipements", label: "Équipements techniques" },
-  { key: "inventaire", label: "Inventaire du foyer" },
+  { key: "equipements", label: "Équipements" },
+  { key: "inventaire", label: "Inventaire" },
+  { key: "eauelec", label: "Eau / Élec" },
+  { key: "notes", label: "Notes" },
+  { key: "proprietaire", label: "Propriétaire" },
   { key: "historique", label: "Historique" },
 ] as const;
 
@@ -38,10 +47,14 @@ export function PropertyTabs({
   isAdmin,
   owner,
   details,
+  keys,
+  waterElec,
+  waterElecElements,
   agencement,
   rooms,
   equipment,
   inventoryItems,
+  noteElements,
   attachments,
   activityLog,
 }: {
@@ -49,41 +62,46 @@ export function PropertyTabs({
   isAdmin: boolean;
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
+  keys: PropertyKey[];
+  waterElec: PropertyWaterElec | null;
+  waterElecElements: PropertyElement[];
   agencement: PropertyAgencement | null;
   rooms: Room[];
   equipment: Equipment[];
   inventoryItems: InventoryItem[];
+  noteElements: PropertyElement[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
   const visibleTabs = TABS.filter((tab) => tab.key !== "proprietaire" || isAdmin);
-  const [activeTab, setActiveTab] = useState<TabKey>(isAdmin ? "proprietaire" : "details");
+  const [activeTab, setActiveTab] = useState<TabKey>("details");
 
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
   const inventoryAttachments = attachments.filter((a) => a.entityType === "inventory_item");
+  const elementAttachments = attachments.filter((a) => a.entityType === "property_element");
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
+      <div className="flex flex-col gap-3 pb-1 sm:flex-row sm:items-center sm:justify-between">
         <nav className="flex flex-wrap gap-1">
           {visibleTabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
-              className={`rounded-t-md px-4 py-2 text-sm font-medium ${
+              className={`pill-tab ${
                 activeTab === tab.key
-                  ? "border-b-2 border-slate-900 text-slate-900"
-                  : "text-slate-500 hover:text-slate-800"
+                  ? "bg-[#1d1d1f] text-white"
+                  : "text-[#6e6e73] hover:bg-black/[0.04] hover:text-[#1d1d1f]"
               }`}
             >
               {tab.label}
             </button>
           ))}
         </nav>
-        <div className="mb-2 flex items-center gap-3 text-sm">
-          <a href={`/inventaire/biens/${property.id}/export`} className="text-slate-600 hover:text-slate-900">
+        <div className="flex shrink-0 items-center gap-4 text-[13px]">
+          <a href={`/inventaire/biens/${property.id}/export`} className="link-quiet text-[13px]">
             Exporter (Excel)
           </a>
           <ConfirmDeleteButton
@@ -108,6 +126,17 @@ export function PropertyTabs({
         {activeTab === "details" && (
           <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
         )}
+        {activeTab === "cles" && (
+          <KeysTab propertyId={property.id} details={details} attachments={propertyAttachments} keys={keys} />
+        )}
+        {activeTab === "eauelec" && (
+          <WaterElecTab
+            propertyId={property.id}
+            waterElec={waterElec}
+            elements={waterElecElements}
+            attachments={elementAttachments}
+          />
+        )}
         {activeTab === "agencement" && (
           <AgencementTab
             propertyId={property.id}
@@ -130,6 +159,9 @@ export function PropertyTabs({
             items={inventoryItems}
             attachments={inventoryAttachments}
           />
+        )}
+        {activeTab === "notes" && (
+          <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}
         {activeTab === "historique" && <ActivityLogPanel entries={activityLog} />}
       </div>

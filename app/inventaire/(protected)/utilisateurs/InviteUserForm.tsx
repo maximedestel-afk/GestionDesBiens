@@ -9,20 +9,20 @@ export function InviteUserForm() {
       {({ pending, error, success }) => (
         <>
           <div>
-            <label className="block text-xs font-medium text-slate-500">Email</label>
+            <label className="block text-[12px] font-medium text-[#6e6e73]">Email</label>
             <input
               name="email"
               type="email"
               required
-              className="mt-1 w-64 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              className="mt-1 w-64 rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500">Rôle</label>
+            <label className="block text-[12px] font-medium text-[#6e6e73]">Rôle</label>
             <select
               name="role"
               defaultValue="menage"
-              className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              className="mt-1 rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
             >
               <option value="admin">Admin</option>
               <option value="menage">Ménage</option>
@@ -31,7 +31,7 @@ export function InviteUserForm() {
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+            className="btn-primary"
           >
             {pending ? "Envoi…" : "Inviter"}
           </button>

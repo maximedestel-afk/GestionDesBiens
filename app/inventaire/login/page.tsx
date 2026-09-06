@@ -20,28 +20,28 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-slate-900">Registre des biens</h1>
-        <p className="mt-1 text-sm text-slate-500">Connectez-vous pour accéder à l&apos;inventaire.</p>
+    <div className="flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="w-full max-w-[380px]">
+        <div className="text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1d1d1f] text-xl text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]">
+            🏠
+          </div>
+          <h1 className="mt-4 text-[26px] font-semibold tracking-tight text-[#1d1d1f]">
+            Melvane Gestion des Biens
+          </h1>
+          <p className="mt-1.5 text-[15px] text-[#6e6e73]">Connectez-vous pour accéder à l&apos;inventaire.</p>
+        </div>
 
-        <form action={action} className="mt-6 space-y-4">
+        <form action={action} className="card mt-8 space-y-4 p-6">
           <input type="hidden" name="next" value={next ?? "/inventaire"} />
           <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="email">
+            <label className="field-label" htmlFor="email">
               Email
             </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-            />
+            <input id="email" name="email" type="email" required autoComplete="email" className="field-input" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="password">
+            <label className="field-label" htmlFor="password">
               Mot de passe
             </label>
             <input
@@ -50,14 +50,11 @@ export default async function LoginPage({
               type="password"
               required
               autoComplete="current-password"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              className="field-input"
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-          >
+          {error && <p className="text-[13px] text-red-600">{error}</p>}
+          <button type="submit" className="w-full btn-primary justify-center">
             Se connecter
           </button>
         </form>

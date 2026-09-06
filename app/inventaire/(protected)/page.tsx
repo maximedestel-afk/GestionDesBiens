@@ -13,39 +13,39 @@ export default async function PropertiesPage({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-slate-900">Biens</h1>
+        <h1 className="text-[28px] font-semibold tracking-tight text-[#1d1d1f]">Biens</h1>
         <NewPropertyDialog />
       </div>
 
-      <form action="/inventaire" method="get" className="mt-4">
+      <form action="/inventaire" method="get" className="mt-5">
         <input
           type="search"
           name="q"
           defaultValue={q ?? ""}
           placeholder="Rechercher par référence ou nom…"
-          className="w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+          className="field-input max-w-md"
         />
       </form>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="mt-6 overflow-hidden card">
         {properties.length === 0 ? (
-          <p className="p-6 text-sm text-slate-500">Aucun bien trouvé.</p>
+          <p className="p-8 text-center text-[15px] text-[#6e6e73]">Aucun bien trouvé.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-black/[0.06]">
             {properties.map((property) => (
               <li key={property.id}>
                 <Link
                   href={`/inventaire/biens/${property.id}`}
-                  className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-slate-50"
+                  className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-black/[0.02]"
                 >
                   <div>
-                    <p className="font-medium text-slate-900">
+                    <p className="text-[15px] font-medium text-[#1d1d1f]">
                       {property.reference}
-                      {property.name && <span className="ml-2 font-normal text-slate-500">{property.name}</span>}
+                      {property.name && <span className="ml-2 font-normal text-[#6e6e73]">{property.name}</span>}
                     </p>
-                    {property.address && <p className="text-sm text-slate-500">{property.address}</p>}
+                    {property.address && <p className="text-[13px] text-[#6e6e73]">{property.address}</p>}
                   </div>
-                  <span className="text-slate-400">→</span>
+                  <span className="text-black/25">›</span>
                 </Link>
               </li>
             ))}

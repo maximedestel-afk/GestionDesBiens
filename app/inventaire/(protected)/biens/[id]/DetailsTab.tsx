@@ -25,7 +25,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700" htmlFor={name}>
+      <label className="field-label" htmlFor={name}>
         {label}
       </label>
       {textarea ? (
@@ -34,7 +34,7 @@ function Field({
           name={name}
           defaultValue={defaultValue ?? ""}
           rows={rows}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+          className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
         />
       ) : (
         <input
@@ -42,7 +42,7 @@ function Field({
           name={name}
           type={type}
           defaultValue={defaultValue ?? ""}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+          className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
         />
       )}
     </div>
@@ -51,8 +51,8 @@ function Field({
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <fieldset className="rounded-lg border border-slate-200 bg-white p-4">
-      <legend className="px-1 text-sm font-semibold text-slate-900">{title}</legend>
+    <fieldset className="card p-5">
+      <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">{title}</legend>
       <div className="mt-2 space-y-3">{children}</div>
     </fieldset>
   );
@@ -70,13 +70,14 @@ export function DetailsTab({
   const byKind = (kind: Attachment["kind"]) => attachments.filter((a) => a.kind === kind);
 
   return (
-    <ActionForm
-      className="space-y-6"
-      autoSave
-      action={(formData) => savePropertyDetails(propertyId, formData)}
-    >
-      {({ pending, error, success }) => (
-        <>
+    <div className="space-y-6">
+      <ActionForm
+        className="space-y-6"
+        autoSave
+        action={(formData) => savePropertyDetails(propertyId, formData)}
+      >
+        {({ pending, error, success }) => (
+          <>
           <div className="flex justify-end">
             <SaveStatus pending={pending} error={error} success={success} />
           </div>
@@ -85,7 +86,7 @@ export function DetailsTab({
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Étage" name="floor" defaultValue={details?.floor} />
               <div>
-                <label className="block text-sm font-medium text-slate-700" htmlFor="hasElevator">
+                <label className="field-label" htmlFor="hasElevator">
                   Ascenseur
                 </label>
                 <select
@@ -94,7 +95,7 @@ export function DetailsTab({
                   defaultValue={
                     details?.hasElevator === true ? "true" : details?.hasElevator === false ? "false" : ""
                   }
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                 >
                   <option value="">Non renseigné</option>
                   <option value="true">Oui</option>
@@ -103,13 +104,13 @@ export function DetailsTab({
               </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-700">
-                Vidéo d&apos;accès (comment entrer dans l&apos;immeuble/appartement)
+              <p className="text-sm font-medium text-[#1d1d1f]">
+                Vidéo / photos d&apos;accès (comment entrer dans l&apos;immeuble/appartement)
               </p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("access_video")} />
                 <FileUploadButtons
-                  accept="video/*"
+                  accept="image/*,video/*"
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "access_video" }}
                 />
               </div>
@@ -145,7 +146,7 @@ export function DetailsTab({
               <Field label="Code" name="wifiCode" defaultValue={details?.wifiCode} />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-700">Contrat internet</p>
+              <p className="text-sm font-medium text-[#1d1d1f]">Contrat internet</p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("wifi_contract")} />
                 <FileUploadButtons
@@ -160,7 +161,7 @@ export function DetailsTab({
           <Section title="Électricité (EDF)">
             <Field label="Numéro PRM" name="edfPrm" defaultValue={details?.edfPrm} />
             <div>
-              <p className="text-sm font-medium text-slate-700">Contrat EDF</p>
+              <p className="text-sm font-medium text-[#1d1d1f]">Contrat EDF</p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("edf_contract")} />
                 <FileUploadButtons
@@ -180,8 +181,19 @@ export function DetailsTab({
             </div>
             <Field label="Notes" name="syndicNotes" defaultValue={details?.syndicNotes} textarea />
           </Section>
-        </>
-      )}
-    </ActionForm>
+
+          <Section title="Commentaire">
+            <Field
+              label="Commentaire (nom du voisin, du gardien, etc.)"
+              name="comment"
+              defaultValue={details?.comment}
+              textarea
+              rows={4}
+            />
+          </Section>
+          </>
+        )}
+      </ActionForm>
+    </div>
   );
 }

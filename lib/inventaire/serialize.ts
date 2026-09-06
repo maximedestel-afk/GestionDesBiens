@@ -7,7 +7,10 @@ import type {
   Property,
   PropertyAgencement,
   PropertyDetails,
+  PropertyElement,
+  PropertyKey,
   PropertyOwner,
+  PropertyWaterElec,
   Room,
 } from "./types";
 
@@ -40,6 +43,10 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     syndicPhone: row.syndic_phone,
     syndicEmail: row.syndic_email,
     syndicNotes: row.syndic_notes,
+    comment: row.comment,
+    lockType: row.lock_type,
+    keyContentType: row.key_content_type,
+    keyContentDetail: row.key_content_detail,
   };
 }
 
@@ -60,6 +67,42 @@ export function serializeAgencement(row: any): PropertyAgencement {
     propertyId: row.property_id,
     capacity: row.capacity,
     babyBed: row.baby_bed,
+    surface: row.surface,
+  };
+}
+
+export function serializeWaterElec(row: any): PropertyWaterElec {
+  return {
+    propertyId: row.property_id,
+    hotWaterProduction: row.hot_water_production,
+    hasGas: row.has_gas,
+  };
+}
+
+export function serializePropertyElement(row: any): PropertyElement {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    section: row.section,
+    name: row.name,
+    notes: row.notes,
+    position: row.position,
+  };
+}
+
+export function serializePropertyKey(row: any): PropertyKey {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    keyType: row.key_type,
+    keyTypeDetail: row.key_type_detail,
+    location: row.location,
+    locationDetail: row.location_detail,
+    boxLocation: row.box_location,
+    boxCode: row.box_code,
+    lockerAddress: row.locker_address,
+    lockerCode: row.locker_code,
+    position: row.position,
   };
 }
 

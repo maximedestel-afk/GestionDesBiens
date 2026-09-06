@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --ink-secondary: #6e6e73;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-active: #0068d1;
+  --surface: #ffffff;
+  --hairline: rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
@@ -15,5 +21,65 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+    Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Composants réutilisés dans toute l'application (esprit apple.com : blanc,
+   gris clair, coins généreux, ombres douces, un seul accent bleu). */
+@layer components {
+  .field-label {
+    @apply block text-[13px] font-medium text-[#1d1d1f];
+  }
+
+  .field-input {
+    @apply mt-1 w-full rounded-[12px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f]
+      shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition placeholder:text-black/30
+      focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-[#0071e3] px-5 py-2.5
+      text-[15px] font-medium text-white transition hover:bg-[#0077ed] active:bg-[#0068d1]
+      disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-black/[0.05] px-5 py-2.5
+      text-[15px] font-medium text-[#1d1d1f] transition hover:bg-black/[0.08] active:bg-black/[0.1]
+      disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-red-600 px-5 py-2.5
+      text-[15px] font-medium text-white transition hover:bg-red-700 active:bg-red-800
+      disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-sm {
+    @apply px-3.5 py-1.5 text-[13px];
+  }
+
+  .link-quiet {
+    @apply text-[15px] font-medium text-[#0071e3] transition hover:text-[#0077ed];
+  }
+
+  .card {
+    @apply rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)];
+  }
+
+  .pill-tab {
+    @apply whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-medium transition;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
