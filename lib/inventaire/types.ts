@@ -72,6 +72,7 @@ export interface PropertyKey {
   keyTypeDetail: string | null;
   location: KeyLocation | null;
   locationDetail: string | null;
+  boxLocation: string | null;
   boxCode: string | null;
   lockerAddress: string | null;
   lockerCode: string | null;

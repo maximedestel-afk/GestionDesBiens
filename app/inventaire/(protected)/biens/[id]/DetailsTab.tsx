@@ -95,7 +95,7 @@ function KeysSection({ propertyId, keys }: { propertyId: string; keys: PropertyK
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[#1d1d1f]">Clés</h2>
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Gestion des clés</h2>
         <button
           type="button"
           disabled={pending}
@@ -243,6 +243,22 @@ export function DetailsTab({
               </div>
             </div>
           </Section>
+          </>
+        )}
+      </ActionForm>
+
+      <KeysSection propertyId={propertyId} keys={keys} />
+
+      <ActionForm
+        className="space-y-6"
+        autoSave
+        action={(formData) => savePropertyDetails(propertyId, formData)}
+      >
+        {({ pending, error, success }) => (
+          <>
+          <div className="flex justify-end">
+            <SaveStatus pending={pending} error={error} success={success} />
+          </div>
 
           <Section title="Wifi">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -298,7 +314,6 @@ export function DetailsTab({
           </>
         )}
       </ActionForm>
-      <KeysSection propertyId={propertyId} keys={keys} />
     </div>
   );
 }

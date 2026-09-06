@@ -179,29 +179,38 @@ export async function deleteProperty(propertyId: string) {
 /* Détails appartement                                                 */
 /* ------------------------------------------------------------------ */
 
+// Le formulaire "Détails appartement" est scindé en plusieurs <form> (la
+// section "Gestion des clés" a ses propres formulaires par clé, imbriqués
+// entre deux morceaux du formulaire principal). Chaque morceau n'envoie donc
+// que ses propres champs : on ne patch que les champs réellement présents
+// dans le FormData pour ne pas écraser les champs gérés par l'autre morceau.
+const PROPERTY_DETAILS_STRING_FIELDS: [string, string][] = [
+  ["floor", "floor"],
+  ["accessCodeClient", "access_code_client"],
+  ["accessCodeCleaning", "access_code_cleaning"],
+  ["accessCodeBackup", "access_code_backup"],
+  ["wifiNetwork", "wifi_network"],
+  ["wifiCode", "wifi_code"],
+  ["edfPrm", "edf_prm"],
+  ["syndicName", "syndic_name"],
+  ["syndicPhone", "syndic_phone"],
+  ["syndicEmail", "syndic_email"],
+  ["syndicNotes", "syndic_notes"],
+  ["comment", "comment"],
+  ["lockType", "lock_type"],
+  ["keyContentType", "key_content_type"],
+  ["keyContentDetail", "key_content_detail"],
+];
+
 export async function savePropertyDetails(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
 
-  const patch = {
-    property_id: propertyId,
-    floor: optionalString(formData.get("floor")),
-    has_elevator: formData.has("hasElevator") ? formData.get("hasElevator") === "true" : null,
-    access_code_client: optionalString(formData.get("accessCodeClient")),
-    access_code_cleaning: optionalString(formData.get("accessCodeCleaning")),
-    access_code_backup: optionalString(formData.get("accessCodeBackup")),
-    wifi_network: optionalString(formData.get("wifiNetwork")),
-    wifi_code: optionalString(formData.get("wifiCode")),
-    edf_prm: optionalString(formData.get("edfPrm")),
-    syndic_name: optionalString(formData.get("syndicName")),
-    syndic_phone: optionalString(formData.get("syndicPhone")),
-    syndic_email: optionalString(formData.get("syndicEmail")),
-    syndic_notes: optionalString(formData.get("syndicNotes")),
-    comment: optionalString(formData.get("comment")),
-    lock_type: optionalString(formData.get("lockType")),
-    key_content_type: optionalString(formData.get("keyContentType")),
-    key_content_detail: optionalString(formData.get("keyContentDetail")),
-  };
+  const patch: Record<string, unknown> = { property_id: propertyId };
+  for (const [formKey, columnKey] of PROPERTY_DETAILS_STRING_FIELDS) {
+    if (formData.has(formKey)) patch[columnKey] = optionalString(formData.get(formKey));
+  }
+  if (formData.has("hasElevator")) patch.has_elevator = formData.get("hasElevator") === "true";
 
   const { error } = await supabase.from("property_details").upsert(patch);
   if (error) throw error;
@@ -458,6 +467,7 @@ function keyPatchFromForm(formData: FormData) {
     key_type_detail: optionalString(formData.get("keyTypeDetail")),
     location: optionalString(formData.get("location")),
     location_detail: optionalString(formData.get("locationDetail")),
+    box_location: optionalString(formData.get("boxLocation")),
     box_code: optionalString(formData.get("boxCode")),
     locker_address: optionalString(formData.get("lockerAddress")),
     locker_code: optionalString(formData.get("lockerCode")),

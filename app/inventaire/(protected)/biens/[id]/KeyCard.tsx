@@ -84,10 +84,20 @@ export function KeyCard({
               </div>
 
               {location === "boite_a_cle" && (
-                <div>
-                  <label className="block text-[12px] font-medium text-[#6e6e73]">Code boîte à clé</label>
-                  <input name="boxCode" defaultValue={propertyKey.boxCode ?? ""} className={inputClass} />
-                </div>
+                <>
+                  <div>
+                    <label className="block text-[12px] font-medium text-[#6e6e73]">Emplacement</label>
+                    <input
+                      name="boxLocation"
+                      defaultValue={propertyKey.boxLocation ?? ""}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-[#6e6e73]">Code boîte à clé</label>
+                    <input name="boxCode" defaultValue={propertyKey.boxCode ?? ""} className={inputClass} />
+                  </div>
+                </>
               )}
 
               {location === "locker" && (

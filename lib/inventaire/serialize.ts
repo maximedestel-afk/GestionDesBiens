@@ -98,6 +98,7 @@ export function serializePropertyKey(row: any): PropertyKey {
     keyTypeDetail: row.key_type_detail,
     location: row.location,
     locationDetail: row.location_detail,
+    boxLocation: row.box_location,
     boxCode: row.box_code,
     lockerAddress: row.locker_address,
     lockerCode: row.locker_code,
