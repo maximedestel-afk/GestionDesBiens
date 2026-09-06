@@ -5,7 +5,6 @@ import type { Attachment, Equipment, Room } from "@/lib/inventaire/types";
 import { createEquipment, loadStandardEquipment } from "@/lib/inventaire/actions";
 import { detectRoomType } from "@/lib/inventaire/catalog";
 import { ActionForm } from "@/components/inventaire/ActionForm";
-import { EquipmentFields } from "./EquipmentFields";
 import { EquipmentCard } from "./EquipmentCard";
 
 function LoadRoomStandardsButton({ propertyId, room }: { propertyId: string; room: Room }) {
@@ -60,6 +59,10 @@ function AddEquipmentFab({ propertyId, rooms }: { propertyId: string; rooms: Roo
         {open && (
           <div className="p-5">
             <h3 className="text-sm font-semibold text-[#1d1d1f]">Ajouter un équipement</h3>
+            <p className="mt-1 text-[13px] text-[#6e6e73]">
+              Indiquez le nom et la pièce — vous pourrez ensuite ajouter photos et détails via le bouton
+              « Détails ».
+            </p>
             <ActionForm
               className="mt-3"
               resetOnSuccess
@@ -70,7 +73,35 @@ function AddEquipmentFab({ propertyId, rooms }: { propertyId: string; rooms: Roo
             >
               {({ pending, error }) => (
                 <>
-                  <EquipmentFields rooms={rooms} />
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6e6e73]">Nom *</label>
+                      <input
+                        name="name"
+                        required
+                        autoFocus
+                        className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6e6e73]">Pièce *</label>
+                      <select
+                        name="roomId"
+                        required
+                        defaultValue=""
+                        className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                      >
+                        <option value="" disabled>
+                          Choisir une pièce…
+                        </option>
+                        {rooms.map((room) => (
+                          <option key={room.id} value={room.id}>
+                            {room.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                   {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
                   <div className="mt-3 flex justify-end gap-2">
                     <button
