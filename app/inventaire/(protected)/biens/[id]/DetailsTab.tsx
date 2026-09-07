@@ -140,6 +140,7 @@ export function DetailsTab({
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("trash_room")} />
                 <FileUploadButtons
                   accept="image/*,video/*,.pdf,.doc,.docx"
+                  showVideoCamera
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "trash_room" }}
                 />
                 <Field label="Ou un lien (URL)" name="trashRoomUrl" type="url" defaultValue={details?.trashRoomUrl} />

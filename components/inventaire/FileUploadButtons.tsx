@@ -7,14 +7,18 @@ export function FileUploadButtons({
   target,
   accept = "image/*",
   showCamera = true,
+  showVideoCamera = false,
   label,
 }: {
   target: UploadTarget;
   accept?: string;
   showCamera?: boolean;
+  /** Bouton "Filmer" distinct, pour les zones acceptant à la fois photo et vidéo. */
+  showVideoCamera?: boolean;
   label?: string;
 }) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoCameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +70,29 @@ export function FileUploadButtons({
             ref={cameraInputRef}
             type="file"
             accept={accept}
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+        </>
+      )}
+      {showVideoCamera && (
+        <>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => videoCameraInputRef.current?.click()}
+            className="btn-secondary btn-sm"
+          >
+            🎥 Filmer
+          </button>
+          <input
+            ref={videoCameraInputRef}
+            type="file"
+            accept="video/*"
             capture="environment"
             className="hidden"
             onChange={(e) => {
