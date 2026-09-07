@@ -92,6 +92,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       wifiNetwork: details?.wifiNetwork,
       wifiCode: details?.wifiCode,
       hasWifiContract: attachments.some((a) => a.kind === "wifi_contract"),
+      edfPrm: details?.edfPrm,
+      hasEdfContract: attachments.some((a) => a.kind === "edf_contract"),
       hasPlatformInfo: platformHasListing,
     },
     new Set(dismissedChecks)

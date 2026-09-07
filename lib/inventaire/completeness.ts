@@ -20,6 +20,8 @@ export const COMPLETENESS_CHECKS: CompletenessCheck[] = [
   { key: "rooms", label: "Pièces & couchages", tab: "Agencement" },
   { key: "wifi_info", label: "Réseau et code Wifi", tab: "Détails appartement" },
   { key: "wifi_contract", label: "Contrat internet", tab: "Détails appartement" },
+  { key: "edf_prm", label: "Numéro PRM (EDF)", tab: "Détails appartement" },
+  { key: "edf_contract", label: "Contrat EDF", tab: "Détails appartement" },
   { key: "platforms_info", label: "Plateformes (Airbnb/Booking)", tab: "Plateformes" },
 ];
 
@@ -37,6 +39,8 @@ export interface PropertyCompletenessInput {
   wifiNetwork: string | null | undefined;
   wifiCode: string | null | undefined;
   hasWifiContract: boolean;
+  edfPrm: string | null | undefined;
+  hasEdfContract: boolean;
   hasPlatformInfo: boolean;
 }
 
@@ -52,6 +56,8 @@ const CHECK_PREDICATES: Record<string, (input: PropertyCompletenessInput) => boo
   rooms: (i) => i.roomsCount > 0,
   wifi_info: (i) => !!(i.wifiNetwork && i.wifiCode),
   wifi_contract: (i) => i.hasWifiContract,
+  edf_prm: (i) => !!i.edfPrm,
+  edf_contract: (i) => i.hasEdfContract,
   platforms_info: (i) => i.hasPlatformInfo,
 };
 
