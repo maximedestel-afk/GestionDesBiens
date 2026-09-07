@@ -299,7 +299,10 @@ export async function listPropertiesMissingChecks(
     { data: rooms },
     { data: dismissals },
   ] = await Promise.all([
-    supabase.from("property_details").select("property_id, wifi_network, wifi_code").in("property_id", propertyIds),
+    supabase
+      .from("property_details")
+      .select("property_id, wifi_network, wifi_code, edf_prm")
+      .in("property_id", propertyIds),
     supabase.from("property_owner").select("property_id, last_name, email").in("property_id", propertyIds),
     supabase.from("property_agencement").select("property_id, capacity, surface").in("property_id", propertyIds),
     supabase.from("property_platforms").select("property_id, listing_name").in("property_id", propertyIds),
@@ -307,7 +310,7 @@ export async function listPropertiesMissingChecks(
       .from("attachments")
       .select("property_id, kind")
       .eq("entity_type", "property")
-      .in("kind", ["lease_contract", "rib", "rcp", "key_set_photo", "wifi_contract", "visit_video"])
+      .in("kind", ["lease_contract", "rib", "rcp", "key_set_photo", "wifi_contract", "visit_video", "edf_contract"])
       .in("property_id", propertyIds),
     supabase.from("rooms").select("property_id").in("property_id", propertyIds),
     supabase.from("property_checklist_dismissals").select("property_id, check_key").in("property_id", propertyIds),
@@ -364,6 +367,8 @@ export async function listPropertiesMissingChecks(
         wifiNetwork: detail?.wifi_network,
         wifiCode: detail?.wifi_code,
         hasWifiContract: kinds.has("wifi_contract"),
+        edfPrm: detail?.edf_prm,
+        hasEdfContract: kinds.has("edf_contract"),
         hasPlatformInfo: platformsByProperty.get(propertyId) ?? false,
       },
       dismissed

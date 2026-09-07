@@ -16,6 +16,7 @@ function Field({
   type = "text",
   textarea = false,
   rows = 3,
+  labelExtra,
 }: {
   label: string;
   name: string;
@@ -23,11 +24,13 @@ function Field({
   type?: string;
   textarea?: boolean;
   rows?: number;
+  labelExtra?: ReactNode;
 }) {
   return (
     <div>
-      <label className="field-label" htmlFor={name}>
+      <label className="field-label flex items-center" htmlFor={name}>
         {label}
+        {labelExtra}
       </label>
       {textarea ? (
         <textarea
@@ -242,10 +245,28 @@ export function DetailsTab({
           </Section>
 
           <Section title="Électricité (EDF)">
-            <Field label="Numéro PRM" name="edfPrm" defaultValue={details?.edfPrm} />
+            <Field
+              label="Numéro PRM"
+              name="edfPrm"
+              defaultValue={details?.edfPrm}
+              labelExtra={
+                <MissingFieldFlag
+                  propertyId={propertyId}
+                  checkKey="edf_prm"
+                  missing={missingCheckKeys.includes("edf_prm")}
+                />
+              }
+            />
             <Field label="Notes" name="edfNotes" defaultValue={details?.edfNotes} textarea />
             <div>
-              <p className="text-sm font-medium text-[#1d1d1f]">Contrat EDF</p>
+              <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
+                Contrat EDF
+                <MissingFieldFlag
+                  propertyId={propertyId}
+                  checkKey="edf_contract"
+                  missing={missingCheckKeys.includes("edf_contract")}
+                />
+              </p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("edf_contract")} />
                 <FileUploadButtons
