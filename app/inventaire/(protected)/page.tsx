@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { listProperties } from "@/lib/inventaire/queries";
+import { listProperties, listPropertiesMissingChecks } from "@/lib/inventaire/queries";
 import { NewPropertyDialog } from "@/components/inventaire/NewPropertyDialog";
+import { PropertyCompletenessBadge } from "@/components/inventaire/PropertyCompletenessBadge";
 
 export default async function PropertiesPage({
   searchParams,
@@ -9,6 +10,7 @@ export default async function PropertiesPage({
 }) {
   const { q } = await searchParams;
   const properties = await listProperties(q);
+  const missingChecks = await listPropertiesMissingChecks(properties.map((p) => p.id));
 
   return (
     <div>
@@ -33,20 +35,20 @@ export default async function PropertiesPage({
         ) : (
           <ul className="divide-y divide-black/[0.06]">
             {properties.map((property) => (
-              <li key={property.id}>
-                <Link
-                  href={`/inventaire/biens/${property.id}`}
-                  className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-black/[0.02]"
-                >
-                  <div>
-                    <p className="text-[15px] font-medium text-[#1d1d1f]">
-                      {property.reference}
-                      {property.name && <span className="ml-2 font-normal text-[#6e6e73]">{property.name}</span>}
-                    </p>
-                    {property.address && <p className="text-[13px] text-[#6e6e73]">{property.address}</p>}
-                  </div>
-                  <span className="text-black/25">›</span>
+              <li key={property.id} className="flex items-center gap-4 px-5 py-4 transition hover:bg-black/[0.02]">
+                <Link href={`/inventaire/biens/${property.id}`} className="min-w-0 flex-1">
+                  <p className="text-[15px] font-medium text-[#1d1d1f]">
+                    {property.reference}
+                    {property.name && <span className="ml-2 font-normal text-[#6e6e73]">{property.name}</span>}
+                  </p>
+                  {property.address && <p className="text-[13px] text-[#6e6e73]">{property.address}</p>}
                 </Link>
+                <div className="flex shrink-0 items-center gap-3">
+                  <PropertyCompletenessBadge propertyId={property.id} missing={missingChecks[property.id] ?? []} />
+                  <Link href={`/inventaire/biens/${property.id}`} className="text-black/25">
+                    ›
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

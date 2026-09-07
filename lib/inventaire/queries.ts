@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { computeMissingChecks, type CompletenessCheck } from "./completeness";
 import {
   serializeActivityLogEntry,
   serializeAgencement,
@@ -281,4 +282,77 @@ export async function getAppNotes(): Promise<string | null> {
   const { data, error } = await supabase.from("app_notes").select("content").eq("id", "main").maybeSingle();
   if (error) throw error;
   return data?.content ?? null;
+}
+
+export async function listPropertiesMissingChecks(
+  propertyIds: string[]
+): Promise<Record<string, CompletenessCheck[]>> {
+  if (propertyIds.length === 0) return {};
+  const supabase = await createClient();
+
+  const [{ data: details }, { data: owners }, { data: agencements }, { data: platforms }, { data: attachments }, { data: dismissals }] =
+    await Promise.all([
+      supabase.from("property_details").select("property_id, wifi_network, wifi_code").in("property_id", propertyIds),
+      supabase.from("property_owner").select("property_id, last_name, email").in("property_id", propertyIds),
+      supabase.from("property_agencement").select("property_id, capacity").in("property_id", propertyIds),
+      supabase.from("property_platforms").select("property_id, listing_name").in("property_id", propertyIds),
+      supabase
+        .from("attachments")
+        .select("property_id, kind")
+        .eq("entity_type", "property")
+        .in("kind", ["lease_contract", "rib", "rcp", "key_set_photo", "wifi_contract"])
+        .in("property_id", propertyIds),
+      supabase.from("property_checklist_dismissals").select("property_id, check_key").in("property_id", propertyIds),
+    ]);
+
+  const detailsByProperty = new Map((details ?? []).map((d) => [d.property_id, d]));
+  const ownerByProperty = new Map((owners ?? []).map((o) => [o.property_id, o]));
+  const agencementByProperty = new Map((agencements ?? []).map((a) => [a.property_id, a]));
+
+  const platformsByProperty = new Map<string, boolean>();
+  for (const p of platforms ?? []) {
+    if (p.listing_name) platformsByProperty.set(p.property_id, true);
+  }
+
+  const attachmentKindsByProperty = new Map<string, Set<string>>();
+  for (const a of attachments ?? []) {
+    const set = attachmentKindsByProperty.get(a.property_id) ?? new Set<string>();
+    set.add(a.kind);
+    attachmentKindsByProperty.set(a.property_id, set);
+  }
+
+  const dismissedByProperty = new Map<string, Set<string>>();
+  for (const d of dismissals ?? []) {
+    const set = dismissedByProperty.get(d.property_id) ?? new Set<string>();
+    set.add(d.check_key);
+    dismissedByProperty.set(d.property_id, set);
+  }
+
+  const result: Record<string, CompletenessCheck[]> = {};
+  for (const propertyId of propertyIds) {
+    const detail = detailsByProperty.get(propertyId);
+    const owner = ownerByProperty.get(propertyId);
+    const agencement = agencementByProperty.get(propertyId);
+    const kinds = attachmentKindsByProperty.get(propertyId) ?? new Set<string>();
+    const dismissed = dismissedByProperty.get(propertyId) ?? new Set<string>();
+
+    result[propertyId] = computeMissingChecks(
+      {
+        ownerLastName: owner?.last_name,
+        ownerEmail: owner?.email,
+        hasLeaseContract: kinds.has("lease_contract"),
+        hasRib: kinds.has("rib"),
+        hasRcp: kinds.has("rcp"),
+        hasKeySetPhoto: kinds.has("key_set_photo"),
+        capacity: agencement?.capacity,
+        wifiNetwork: detail?.wifi_network,
+        wifiCode: detail?.wifi_code,
+        hasWifiContract: kinds.has("wifi_contract"),
+        hasPlatformInfo: platformsByProperty.get(propertyId) ?? false,
+      },
+      dismissed
+    );
+  }
+
+  return result;
 }
