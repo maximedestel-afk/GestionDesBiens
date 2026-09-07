@@ -173,7 +173,7 @@ export async function updateProperty(propertyId: string, formData: FormData) {
 
 export async function deleteProperty(propertyId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { error } = await supabase.from("properties").delete().eq("id", propertyId);
   if (error) throw error;
@@ -482,7 +482,7 @@ export async function ensureDefaultKeyElements(propertyId: string) {
 
 export async function deletePropertyElement(propertyId: string, elementId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { data: element } = await supabase
     .from("property_elements")
@@ -567,7 +567,7 @@ export async function updatePropertyKey(propertyId: string, keyId: string, formD
 
 export async function deletePropertyKey(propertyId: string, keyId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { error } = await supabase.from("property_keys").delete().eq("id", keyId);
   if (error) throw error;
@@ -672,7 +672,7 @@ export async function updatePropertyPlatform(propertyId: string, platformId: str
 
 export async function deletePropertyPlatform(propertyId: string, platformId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { error } = await supabase.from("property_platforms").delete().eq("id", platformId);
   if (error) throw error;
@@ -749,7 +749,7 @@ export async function updateRoom(propertyId: string, roomId: string, formData: F
 
 export async function deleteRoom(propertyId: string, roomId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { data: room } = await supabase.from("rooms").select("name").eq("id", roomId).maybeSingle();
 
@@ -822,7 +822,7 @@ export async function updateRoomBed(propertyId: string, bedId: string, formData:
 
 export async function deleteRoomBed(propertyId: string, bedId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { error } = await supabase.from("room_beds").delete().eq("id", bedId);
   if (error) throw error;
@@ -909,7 +909,7 @@ export async function updateEquipment(propertyId: string, equipmentId: string, f
 
 export async function deleteEquipment(propertyId: string, equipmentId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { data: item } = await supabase.from("equipment").select("name").eq("id", equipmentId).maybeSingle();
 
@@ -1006,7 +1006,7 @@ export async function createInventoryCategory(propertyId: string, formData: Form
 
 export async function deleteInventoryCategory(propertyId: string, categoryId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { data: category } = await supabase
     .from("inventory_categories")
@@ -1198,7 +1198,7 @@ export async function updateInventoryDetails(propertyId: string, itemId: string,
 
 export async function deleteInventoryItem(propertyId: string, itemId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { data: item } = await supabase
     .from("inventory_items")
@@ -1263,7 +1263,7 @@ export async function recordAttachment(input: {
 
 export async function deleteAttachment(propertyId: string, attachmentId: string) {
   const supabase = await createClient();
-  await requireUser(supabase);
+  await requireAdmin(supabase);
 
   const { data: attachment } = await supabase
     .from("attachments")
@@ -1271,7 +1271,6 @@ export async function deleteAttachment(propertyId: string, attachmentId: string)
     .eq("id", attachmentId)
     .maybeSingle();
   if (!attachment) return;
-  if (attachment.kind === "lease_contract") await requireAdmin(supabase);
 
   await supabase.storage.from("property-files").remove([attachment.file_path]);
 

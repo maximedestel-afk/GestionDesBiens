@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { unstable_rethrow } from "next/navigation";
+import { useUserRole } from "./UserRoleContext";
 
 export function ConfirmDeleteButton({
   label = "Supprimer",
@@ -17,6 +18,9 @@ export function ConfirmDeleteButton({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const role = useUserRole();
+
+  if (role === "menage") return null;
 
   return (
     <>
