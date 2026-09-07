@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import type { BedType, Room, RoomBed } from "@/lib/inventaire/types";
 import { createRoomBed, deleteRoom, deleteRoomBed, updateRoom, updateRoomBed } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
+import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 
 const BED_LABELS: Record<BedType, string> = {
@@ -72,10 +73,9 @@ function AddBedMenu({ propertyId, roomId }: { propertyId: string; roomId: string
         type="button"
         disabled={pending}
         onClick={() => setOpen((v) => !v)}
-        aria-label="Ajouter un lit"
-        className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0071e3] text-sm font-semibold text-[#0071e3] transition hover:bg-[#0071e3]/10 disabled:opacity-50"
+        className="inline-flex items-center gap-1 rounded-full border-2 border-[#0071e3] px-3 py-1 text-[13px] font-semibold text-[#0071e3] transition hover:bg-[#0071e3]/10 disabled:opacity-50"
       >
-        +
+        + Ajouter un lit
       </button>
       {open && (
         <div className="absolute left-0 z-10 mt-1 w-40 overflow-hidden rounded-[10px] border border-black/10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
@@ -105,77 +105,55 @@ export function RoomRow({
   room: Room;
   beds: RoomBed[];
 }) {
-  const [editing, setEditing] = useState(false);
+  const [renaming, setRenaming] = useState(false);
 
-  if (editing) {
-    return (
-      <li className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+  return (
+    <li className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+      {renaming ? (
         <ActionForm
           action={async (formData) => {
+            formData.set("description", room.description ?? "");
             await updateRoom(propertyId, room.id, formData);
-            setEditing(false);
+            setRenaming(false);
           }}
         >
           {({ pending, error }) => (
-            <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 name="name"
                 defaultValue={room.name}
                 required
+                autoFocus
                 placeholder="Nom de la pièce"
-                className="w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                className="min-w-[10rem] flex-1 rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
               />
-              <textarea
-                name="description"
-                defaultValue={room.description ?? ""}
-                placeholder="Couchage / équipement (ex. Lit 140, Canapé-lit, Douche)"
-                rows={2}
-                className="w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-              />
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={pending}
-                  className="btn-primary btn-sm"
-                >
-                  {pending ? "…" : "Enregistrer"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditing(false)}
-                  className="btn-secondary btn-sm"
-                >
-                  Annuler
-                </button>
-              </div>
+              <button type="submit" disabled={pending} className="btn-primary btn-sm">
+                {pending ? "…" : "Enregistrer"}
+              </button>
+              <button type="button" onClick={() => setRenaming(false)} className="btn-secondary btn-sm">
+                Annuler
+              </button>
+              {error && <span className="text-sm text-red-600">{error}</span>}
             </div>
           )}
         </ActionForm>
-      </li>
-    );
-  }
-
-  return (
-    <li className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-      <div className="flex items-center justify-between gap-3">
-        <div>
+      ) : (
+        <div className="flex items-center justify-between gap-3">
           <p className="font-medium text-[#1d1d1f]">
             {beds.length > 0 && <span className="mr-1.5">🛏️</span>}
             {room.name}
           </p>
-          {room.description && <p className="text-sm text-[#6e6e73]">{room.description}</p>}
+          <div className="flex shrink-0 gap-3 text-sm">
+            <button type="button" onClick={() => setRenaming(true)} className="text-[#6e6e73] hover:text-[#1d1d1f]">
+              Modifier
+            </button>
+            <ConfirmDeleteButton
+              confirmText={`Supprimer la pièce « ${room.name} » ? Les équipements associés seront aussi supprimés.`}
+              action={() => deleteRoom(propertyId, room.id)}
+            />
+          </div>
         </div>
-        <div className="flex shrink-0 gap-3 text-sm">
-          <button type="button" onClick={() => setEditing(true)} className="text-[#6e6e73] hover:text-[#1d1d1f]">
-            Modifier
-          </button>
-          <ConfirmDeleteButton
-            confirmText={`Supprimer la pièce « ${room.name} » ? Les équipements associés seront aussi supprimés.`}
-            action={() => deleteRoom(propertyId, room.id)}
-          />
-        </div>
-      </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {beds.map((bed) => (
@@ -183,6 +161,30 @@ export function RoomRow({
         ))}
         <AddBedMenu propertyId={propertyId} roomId={room.id} />
       </div>
+
+      <ActionForm
+        className="mt-3"
+        autoSave
+        action={(formData) => {
+          formData.set("name", room.name);
+          return updateRoom(propertyId, room.id, formData);
+        }}
+      >
+        {({ pending, error, success }) => (
+          <>
+            <textarea
+              name="description"
+              defaultValue={room.description ?? ""}
+              placeholder="Notes / couchage (ex. Lit 140, Douche…)"
+              rows={2}
+              className="w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+            />
+            <div className="mt-1 flex justify-end">
+              <SaveStatus pending={pending} error={error} success={success} />
+            </div>
+          </>
+        )}
+      </ActionForm>
     </li>
   );
 }
