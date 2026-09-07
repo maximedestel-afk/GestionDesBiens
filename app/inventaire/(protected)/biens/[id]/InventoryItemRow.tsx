@@ -10,7 +10,8 @@ import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 
 const CONDITIONS: ItemCondition[] = ["Bon", "Usé", "À remplacer"];
 
-function formatDate(iso: string) {
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 

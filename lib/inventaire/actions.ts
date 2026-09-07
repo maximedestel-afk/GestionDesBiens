@@ -873,7 +873,7 @@ export async function createInventoryItem(propertyId: string, formData: FormData
       in_stock: inStock,
       target,
       position: (maxPos?.position ?? -1) + 1,
-      stock_updated_at: new Date().toISOString(),
+      stock_updated_at: inStock > 0 ? new Date().toISOString() : null,
     })
     .select("id")
     .single();
@@ -919,7 +919,7 @@ export async function loadStandardInventory(propertyId: string) {
       target: item.isTableware ? null : item.target,
       is_tableware: item.isTableware,
       position,
-      stock_updated_at: new Date().toISOString(),
+      stock_updated_at: null,
     };
   });
 

@@ -154,7 +154,7 @@ export interface InventoryItem {
   condition: ItemCondition;
   notes: string | null;
   position: number;
-  stockUpdatedAt: string;
+  stockUpdatedAt: string | null;
 }
 
 export type AttachmentEntityType = "property" | "equipment" | "inventory_item" | "property_element";
