@@ -91,6 +91,7 @@ export function serializePropertyElement(row: any): PropertyElement {
     section: row.section,
     name: row.name,
     notes: row.notes,
+    url: row.url,
     position: row.position,
   };
 }

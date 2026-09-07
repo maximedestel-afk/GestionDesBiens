@@ -388,6 +388,7 @@ export async function createPropertyElement(
 
   const name = requireNonEmpty(formData.get("name"), "Le nom");
   const notes = optionalString(formData.get("notes"));
+  const url = optionalString(formData.get("url"));
 
   const { data: maxPos } = await supabase
     .from("property_elements")
@@ -405,6 +406,7 @@ export async function createPropertyElement(
       section,
       name,
       notes,
+      url,
       position: (maxPos?.position ?? -1) + 1,
     })
     .select("id")
@@ -428,10 +430,11 @@ export async function updatePropertyElement(propertyId: string, elementId: strin
 
   const name = requireNonEmpty(formData.get("name"), "Le nom");
   const notes = optionalString(formData.get("notes"));
+  const url = optionalString(formData.get("url"));
 
   const { error } = await supabase
     .from("property_elements")
-    .update({ name, notes })
+    .update({ name, notes, url })
     .eq("id", elementId);
   if (error) throw error;
 

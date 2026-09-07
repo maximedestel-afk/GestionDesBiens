@@ -95,7 +95,7 @@ export interface PropertyPlatform {
   position: number;
 }
 
-export type ElementSection = "water_elec" | "notes";
+export type ElementSection = "water_elec" | "notes" | "photos";
 
 export interface PropertyElement {
   id: string;
@@ -103,6 +103,7 @@ export interface PropertyElement {
   section: ElementSection;
   name: string;
   notes: string | null;
+  url: string | null;
   position: number;
 }
 
