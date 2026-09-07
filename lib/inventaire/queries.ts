@@ -236,3 +236,10 @@ export async function listProfiles(): Promise<Profile[]> {
   if (error) throw error;
   return (data ?? []).map(serializeProfile);
 }
+
+export async function getAppNotes(): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("app_notes").select("content").eq("id", "main").maybeSingle();
+  if (error) throw error;
+  return data?.content ?? null;
+}

@@ -1070,3 +1070,19 @@ export async function createUserDirect(formData: FormData) {
 
   revalidatePath("/inventaire/utilisateurs");
 }
+
+/* ------------------------------------------------------------------ */
+/* Accès (admin) — notes techniques (codes, mots de passe...)          */
+/* ------------------------------------------------------------------ */
+
+export async function saveAppNotes(formData: FormData) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const content = optionalString(formData.get("content"));
+
+  const { error } = await supabase.from("app_notes").upsert({ id: "main", content });
+  if (error) throw error;
+
+  revalidatePath("/inventaire/acces");
+}

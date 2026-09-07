@@ -17,9 +17,14 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           </Link>
           <div className="flex shrink-0 items-center gap-4 text-[13px]">
             {profile?.role === "admin" && (
-              <Link href="/inventaire/utilisateurs" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
-                Utilisateurs
-              </Link>
+              <>
+                <Link href="/inventaire/utilisateurs" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  Utilisateurs
+                </Link>
+                <Link href="/inventaire/acces" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  Accès
+                </Link>
+              </>
             )}
             {profile && <span className="hidden text-[#6e6e73] sm:inline">{profile.email}</span>}
             <form action={signOut}>
