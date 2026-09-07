@@ -13,6 +13,7 @@ import type {
   PropertyElement,
   PropertyKey,
   PropertyOwner,
+  PropertyPlatform,
   PropertyWaterElec,
   Room,
 } from "@/lib/inventaire/types";
@@ -21,6 +22,7 @@ import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton
 import { OwnerTab } from "./OwnerTab";
 import { DetailsTab } from "./DetailsTab";
 import { KeysTab } from "./KeysTab";
+import { PlatformsTab } from "./PlatformsTab";
 import { WaterElecTab } from "./WaterElecTab";
 import { AgencementTab } from "./AgencementTab";
 import { EquipmentTab } from "./EquipmentTab";
@@ -31,6 +33,7 @@ import { ActivityLogPanel } from "./ActivityLogPanel";
 const TABS = [
   { key: "details", label: "Détails appartement" },
   { key: "cles", label: "Clés/Serrure" },
+  { key: "plateformes", label: "Plateformes" },
   { key: "agencement", label: "Agencement" },
   { key: "equipements", label: "Équipements" },
   { key: "inventaire", label: "Inventaire" },
@@ -48,6 +51,7 @@ export function PropertyTabs({
   owner,
   details,
   keys,
+  platforms,
   waterElec,
   waterElecElements,
   agencement,
@@ -63,6 +67,7 @@ export function PropertyTabs({
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
   keys: PropertyKey[];
+  platforms: PropertyPlatform[];
   waterElec: PropertyWaterElec | null;
   waterElecElements: PropertyElement[];
   agencement: PropertyAgencement | null;
@@ -129,6 +134,7 @@ export function PropertyTabs({
         {activeTab === "cles" && (
           <KeysTab propertyId={property.id} details={details} attachments={propertyAttachments} keys={keys} />
         )}
+        {activeTab === "plateformes" && <PlatformsTab propertyId={property.id} platforms={platforms} />}
         {activeTab === "eauelec" && (
           <WaterElecTab
             propertyId={property.id}

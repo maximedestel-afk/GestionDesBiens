@@ -16,6 +16,7 @@ import type {
   HotWaterProduction,
   InventoryCategory,
   ItemCondition,
+  PlatformType,
   UserRole,
 } from "./types";
 
@@ -535,6 +536,90 @@ export async function deletePropertyKey(propertyId: string, keyId: string) {
     entityId: keyId,
     action: "delete",
     summary: "Clé supprimée",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
+/* Plateformes (Airbnb, Booking.com, Vrbo, autres)                    */
+/* ------------------------------------------------------------------ */
+
+function platformPatchFromForm(formData: FormData) {
+  return {
+    platform_type_detail: optionalString(formData.get("platformTypeDetail")),
+    listing_name: optionalString(formData.get("listingName")),
+    reference: optionalString(formData.get("reference")),
+    url: optionalString(formData.get("url")),
+    notes: optionalString(formData.get("notes")),
+  };
+}
+
+export async function createPropertyPlatform(propertyId: string, platformType: PlatformType) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const [{ data: property }, { data: maxPos }] = await Promise.all([
+    supabase.from("properties").select("name").eq("id", propertyId).maybeSingle(),
+    supabase
+      .from("property_platforms")
+      .select("position")
+      .eq("property_id", propertyId)
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  const { error } = await supabase.from("property_platforms").insert({
+    property_id: propertyId,
+    platform_type: platformType,
+    listing_name: property?.name ?? null,
+    position: (maxPos?.position ?? -1) + 1,
+  });
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_platform",
+    action: "create",
+    summary: "Plateforme ajoutée",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function updatePropertyPlatform(propertyId: string, platformId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const patch = platformPatchFromForm(formData);
+  const { error } = await supabase.from("property_platforms").update(patch).eq("id", platformId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_platform",
+    entityId: platformId,
+    action: "update",
+    summary: "Plateforme mise à jour",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function deletePropertyPlatform(propertyId: string, platformId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase.from("property_platforms").delete().eq("id", platformId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_platform",
+    entityId: platformId,
+    action: "delete",
+    summary: "Plateforme supprimée",
   });
 
   revalidateProperty(propertyId);

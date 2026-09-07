@@ -79,6 +79,20 @@ export interface PropertyKey {
   position: number;
 }
 
+export type PlatformType = "airbnb" | "booking" | "vrbo" | "autre";
+
+export interface PropertyPlatform {
+  id: string;
+  propertyId: string;
+  platformType: PlatformType;
+  platformTypeDetail: string | null;
+  listingName: string | null;
+  reference: string | null;
+  url: string | null;
+  notes: string | null;
+  position: number;
+}
+
 export type ElementSection = "water_elec" | "notes";
 
 export interface PropertyElement {

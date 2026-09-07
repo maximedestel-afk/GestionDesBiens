@@ -13,6 +13,7 @@ import {
   listInventoryItems,
   listPropertyElements,
   listPropertyKeys,
+  listPropertyPlatforms,
   listRooms,
 } from "@/lib/inventaire/queries";
 import { PropertyTabs } from "./PropertyTabs";
@@ -29,6 +30,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     owner,
     details,
     keys,
+    platforms,
     waterElec,
     waterElecElements,
     agencement,
@@ -43,6 +45,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     getPropertyOwner(id),
     getPropertyDetails(id),
     listPropertyKeys(id),
+    listPropertyPlatforms(id),
     getPropertyWaterElec(id),
     listPropertyElements(id, "water_elec"),
     getPropertyAgencement(id),
@@ -77,6 +80,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         owner={owner}
         details={details}
         keys={keys}
+        platforms={platforms}
         waterElec={waterElec}
         waterElecElements={waterElecElements}
         agencement={agencement}
