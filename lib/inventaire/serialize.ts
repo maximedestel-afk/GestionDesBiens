@@ -39,6 +39,8 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     accessCodeBackup: row.access_code_backup,
     wifiNetwork: row.wifi_network,
     wifiCode: row.wifi_code,
+    wifiNotes: row.wifi_notes,
+    edfNotes: row.edf_notes,
     clientReference: row.client_reference,
     edfPrm: row.edf_prm,
     syndicName: row.syndic_name,
