@@ -1360,3 +1360,33 @@ export async function saveAppNotes(formData: FormData) {
 
   revalidatePath("/inventaire/acces");
 }
+
+/* ------------------------------------------------------------------ */
+/* Liste des biens — indicateur "données manquantes"                   */
+/* ------------------------------------------------------------------ */
+
+export async function dismissChecklistItem(propertyId: string, checkKey: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase
+    .from("property_checklist_dismissals")
+    .upsert({ property_id: propertyId, check_key: checkKey });
+  if (error) throw error;
+
+  revalidatePath("/inventaire");
+}
+
+export async function undismissChecklistItem(propertyId: string, checkKey: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase
+    .from("property_checklist_dismissals")
+    .delete()
+    .eq("property_id", propertyId)
+    .eq("check_key", checkKey);
+  if (error) throw error;
+
+  revalidatePath("/inventaire");
+}
