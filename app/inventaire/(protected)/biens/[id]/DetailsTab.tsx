@@ -164,6 +164,7 @@ export function DetailsTab({
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Réseau" name="wifiNetwork" defaultValue={details?.wifiNetwork} />
               <Field label="Code" name="wifiCode" defaultValue={details?.wifiCode} />
+              <Field label="Numéro PTO" name="wifiPtoNumber" defaultValue={details?.wifiPtoNumber} />
             </div>
             <Field label="Notes" name="wifiNotes" defaultValue={details?.wifiNotes} textarea />
             <div>
