@@ -128,6 +128,7 @@ export async function createProperty(formData: FormData) {
     { property_id: data.id, platform_type: "airbnb", listing_name: name, position: 0 },
     { property_id: data.id, platform_type: "booking", listing_name: name, position: 1 },
   ]);
+  await loadStandardInventory(data.id);
   await logActivity(supabase, {
     propertyId: data.id,
     entityType: "property",
