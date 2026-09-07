@@ -66,7 +66,7 @@ export function AddressAutocomplete({
         className={className}
       />
       {open && (
-        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-[10px] border border-black/10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+        <div className="relative z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-[10px] border border-black/10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
           {suggestions.map((label) => (
             <button
               key={label}

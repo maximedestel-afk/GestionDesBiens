@@ -21,7 +21,10 @@ export function EditPropertyDialog({ property }: { property: Property }) {
       >
         ✏️
       </button>
-      <dialog ref={dialogRef} className="card w-96 max-w-[90vw] p-0 backdrop:bg-black/30 backdrop:backdrop-blur-sm">
+      <dialog
+        ref={dialogRef}
+        className="card w-96 max-w-[90vw] overflow-visible p-0 backdrop:bg-black/30 backdrop:backdrop-blur-sm"
+      >
         <ActionForm className="p-6" autoSave action={(formData) => updateProperty(property.id, formData)}>
           {({ pending, error, success }) => (
             <>
