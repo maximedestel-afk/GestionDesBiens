@@ -210,6 +210,7 @@ const PROPERTY_DETAILS_STRING_FIELDS: [string, string][] = [
   ["lockType", "lock_type"],
   ["keyContentType", "key_content_type"],
   ["keyContentDetail", "key_content_detail"],
+  ["keySetNote", "key_set_note"],
 ];
 
 export async function savePropertyDetails(propertyId: string, formData: FormData) {
@@ -445,6 +446,28 @@ export async function updatePropertyElement(propertyId: string, elementId: strin
     action: "update",
     summary: `Élément « ${name} » mis à jour`,
   });
+
+  revalidateProperty(propertyId);
+}
+
+export async function ensureDefaultKeyElements(propertyId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { count } = await supabase
+    .from("property_elements")
+    .select("id", { count: "exact", head: true })
+    .eq("property_id", propertyId)
+    .eq("section", "cles");
+  if (count) return;
+
+  const { error } = await supabase.from("property_elements").insert({
+    property_id: propertyId,
+    section: "cles",
+    name: "Carte clé",
+    position: 0,
+  });
+  if (error) throw error;
 
   revalidateProperty(propertyId);
 }

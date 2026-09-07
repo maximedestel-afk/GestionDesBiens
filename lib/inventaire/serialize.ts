@@ -53,6 +53,7 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     lockType: row.lock_type,
     keyContentType: row.key_content_type,
     keyContentDetail: row.key_content_detail,
+    keySetNote: row.key_set_note,
   };
 }
 
