@@ -72,7 +72,16 @@ export function AttachmentGallery({
                 className="h-28 w-28 object-cover"
               />
             ) : isVideo(attachment.mimeType) && attachment.url ? (
-              <video src={attachment.url} className="h-28 w-28 object-cover" muted />
+              <div className="relative h-28 w-28">
+                <video src={attachment.url} className="h-28 w-28 object-cover" muted />
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white">
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 h-4 w-4">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </span>
+                </span>
+              </div>
             ) : (
               <div className="flex h-28 w-28 flex-col items-center justify-center gap-1 p-2 text-center text-xs text-[#6e6e73]">
                 <span className="text-2xl">📄</span>
