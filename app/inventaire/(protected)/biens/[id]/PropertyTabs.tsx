@@ -33,12 +33,12 @@ import { ActivityLogPanel } from "./ActivityLogPanel";
 const TABS = [
   { key: "details", label: "Détails appartement" },
   { key: "cles", label: "Clés/Serrure" },
-  { key: "plateformes", label: "Plateformes" },
   { key: "agencement", label: "Agencement" },
   { key: "equipements", label: "Équipements" },
   { key: "inventaire", label: "Inventaire" },
   { key: "eauelec", label: "Eau / Élec" },
   { key: "notes", label: "Notes" },
+  { key: "plateformes", label: "Plateformes" },
   { key: "proprietaire", label: "Propriétaire" },
   { key: "historique", label: "Historique" },
 ] as const;
