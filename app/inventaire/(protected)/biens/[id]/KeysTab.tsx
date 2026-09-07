@@ -8,6 +8,7 @@ import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
+import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { KeyCard } from "./KeyCard";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
@@ -172,6 +173,7 @@ export function KeysTab({
   keys,
   elements,
   elementAttachments,
+  missingCheckKeys,
 }: {
   propertyId: string;
   details: PropertyDetails | null;
@@ -179,6 +181,7 @@ export function KeysTab({
   keys: PropertyKey[];
   elements: PropertyElement[];
   elementAttachments: Attachment[];
+  missingCheckKeys: string[];
 }) {
   const byKind = (kind: Attachment["kind"]) => attachments.filter((a) => a.kind === kind);
 
@@ -213,7 +216,12 @@ export function KeysTab({
               </div>
               <KeyContentField defaultType={details?.keyContentType} defaultDetail={details?.keyContentDetail} />
               <div>
-                <p className="text-sm font-medium text-[#1d1d1f]">Photo du trousseau de clé</p>
+                <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
+                  Photo du trousseau de clé
+                  {missingCheckKeys.includes("key_set_photo") && (
+                    <MissingFieldFlag propertyId={propertyId} checkKey="key_set_photo" />
+                  )}
+                </p>
                 <div className="mt-1 space-y-2">
                   <AttachmentGallery propertyId={propertyId} attachments={byKind("key_set_photo")} />
                   <FileUploadButtons

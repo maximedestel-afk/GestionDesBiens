@@ -9,6 +9,7 @@ import {
   getPropertyWaterElec,
   listActivityLog,
   listAttachmentsForProperty,
+  listChecklistDismissals,
   listEquipment,
   listInventoryCategories,
   listInventoryItems,
@@ -18,6 +19,7 @@ import {
   listRoomBeds,
   listRooms,
 } from "@/lib/inventaire/queries";
+import { computeMissingChecks } from "@/lib/inventaire/completeness";
 import { PropertyTabs } from "./PropertyTabs";
 import { EditPropertyDialog } from "@/components/inventaire/EditPropertyDialog";
 
@@ -48,6 +50,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     documents,
     attachments,
     activityLog,
+    dismissedChecks,
   ] = await Promise.all([
     getCurrentProfile(),
     getPropertyOwner(id),
@@ -69,8 +72,30 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listPropertyElements(id, "documents"),
     listAttachmentsForProperty(id),
     listActivityLog(id, 30),
+    listChecklistDismissals(id),
   ]);
   const isAdmin = profile?.role === "admin";
+
+  const platformHasListing = platforms.some((p) => !!p.listingName);
+  const missingCheckKeys = computeMissingChecks(
+    {
+      ownerLastName: owner?.lastName,
+      ownerEmail: owner?.email,
+      hasLeaseContract: attachments.some((a) => a.kind === "lease_contract"),
+      hasRib: attachments.some((a) => a.kind === "rib"),
+      hasRcp: attachments.some((a) => a.kind === "rcp"),
+      hasKeySetPhoto: attachments.some((a) => a.kind === "key_set_photo"),
+      capacity: agencement?.capacity,
+      surface: agencement?.surface,
+      hasVisitVideo: attachments.some((a) => a.kind === "visit_video"),
+      roomsCount: rooms.length,
+      wifiNetwork: details?.wifiNetwork,
+      wifiCode: details?.wifiCode,
+      hasWifiContract: attachments.some((a) => a.kind === "wifi_contract"),
+      hasPlatformInfo: platformHasListing,
+    },
+    new Set(dismissedChecks)
+  ).map((check) => check.key);
 
   return (
     <div>
@@ -108,6 +133,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         keyElements={keyElements}
         ownerDocuments={ownerDocuments}
         documents={documents}
+        missingCheckKeys={missingCheckKeys}
         attachments={attachments}
         activityLog={activityLog}
       />

@@ -7,6 +7,7 @@ import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
+import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 
 function Field({
   label,
@@ -49,10 +50,10 @@ function Field({
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, children }: { title: ReactNode; children: ReactNode }) {
   return (
     <fieldset className="card p-5">
-      <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">{title}</legend>
+      <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">{title}</legend>
       <div className="mt-2 space-y-3">{children}</div>
     </fieldset>
   );
@@ -62,10 +63,12 @@ export function DetailsTab({
   propertyId,
   details,
   attachments,
+  missingCheckKeys,
 }: {
   propertyId: string;
   details: PropertyDetails | null;
   attachments: Attachment[];
+  missingCheckKeys: string[];
 }) {
   const byKind = (kind: Attachment["kind"]) => attachments.filter((a) => a.kind === kind);
 
@@ -160,7 +163,16 @@ export function DetailsTab({
             </div>
           </Section>
 
-          <Section title="Wifi">
+          <Section
+            title={
+              <>
+                Wifi
+                {missingCheckKeys.includes("wifi_info") && (
+                  <MissingFieldFlag propertyId={propertyId} checkKey="wifi_info" />
+                )}
+              </>
+            }
+          >
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Réseau" name="wifiNetwork" defaultValue={details?.wifiNetwork} />
               <Field label="Code" name="wifiCode" defaultValue={details?.wifiCode} />
@@ -168,7 +180,12 @@ export function DetailsTab({
             </div>
             <Field label="Notes" name="wifiNotes" defaultValue={details?.wifiNotes} textarea />
             <div>
-              <p className="text-sm font-medium text-[#1d1d1f]">Contrat internet</p>
+              <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
+                Contrat internet
+                {missingCheckKeys.includes("wifi_contract") && (
+                  <MissingFieldFlag propertyId={propertyId} checkKey="wifi_contract" />
+                )}
+              </p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("wifi_contract")} />
                 <FileUploadButtons

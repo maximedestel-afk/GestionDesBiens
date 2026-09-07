@@ -6,6 +6,7 @@ import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
+import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { RoomRow } from "./RoomRow";
 
 export function AgencementTab({
@@ -14,12 +15,14 @@ export function AgencementTab({
   rooms,
   beds,
   attachments,
+  missingCheckKeys,
 }: {
   propertyId: string;
   agencement: PropertyAgencement | null;
   rooms: Room[];
   beds: RoomBed[];
   attachments: Attachment[];
+  missingCheckKeys: string[];
 }) {
   const visitVideos = attachments.filter((a) => a.kind === "visit_video");
 
@@ -34,6 +37,9 @@ export function AgencementTab({
                 <div>
                   <label className="field-label" htmlFor="capacity">
                     Nombre de personnes maximum
+                    {missingCheckKeys.includes("capacity") && (
+                      <MissingFieldFlag propertyId={propertyId} checkKey="capacity" />
+                    )}
                   </label>
                   <input
                     id="capacity"
@@ -48,6 +54,9 @@ export function AgencementTab({
                 <div>
                   <label className="field-label" htmlFor="surface">
                     Superficie (m²)
+                    {missingCheckKeys.includes("surface") && (
+                      <MissingFieldFlag propertyId={propertyId} checkKey="surface" />
+                    )}
                   </label>
                   <input
                     id="surface"
@@ -67,7 +76,12 @@ export function AgencementTab({
       </fieldset>
 
       <fieldset className="card p-5">
-        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Vidéo de visite</legend>
+        <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
+          Vidéo de visite
+          {missingCheckKeys.includes("visit_video") && (
+            <MissingFieldFlag propertyId={propertyId} checkKey="visit_video" />
+          )}
+        </legend>
         <p className="text-sm text-[#6e6e73]">Vidéo lente montrant tout l&apos;appartement en détail.</p>
         <div className="mt-2 space-y-2">
           <AttachmentGallery propertyId={propertyId} attachments={visitVideos} />
@@ -79,7 +93,10 @@ export function AgencementTab({
       </fieldset>
 
       <fieldset className="card p-5">
-        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Pièces &amp; couchages</legend>
+        <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
+          Pièces &amp; couchages
+          {missingCheckKeys.includes("rooms") && <MissingFieldFlag propertyId={propertyId} checkKey="rooms" />}
+        </legend>
         <p className="text-sm text-[#6e6e73]">
           Renseignez toutes les pièces du bien : elles alimentent le menu déroulant « Pièce » de l&apos;onglet
           Équipements techniques.
