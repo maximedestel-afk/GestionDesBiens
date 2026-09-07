@@ -40,6 +40,7 @@ export interface PropertyDetails {
   syndicNotes: string | null;
   comment: string | null;
   lockType: "cle" | "connectee" | null;
+  lockStaticCodesNotes: string | null;
   keyContentType: "cle" | "cle_vigik" | "autre" | null;
   keyContentDetail: string | null;
   keySetNote: string | null;
