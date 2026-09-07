@@ -2,6 +2,7 @@ import { getCurrentProfile, listProfiles } from "@/lib/inventaire/queries";
 import { RoleSelect } from "@/components/inventaire/RoleSelect";
 import { InviteUserForm } from "./InviteUserForm";
 import { CreateUserForm } from "./CreateUserForm";
+import { UserActions } from "./UserActions";
 
 export default async function UsersPage() {
   const profile = await getCurrentProfile();
@@ -46,6 +47,7 @@ export default async function UsersPage() {
               <th className="px-4 py-2 font-medium">Email</th>
               <th className="px-4 py-2 font-medium">Nom</th>
               <th className="px-4 py-2 font-medium">Rôle</th>
+              <th className="px-4 py-2 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -55,6 +57,9 @@ export default async function UsersPage() {
                 <td className="px-4 py-2">{p.fullName ?? "—"}</td>
                 <td className="px-4 py-2">
                   <RoleSelect userId={p.id} role={p.role} />
+                </td>
+                <td className="px-4 py-2">
+                  <UserActions userId={p.id} email={p.email} isSelf={p.id === profile?.id} />
                 </td>
               </tr>
             ))}
