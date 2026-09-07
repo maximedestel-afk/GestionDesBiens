@@ -81,6 +81,7 @@ export const STANDARD_INVENTORY_ITEMS: StandardInventoryItem[] = [
   { category: "Petit EM", name: "Machine Nespresso", target: 1, isTableware: false },
   { category: "Petit EM", name: "Blender/Mixeur", target: 1, isTableware: false },
   { category: "Petit EM", name: "Fer à Repasser", target: 1, isTableware: false },
+  { category: "Petit EM", name: "Sèche-cheveux", target: 1, isTableware: false },
 
   // Literie (cible auto = multiplicateur × nombre de lits, hors lit bébé)
   { category: "Literie", name: "Protège-oreillers", target: null, isTableware: false, bedMultiplier: 2 },
