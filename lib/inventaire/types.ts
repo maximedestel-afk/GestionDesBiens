@@ -115,6 +115,17 @@ export interface Room {
   position: number;
 }
 
+export type BedType = "double" | "queen" | "king" | "sofa_bed" | "autre";
+
+export interface RoomBed {
+  id: string;
+  propertyId: string;
+  roomId: string;
+  bedType: BedType;
+  bedTypeDetail: string | null;
+  position: number;
+}
+
 export interface Equipment {
   id: string;
   propertyId: string;

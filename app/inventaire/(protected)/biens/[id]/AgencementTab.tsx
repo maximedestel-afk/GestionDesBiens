@@ -1,6 +1,6 @@
 "use client";
 
-import type { Attachment, PropertyAgencement, Room } from "@/lib/inventaire/types";
+import type { Attachment, PropertyAgencement, Room, RoomBed } from "@/lib/inventaire/types";
 import { createRoom, saveAgencement } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
@@ -12,11 +12,13 @@ export function AgencementTab({
   propertyId,
   agencement,
   rooms,
+  beds,
   attachments,
 }: {
   propertyId: string;
   agencement: PropertyAgencement | null;
   rooms: Room[];
+  beds: RoomBed[];
   attachments: Attachment[];
 }) {
   const visitVideos = attachments.filter((a) => a.kind === "visit_video");
@@ -95,7 +97,12 @@ export function AgencementTab({
 
         <ul className="mt-3 space-y-2">
           {rooms.map((room) => (
-            <RoomRow key={room.id} propertyId={propertyId} room={room} />
+            <RoomRow
+              key={room.id}
+              propertyId={propertyId}
+              room={room}
+              beds={beds.filter((b) => b.roomId === room.id)}
+            />
           ))}
         </ul>
 

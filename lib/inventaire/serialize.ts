@@ -13,6 +13,7 @@ import type {
   PropertyPlatform,
   PropertyWaterElec,
   Room,
+  RoomBed,
 } from "./types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -130,6 +131,17 @@ export function serializeRoom(row: any): Room {
     propertyId: row.property_id,
     name: row.name,
     description: row.description,
+    position: row.position,
+  };
+}
+
+export function serializeRoomBed(row: any): RoomBed {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    roomId: row.room_id,
+    bedType: row.bed_type,
+    bedTypeDetail: row.bed_type_detail,
     position: row.position,
   };
 }
