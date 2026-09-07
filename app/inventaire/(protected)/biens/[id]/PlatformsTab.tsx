@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { PlatformType, PropertyPlatform } from "@/lib/inventaire/types";
-import { createPropertyPlatform } from "@/lib/inventaire/actions";
+import { createPropertyPlatform, ensureDefaultPlatforms } from "@/lib/inventaire/actions";
 import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
 import { PlatformCard } from "./PlatformCard";
 
@@ -80,6 +80,12 @@ export function PlatformsTab({
   propertyId: string;
   platforms: PropertyPlatform[];
 }) {
+  useEffect(() => {
+    if (platforms.length === 0) {
+      ensureDefaultPlatforms(propertyId).catch(() => {});
+    }
+  }, [propertyId, platforms.length]);
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -87,7 +93,7 @@ export function PlatformsTab({
         <AddPlatformMenu propertyId={propertyId} />
       </div>
       {platforms.length === 0 ? (
-        <p className="text-sm text-black/35">Aucune plateforme renseignée.</p>
+        <p className="text-sm text-black/35">Chargement…</p>
       ) : (
         <div className="space-y-3">
           {platforms.map((platform) => (

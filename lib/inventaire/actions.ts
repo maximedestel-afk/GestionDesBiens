@@ -596,6 +596,27 @@ export async function createPropertyPlatform(propertyId: string, platformType: P
   revalidateProperty(propertyId);
 }
 
+export async function ensureDefaultPlatforms(propertyId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { count } = await supabase
+    .from("property_platforms")
+    .select("id", { count: "exact", head: true })
+    .eq("property_id", propertyId);
+  if (count) return;
+
+  const { data: property } = await supabase.from("properties").select("name").eq("id", propertyId).maybeSingle();
+
+  const { error } = await supabase.from("property_platforms").insert([
+    { property_id: propertyId, platform_type: "airbnb", listing_name: property?.name ?? null, position: 0 },
+    { property_id: propertyId, platform_type: "booking", listing_name: property?.name ?? null, position: 1 },
+  ]);
+  if (error) throw error;
+
+  revalidateProperty(propertyId);
+}
+
 export async function updatePropertyPlatform(propertyId: string, platformId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
