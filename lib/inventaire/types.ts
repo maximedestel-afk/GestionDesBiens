@@ -199,7 +199,8 @@ export type AttachmentKind =
   | "element_photo"
   | "key_set_photo"
   | "rib"
-  | "rcp";
+  | "rcp"
+  | "wifi_pto_photo";
 
 export interface Attachment {
   id: string;
