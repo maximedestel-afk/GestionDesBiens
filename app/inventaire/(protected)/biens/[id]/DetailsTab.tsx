@@ -134,6 +134,28 @@ export function DetailsTab({
                 )}
               </div>
             </div>
+            <div>
+              <p className="text-sm font-medium text-[#1d1d1f]">Local Poubelle</p>
+              <div className="mt-1 space-y-2">
+                <AttachmentGallery propertyId={propertyId} attachments={byKind("trash_room")} />
+                <FileUploadButtons
+                  accept="image/*,video/*,.pdf,.doc,.docx"
+                  target={{ propertyId, entityType: "property", entityId: propertyId, kind: "trash_room" }}
+                />
+                <Field label="Ou un lien (URL)" name="trashRoomUrl" type="url" defaultValue={details?.trashRoomUrl} />
+                {details?.trashRoomUrl && (
+                  <a
+                    href={details.trashRoomUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block text-[13px] text-sky-600 hover:underline"
+                  >
+                    Ouvrir le lien
+                  </a>
+                )}
+                <Field label="Note" name="trashRoomNotes" defaultValue={details?.trashRoomNotes} textarea />
+              </div>
+            </div>
             <p className="text-[13px] text-[#6e6e73]">
               Décrivez par écrit comment rejoindre l&apos;appartement (codes, étage, ascenseur…) — le même
               texte que celui du message automatique envoyé au client.

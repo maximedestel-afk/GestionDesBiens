@@ -194,6 +194,8 @@ export async function deleteProperty(propertyId: string) {
 const PROPERTY_DETAILS_STRING_FIELDS: [string, string][] = [
   ["floor", "floor"],
   ["accessVideoUrl", "access_video_url"],
+  ["trashRoomUrl", "trash_room_url"],
+  ["trashRoomNotes", "trash_room_notes"],
   ["accessCodeClient", "access_code_client"],
   ["accessCodeCleaning", "access_code_cleaning"],
   ["accessCodeBackup", "access_code_backup"],

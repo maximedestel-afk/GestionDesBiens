@@ -36,6 +36,8 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     floor: row.floor,
     hasElevator: row.has_elevator,
     accessVideoUrl: row.access_video_url,
+    trashRoomUrl: row.trash_room_url,
+    trashRoomNotes: row.trash_room_notes,
     accessCodeClient: row.access_code_client,
     accessCodeCleaning: row.access_code_cleaning,
     accessCodeBackup: row.access_code_backup,
