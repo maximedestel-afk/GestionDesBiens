@@ -71,7 +71,6 @@ export function serializeAgencement(row: any): PropertyAgencement {
   return {
     propertyId: row.property_id,
     capacity: row.capacity,
-    babyBed: row.baby_bed,
     surface: row.surface,
   };
 }

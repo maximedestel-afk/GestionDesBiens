@@ -30,7 +30,7 @@ export function AgencementTab({
         <ActionForm className="mt-2 space-y-3" autoSave action={(formData) => saveAgencement(propertyId, formData)}>
           {({ pending, error, success }) => (
             <>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="field-label" htmlFor="capacity">
                     Nombre de personnes maximum
@@ -59,16 +59,6 @@ export function AgencementTab({
                     className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                   />
                 </div>
-                <label className="flex items-center gap-2 pt-6 text-sm text-[#1d1d1f]">
-                  <input
-                    type="checkbox"
-                    name="babyBed"
-                    value="true"
-                    defaultChecked={agencement?.babyBed ?? false}
-                    className="h-4 w-4 rounded border-black/10"
-                  />
-                  Lit bébé disponible
-                </label>
               </div>
               <SaveStatus pending={pending} error={error} success={success} />
             </>

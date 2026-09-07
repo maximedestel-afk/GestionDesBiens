@@ -53,7 +53,6 @@ export interface PropertyOwner {
 export interface PropertyAgencement {
   propertyId: string;
   capacity: number | null;
-  babyBed: boolean;
   surface: number | null;
 }
 
@@ -115,7 +114,7 @@ export interface Room {
   position: number;
 }
 
-export type BedType = "double" | "queen" | "king" | "sofa_bed" | "autre";
+export type BedType = "double" | "queen" | "king" | "sofa_bed" | "lit_bebe" | "autre";
 
 export interface RoomBed {
   id: string;

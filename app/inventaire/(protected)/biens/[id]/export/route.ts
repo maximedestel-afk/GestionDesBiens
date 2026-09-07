@@ -80,7 +80,6 @@ export async function GET(
     { field: "Email syndic", value: details?.syndicEmail ?? "" },
     { field: "Capacité d'accueil", value: agencement?.capacity ?? "" },
     { field: "Superficie (m²)", value: agencement?.surface ?? "" },
-    { field: "Lit bébé disponible", value: agencement?.babyBed ? "Oui" : "Non" },
     {
       field: "Production eau chaude",
       value:

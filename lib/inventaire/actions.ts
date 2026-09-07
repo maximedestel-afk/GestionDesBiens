@@ -279,7 +279,6 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
   if (capacity !== null && (!Number.isInteger(capacity) || capacity < 0)) {
     throw new Error("La capacité doit être un nombre entier positif.");
   }
-  const babyBed = formData.get("babyBed") === "true";
   const surfaceRaw = optionalString(formData.get("surface"));
   const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
   if (surface !== null && (!Number.isFinite(surface) || surface < 0)) {
@@ -288,7 +287,7 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
 
   const { error } = await supabase
     .from("property_agencement")
-    .upsert({ property_id: propertyId, capacity, baby_bed: babyBed, surface });
+    .upsert({ property_id: propertyId, capacity, surface });
   if (error) throw error;
 
   await logActivity(supabase, {

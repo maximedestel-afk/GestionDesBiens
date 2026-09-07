@@ -12,6 +12,7 @@ const BED_LABELS: Record<BedType, string> = {
   queen: "Queen",
   king: "King",
   sofa_bed: "Canapé-lit",
+  lit_bebe: "Lit bébé",
   autre: "Autre",
 };
 
@@ -79,7 +80,7 @@ function AddBedMenu({ propertyId, roomId }: { propertyId: string; roomId: string
       </button>
       {open && (
         <div className="absolute left-0 z-10 mt-1 w-40 overflow-hidden rounded-[10px] border border-black/10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
-          {(["double", "queen", "king", "sofa_bed", "autre"] as BedType[]).map((type) => (
+          {(["double", "queen", "king", "sofa_bed", "lit_bebe", "autre"] as BedType[]).map((type) => (
             <button
               key={type}
               type="button"
