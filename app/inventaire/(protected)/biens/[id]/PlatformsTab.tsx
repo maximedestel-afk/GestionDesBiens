@@ -94,9 +94,11 @@ export function PlatformsTab({
       <div className="flex items-center justify-between">
         <h2 className="flex items-center text-sm font-semibold text-[#1d1d1f]">
           Plateformes
-          {missingCheckKeys.includes("platforms_info") && (
-            <MissingFieldFlag propertyId={propertyId} checkKey="platforms_info" />
-          )}
+          <MissingFieldFlag
+            propertyId={propertyId}
+            checkKey="platforms_info"
+            missing={missingCheckKeys.includes("platforms_info")}
+          />
         </h2>
         <AddPlatformMenu propertyId={propertyId} />
       </div>

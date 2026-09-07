@@ -167,9 +167,11 @@ export function DetailsTab({
             title={
               <>
                 Wifi
-                {missingCheckKeys.includes("wifi_info") && (
-                  <MissingFieldFlag propertyId={propertyId} checkKey="wifi_info" />
-                )}
+                <MissingFieldFlag
+                  propertyId={propertyId}
+                  checkKey="wifi_info"
+                  missing={missingCheckKeys.includes("wifi_info")}
+                />
               </>
             }
           >
@@ -182,9 +184,11 @@ export function DetailsTab({
             <div>
               <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
                 Contrat internet
-                {missingCheckKeys.includes("wifi_contract") && (
-                  <MissingFieldFlag propertyId={propertyId} checkKey="wifi_contract" />
-                )}
+                <MissingFieldFlag
+                  propertyId={propertyId}
+                  checkKey="wifi_contract"
+                  missing={missingCheckKeys.includes("wifi_contract")}
+                />
               </p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("wifi_contract")} />

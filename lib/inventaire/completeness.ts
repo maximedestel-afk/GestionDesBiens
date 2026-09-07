@@ -61,3 +61,7 @@ export function computeMissingChecks(
 ): CompletenessCheck[] {
   return COMPLETENESS_CHECKS.filter((check) => !dismissedKeys.has(check.key) && !CHECK_PREDICATES[check.key](input));
 }
+
+export function getCompletenessCheck(key: string): CompletenessCheck | undefined {
+  return COMPLETENESS_CHECKS.find((check) => check.key === key);
+}

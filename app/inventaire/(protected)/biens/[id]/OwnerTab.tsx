@@ -75,7 +75,7 @@ function DocumentField({
     <fieldset className="rounded-2xl border border-black/[0.06] p-4">
       <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
         {title}
-        {missing && <MissingFieldFlag propertyId={propertyId} checkKey={checkKey} />}
+        <MissingFieldFlag propertyId={propertyId} checkKey={checkKey} missing={missing} />
       </legend>
       <div className="mt-2 space-y-2">
         <AttachmentGallery propertyId={propertyId} attachments={attachments} emptyLabel={emptyLabel} variant="list" />
@@ -117,9 +117,11 @@ export function OwnerTab({
             <fieldset className="card p-5">
               <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
                 Propriétaire
-                {missingCheckKeys.includes("owner_info") && (
-                  <MissingFieldFlag propertyId={propertyId} checkKey="owner_info" />
-                )}
+                <MissingFieldFlag
+                  propertyId={propertyId}
+                  checkKey="owner_info"
+                  missing={missingCheckKeys.includes("owner_info")}
+                />
               </legend>
               <div className="mt-2 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">

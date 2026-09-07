@@ -19,7 +19,7 @@ import {
   listRoomBeds,
   listRooms,
 } from "@/lib/inventaire/queries";
-import { computeMissingChecks } from "@/lib/inventaire/completeness";
+import { computeMissingChecks, getCompletenessCheck } from "@/lib/inventaire/completeness";
 import { PropertyTabs } from "./PropertyTabs";
 import { EditPropertyDialog } from "@/components/inventaire/EditPropertyDialog";
 
@@ -97,6 +97,10 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     new Set(dismissedChecks)
   ).map((check) => check.key);
 
+  const dismissedChecksList = dismissedChecks
+    .map((key) => getCompletenessCheck(key))
+    .filter((check) => check !== undefined);
+
   return (
     <div>
       <div className="mb-6">
@@ -134,6 +138,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         ownerDocuments={ownerDocuments}
         documents={documents}
         missingCheckKeys={missingCheckKeys}
+        dismissedChecks={dismissedChecksList}
         attachments={attachments}
         activityLog={activityLog}
       />

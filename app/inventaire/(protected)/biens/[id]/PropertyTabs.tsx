@@ -20,7 +20,9 @@ import type {
   RoomBed,
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
+import type { CompletenessCheck } from "@/lib/inventaire/completeness";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
+import { DismissedChecksPanel } from "@/components/inventaire/DismissedChecksPanel";
 import { OwnerTab } from "./OwnerTab";
 import { DetailsTab } from "./DetailsTab";
 import { KeysTab } from "./KeysTab";
@@ -72,6 +74,7 @@ export function PropertyTabs({
   ownerDocuments,
   documents,
   missingCheckKeys,
+  dismissedChecks,
   attachments,
   activityLog,
 }: {
@@ -95,6 +98,7 @@ export function PropertyTabs({
   ownerDocuments: PropertyElement[];
   documents: PropertyElement[];
   missingCheckKeys: string[];
+  dismissedChecks: CompletenessCheck[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
@@ -126,6 +130,7 @@ export function PropertyTabs({
           ))}
         </nav>
         <div className="flex shrink-0 items-center gap-4 text-[13px]">
+          <DismissedChecksPanel propertyId={property.id} checks={dismissedChecks} />
           <a href={`/inventaire/biens/${property.id}/export`} className="link-quiet text-[13px]">
             Exporter (Excel)
           </a>
