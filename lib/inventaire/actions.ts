@@ -198,6 +198,8 @@ const PROPERTY_DETAILS_STRING_FIELDS: [string, string][] = [
   ["accessCodeBackup", "access_code_backup"],
   ["wifiNetwork", "wifi_network"],
   ["wifiCode", "wifi_code"],
+  ["wifiNotes", "wifi_notes"],
+  ["edfNotes", "edf_notes"],
   ["edfPrm", "edf_prm"],
   ["syndicName", "syndic_name"],
   ["syndicPhone", "syndic_phone"],

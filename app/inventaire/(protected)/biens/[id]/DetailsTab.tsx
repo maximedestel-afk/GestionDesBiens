@@ -165,6 +165,7 @@ export function DetailsTab({
               <Field label="Réseau" name="wifiNetwork" defaultValue={details?.wifiNetwork} />
               <Field label="Code" name="wifiCode" defaultValue={details?.wifiCode} />
             </div>
+            <Field label="Notes" name="wifiNotes" defaultValue={details?.wifiNotes} textarea />
             <div>
               <p className="text-sm font-medium text-[#1d1d1f]">Contrat internet</p>
               <div className="mt-1 space-y-2">
@@ -180,6 +181,7 @@ export function DetailsTab({
 
           <Section title="Électricité (EDF)">
             <Field label="Numéro PRM" name="edfPrm" defaultValue={details?.edfPrm} />
+            <Field label="Notes" name="edfNotes" defaultValue={details?.edfNotes} textarea />
             <div>
               <p className="text-sm font-medium text-[#1d1d1f]">Contrat EDF</p>
               <div className="mt-1 space-y-2">
