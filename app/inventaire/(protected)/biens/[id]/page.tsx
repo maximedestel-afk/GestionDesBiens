@@ -43,6 +43,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     inventoryCategories,
     noteElements,
     photoAlbums,
+    keyElements,
     attachments,
     activityLog,
   ] = await Promise.all([
@@ -61,6 +62,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listInventoryCategories(id),
     listPropertyElements(id, "notes"),
     listPropertyElements(id, "photos"),
+    listPropertyElements(id, "cles"),
     listAttachmentsForProperty(id),
     listActivityLog(id, 30),
   ]);
@@ -99,6 +101,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         inventoryCategories={inventoryCategories}
         noteElements={noteElements}
         photoAlbums={photoAlbums}
+        keyElements={keyElements}
         attachments={attachments}
         activityLog={activityLog}
       />

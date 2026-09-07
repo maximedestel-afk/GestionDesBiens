@@ -38,6 +38,7 @@ export interface PropertyDetails {
   lockType: "cle" | "connectee" | null;
   keyContentType: "cle" | "cle_vigik" | "autre" | null;
   keyContentDetail: string | null;
+  keySetNote: string | null;
 }
 
 export interface PropertyOwner {
@@ -95,7 +96,7 @@ export interface PropertyPlatform {
   position: number;
 }
 
-export type ElementSection = "water_elec" | "notes" | "photos";
+export type ElementSection = "water_elec" | "notes" | "photos" | "cles";
 
 export interface PropertyElement {
   id: string;

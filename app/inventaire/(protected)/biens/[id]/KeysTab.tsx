@@ -1,14 +1,16 @@
 "use client";
 
-import { useRef, useState, useTransition, type ReactNode } from "react";
-import type { Attachment, PropertyDetails, PropertyKey } from "@/lib/inventaire/types";
-import { createPropertyKey, savePropertyDetails } from "@/lib/inventaire/actions";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import type { Attachment, PropertyDetails, PropertyElement, PropertyKey } from "@/lib/inventaire/types";
+import { createPropertyKey, ensureDefaultKeyElements, savePropertyDetails } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
 import { KeyCard } from "./KeyCard";
+import { ElementCard } from "./ElementCard";
+import { AddElementForm } from "./AddElementForm";
 
 function KeyContentField({
   defaultType,
@@ -128,16 +130,55 @@ function KeysSection({ propertyId, keys }: { propertyId: string; keys: PropertyK
   );
 }
 
+function KeyElementsSection({
+  propertyId,
+  elements,
+  attachments,
+}: {
+  propertyId: string;
+  elements: PropertyElement[];
+  attachments: Attachment[];
+}) {
+  useEffect(() => {
+    if (elements.length === 0) {
+      ensureDefaultKeyElements(propertyId).catch(() => {});
+    }
+  }, [propertyId, elements.length]);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Autres éléments (carte clé, bridge, interphone…)</h2>
+        <AddElementForm propertyId={propertyId} section="cles" label="+ Ajouter un élément" />
+      </div>
+      <div className="space-y-3">
+        {elements.map((el) => (
+          <ElementCard
+            key={el.id}
+            propertyId={propertyId}
+            element={el}
+            attachments={attachments.filter((a) => a.entityId === el.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function KeysTab({
   propertyId,
   details,
   attachments,
   keys,
+  elements,
+  elementAttachments,
 }: {
   propertyId: string;
   details: PropertyDetails | null;
   attachments: Attachment[];
   keys: PropertyKey[];
+  elements: PropertyElement[];
+  elementAttachments: Attachment[];
 }) {
   const byKind = (kind: Attachment["kind"]) => attachments.filter((a) => a.kind === kind);
 
@@ -181,12 +222,25 @@ export function KeysTab({
                   />
                 </div>
               </div>
+              <div>
+                <label className="field-label" htmlFor="keySetNote">
+                  Note (trousseau de clé)
+                </label>
+                <textarea
+                  id="keySetNote"
+                  name="keySetNote"
+                  defaultValue={details?.keySetNote ?? ""}
+                  rows={2}
+                  className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                />
+              </div>
             </Section>
           </>
         )}
       </ActionForm>
 
       <KeysSection propertyId={propertyId} keys={keys} />
+      <KeyElementsSection propertyId={propertyId} elements={elements} attachments={elementAttachments} />
     </div>
   );
 }

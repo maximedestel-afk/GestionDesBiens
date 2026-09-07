@@ -66,6 +66,7 @@ export function PropertyTabs({
   inventoryCategories,
   noteElements,
   photoAlbums,
+  keyElements,
   attachments,
   activityLog,
 }: {
@@ -85,6 +86,7 @@ export function PropertyTabs({
   inventoryCategories: InventoryCategoryRow[];
   noteElements: PropertyElement[];
   photoAlbums: PropertyElement[];
+  keyElements: PropertyElement[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
@@ -142,7 +144,14 @@ export function PropertyTabs({
           <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
         )}
         {activeTab === "cles" && (
-          <KeysTab propertyId={property.id} details={details} attachments={propertyAttachments} keys={keys} />
+          <KeysTab
+            propertyId={property.id}
+            details={details}
+            attachments={propertyAttachments}
+            keys={keys}
+            elements={keyElements}
+            elementAttachments={elementAttachments}
+          />
         )}
         {activeTab === "plateformes" && <PlatformsTab propertyId={property.id} platforms={platforms} />}
         {activeTab === "eauelec" && (
