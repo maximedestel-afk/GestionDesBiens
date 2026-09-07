@@ -7,6 +7,7 @@ import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
+import { useUserRole } from "@/components/inventaire/UserRoleContext";
 
 const BED_LABELS: Record<BedType, string> = {
   double: "Double",
@@ -19,6 +20,7 @@ const BED_LABELS: Record<BedType, string> = {
 
 function BedChip({ propertyId, bed }: { propertyId: string; bed: RoomBed }) {
   const [detail, setDetail] = useState(bed.bedTypeDetail ?? "");
+  const role = useUserRole();
 
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-black/[0.03] py-1 pl-3 pr-1.5 text-[13px] text-[#1d1d1f]">
@@ -38,16 +40,18 @@ function BedChip({ propertyId, bed }: { propertyId: string; bed: RoomBed }) {
       ) : (
         BED_LABELS[bed.bedType]
       )}
-      <button
-        type="button"
-        onClick={() => {
-          deleteRoomBed(propertyId, bed.id).catch(() => {});
-        }}
-        aria-label="Supprimer ce lit"
-        className="text-black/30 hover:text-red-600"
-      >
-        ×
-      </button>
+      {role !== "menage" && (
+        <button
+          type="button"
+          onClick={() => {
+            deleteRoomBed(propertyId, bed.id).catch(() => {});
+          }}
+          aria-label="Supprimer ce lit"
+          className="text-black/30 hover:text-red-600"
+        >
+          ×
+        </button>
+      )}
     </span>
   );
 }
