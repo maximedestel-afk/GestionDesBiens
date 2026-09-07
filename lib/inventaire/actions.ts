@@ -1347,6 +1347,32 @@ export async function createUserDirect(formData: FormData) {
   revalidatePath("/inventaire/utilisateurs");
 }
 
+export async function updateUserPassword(userId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const password = requireNonEmpty(formData.get("password"), "Le mot de passe");
+  if (password.length < 6) throw new Error("Le mot de passe doit contenir au moins 6 caractères.");
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(userId, { password });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/inventaire/utilisateurs");
+}
+
+export async function deleteUserAccount(userId: string) {
+  const supabase = await createClient();
+  const currentUser = await requireAdmin(supabase);
+  if (currentUser.id === userId) throw new Error("Vous ne pouvez pas supprimer votre propre compte.");
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/inventaire/utilisateurs");
+}
+
 /* ------------------------------------------------------------------ */
 /* Accès (admin) — notes techniques (codes, mots de passe...)          */
 /* ------------------------------------------------------------------ */
