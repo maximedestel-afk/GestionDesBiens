@@ -252,6 +252,9 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     phone: optionalString(formData.get("phone")),
     address: optionalString(formData.get("address")),
     notes: optionalString(formData.get("notes")),
+    lease_notes: optionalString(formData.get("leaseNotes")),
+    rib_notes: optionalString(formData.get("ribNotes")),
+    rcp_notes: optionalString(formData.get("rcpNotes")),
   };
 
   const { error } = await supabase.from("property_owner").upsert(patch);

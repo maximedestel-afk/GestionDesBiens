@@ -12,10 +12,16 @@ export function ElementCard({
   propertyId,
   element,
   attachments,
+  accept = "image/*,.pdf,.doc,.docx",
+  showCamera = true,
+  galleryVariant = "grid",
 }: {
   propertyId: string;
   element: PropertyElement;
   attachments: Attachment[];
+  accept?: string;
+  showCamera?: boolean;
+  galleryVariant?: "grid" | "list";
 }) {
   return (
     <div className="card p-5">
@@ -48,9 +54,15 @@ export function ElementCard({
         )}
       </ActionForm>
       <div className="mt-2 space-y-2">
-        <AttachmentGallery propertyId={propertyId} attachments={attachments} emptyLabel="Aucune photo/fichier" />
+        <AttachmentGallery
+          propertyId={propertyId}
+          attachments={attachments}
+          emptyLabel="Aucune photo/fichier"
+          variant={galleryVariant}
+        />
         <FileUploadButtons
-          accept="image/*,.pdf,.doc,.docx"
+          accept={accept}
+          showCamera={showCamera}
           target={{
             propertyId,
             entityType: "property_element",

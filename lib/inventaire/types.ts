@@ -49,6 +49,9 @@ export interface PropertyOwner {
   phone: string | null;
   address: string | null;
   notes: string | null;
+  leaseNotes: string | null;
+  ribNotes: string | null;
+  rcpNotes: string | null;
 }
 
 export interface PropertyAgencement {
@@ -96,7 +99,7 @@ export interface PropertyPlatform {
   position: number;
 }
 
-export type ElementSection = "water_elec" | "notes" | "photos" | "cles";
+export type ElementSection = "water_elec" | "notes" | "photos" | "cles" | "owner_documents" | "documents";
 
 export interface PropertyElement {
   id: string;
@@ -194,7 +197,8 @@ export type AttachmentKind =
   | "inventory_item_photo"
   | "element_photo"
   | "key_set_photo"
-  | "rib";
+  | "rib"
+  | "rcp";
 
 export interface Attachment {
   id: string;
