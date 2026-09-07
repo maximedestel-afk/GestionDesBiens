@@ -62,6 +62,45 @@ async function logActivity(
   });
 }
 
+// Pour les formulaires "tout-en-un" (autosave sur plusieurs champs à la
+// fois) : ne journalise que les champs dont la valeur a réellement changé,
+// avec leur libellé, plutôt qu'un message générique "X mis à jour".
+function changedFieldLabels(
+  existing: Record<string, unknown> | null,
+  patch: Record<string, unknown>,
+  labels: Record<string, string>
+): string[] {
+  const result: string[] = [];
+  for (const [columnKey, label] of Object.entries(labels)) {
+    if (!(columnKey in patch)) continue;
+    const before = existing?.[columnKey] ?? null;
+    const after = patch[columnKey] ?? null;
+    if (before !== after) result.push(label);
+  }
+  return result;
+}
+
+async function logSectionChanges(
+  supabase: SupabaseServerClient,
+  params: {
+    propertyId: string;
+    entityType: string;
+    sectionLabel: string;
+    existing: Record<string, unknown> | null;
+    patch: Record<string, unknown>;
+    labels: Record<string, string>;
+  }
+) {
+  const changed = changedFieldLabels(params.existing, params.patch, params.labels);
+  if (changed.length === 0) return;
+  await logActivity(supabase, {
+    propertyId: params.propertyId,
+    entityType: params.entityType,
+    action: "update",
+    summary: `${params.sectionLabel} › ${changed.join(", ")} mis à jour`,
+  });
+}
+
 function requireNonEmpty(value: FormDataEntryValue | null, label: string): string {
   const str = typeof value === "string" ? value.trim() : "";
   if (!str) throw new Error(`${label} est requis.`);
@@ -191,51 +230,66 @@ export async function deleteProperty(propertyId: string) {
 // entre deux morceaux du formulaire principal). Chaque morceau n'envoie donc
 // que ses propres champs : on ne patch que les champs réellement présents
 // dans le FormData pour ne pas écraser les champs gérés par l'autre morceau.
-const PROPERTY_DETAILS_STRING_FIELDS: [string, string][] = [
-  ["floor", "floor"],
-  ["accessVideoUrl", "access_video_url"],
-  ["trashRoomUrl", "trash_room_url"],
-  ["trashRoomNotes", "trash_room_notes"],
-  ["accessCodeClient", "access_code_client"],
-  ["accessCodeCleaning", "access_code_cleaning"],
-  ["accessCodeBackup", "access_code_backup"],
-  ["wifiNetwork", "wifi_network"],
-  ["wifiCode", "wifi_code"],
-  ["wifiPtoNumber", "wifi_pto_number"],
-  ["wifiPtoNotes", "wifi_pto_notes"],
-  ["wifiNotes", "wifi_notes"],
-  ["edfNotes", "edf_notes"],
-  ["edfPrm", "edf_prm"],
-  ["syndicName", "syndic_name"],
-  ["syndicPhone", "syndic_phone"],
-  ["syndicEmail", "syndic_email"],
-  ["syndicNotes", "syndic_notes"],
-  ["comment", "comment"],
-  ["lockType", "lock_type"],
-  ["lockStaticCodesNotes", "lock_static_codes_notes"],
-  ["keyContentType", "key_content_type"],
-  ["keyContentDetail", "key_content_detail"],
-  ["keySetNote", "key_set_note"],
+const PROPERTY_DETAILS_STRING_FIELDS: [string, string, string][] = [
+  ["floor", "floor", "Étage"],
+  ["accessVideoUrl", "access_video_url", "Lien vidéo/photos d'accès"],
+  ["trashRoomUrl", "trash_room_url", "Local Poubelle (lien)"],
+  ["trashRoomNotes", "trash_room_notes", "Local Poubelle (note)"],
+  ["accessCodeClient", "access_code_client", "Code & accès — Client"],
+  ["accessCodeCleaning", "access_code_cleaning", "Code & accès — Ménage/maintenance"],
+  ["accessCodeBackup", "access_code_backup", "Code & accès — Back up"],
+  ["wifiNetwork", "wifi_network", "Réseau Wifi"],
+  ["wifiCode", "wifi_code", "Code Wifi"],
+  ["wifiPtoNumber", "wifi_pto_number", "Numéro PTO"],
+  ["wifiPtoNotes", "wifi_pto_notes", "Note prise optique"],
+  ["wifiNotes", "wifi_notes", "Notes Wifi"],
+  ["edfNotes", "edf_notes", "Notes EDF"],
+  ["edfPrm", "edf_prm", "Numéro PRM"],
+  ["syndicName", "syndic_name", "Nom du syndic"],
+  ["syndicPhone", "syndic_phone", "Téléphone syndic"],
+  ["syndicEmail", "syndic_email", "Email syndic"],
+  ["syndicNotes", "syndic_notes", "Notes syndic"],
+  ["comment", "comment", "Commentaire"],
+  ["lockType", "lock_type", "Type de serrure"],
+  ["lockStaticCodesNotes", "lock_static_codes_notes", "Codes Statiques"],
+  ["keyContentType", "key_content_type", "Contenu du trousseau"],
+  ["keyContentDetail", "key_content_detail", "Détail contenu du trousseau"],
+  ["keySetNote", "key_set_note", "Note trousseau"],
 ];
 
 export async function savePropertyDetails(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
 
+  const { data: existing } = await supabase
+    .from("property_details")
+    .select("*")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
   const patch: Record<string, unknown> = { property_id: propertyId };
-  for (const [formKey, columnKey] of PROPERTY_DETAILS_STRING_FIELDS) {
-    if (formData.has(formKey)) patch[columnKey] = optionalString(formData.get(formKey));
+  const labels: Record<string, string> = {};
+  for (const [formKey, columnKey, label] of PROPERTY_DETAILS_STRING_FIELDS) {
+    if (formData.has(formKey)) {
+      patch[columnKey] = optionalString(formData.get(formKey));
+      labels[columnKey] = label;
+    }
   }
-  if (formData.has("hasElevator")) patch.has_elevator = formData.get("hasElevator") === "true";
+  if (formData.has("hasElevator")) {
+    patch.has_elevator = formData.get("hasElevator") === "true";
+    labels.has_elevator = "Ascenseur";
+  }
 
   const { error } = await supabase.from("property_details").upsert(patch);
   if (error) throw error;
 
-  await logActivity(supabase, {
+  await logSectionChanges(supabase, {
     propertyId,
     entityType: "property_details",
-    action: "update",
-    summary: "Détails appartement mis à jour",
+    sectionLabel: "Détails appartement",
+    existing,
+    patch,
+    labels,
   });
 
   revalidateProperty(propertyId);
@@ -245,9 +299,27 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
 /* Propriétaire                                                        */
 /* ------------------------------------------------------------------ */
 
+const PROPERTY_OWNER_LABELS: Record<string, string> = {
+  last_name: "Nom",
+  first_name: "Prénom",
+  email: "Email",
+  phone: "Téléphone",
+  address: "Adresse",
+  notes: "Notes",
+  lease_notes: "Note Bail",
+  rib_notes: "Note RIB",
+  rcp_notes: "Note RCP",
+};
+
 export async function savePropertyOwner(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireAdmin(supabase);
+
+  const { data: existing } = await supabase
+    .from("property_owner")
+    .select("*")
+    .eq("property_id", propertyId)
+    .maybeSingle();
 
   const patch = {
     property_id: propertyId,
@@ -265,11 +337,13 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
   const { error } = await supabase.from("property_owner").upsert(patch);
   if (error) throw error;
 
-  await logActivity(supabase, {
+  await logSectionChanges(supabase, {
     propertyId,
     entityType: "property_owner",
-    action: "update",
-    summary: "Propriétaire mis à jour",
+    sectionLabel: "Propriétaire",
+    existing,
+    patch,
+    labels: PROPERTY_OWNER_LABELS,
   });
 
   revalidateProperty(propertyId);
@@ -278,6 +352,11 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
 /* ------------------------------------------------------------------ */
 /* Agencement                                                          */
 /* ------------------------------------------------------------------ */
+
+const PROPERTY_AGENCEMENT_LABELS: Record<string, string> = {
+  capacity: "Nombre de personnes maximum",
+  surface: "Superficie",
+};
 
 export async function saveAgencement(propertyId: string, formData: FormData) {
   const supabase = await createClient();
@@ -294,16 +373,23 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
     throw new Error("La superficie doit être un nombre positif.");
   }
 
-  const { error } = await supabase
+  const { data: existing } = await supabase
     .from("property_agencement")
-    .upsert({ property_id: propertyId, capacity, surface });
+    .select("*")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  const patch = { property_id: propertyId, capacity, surface };
+  const { error } = await supabase.from("property_agencement").upsert(patch);
   if (error) throw error;
 
-  await logActivity(supabase, {
+  await logSectionChanges(supabase, {
     propertyId,
     entityType: "property_agencement",
-    action: "update",
-    summary: "Agencement mis à jour",
+    sectionLabel: "Agencement",
+    existing,
+    patch,
+    labels: PROPERTY_AGENCEMENT_LABELS,
   });
 
   revalidateProperty(propertyId);
@@ -312,6 +398,11 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
 /* ------------------------------------------------------------------ */
 /* Eau / Élec                                                           */
 /* ------------------------------------------------------------------ */
+
+const PROPERTY_WATER_ELEC_LABELS: Record<string, string> = {
+  hot_water_production: "Production eau chaude",
+  has_gas: "Gaz",
+};
 
 export async function saveWaterElec(propertyId: string, formData: FormData) {
   const supabase = await createClient();
@@ -324,16 +415,23 @@ export async function saveWaterElec(propertyId: string, formData: FormData) {
       : null;
   const hasGas = formData.has("hasGas") ? formData.get("hasGas") === "true" : null;
 
-  const { error } = await supabase
+  const { data: existing } = await supabase
     .from("property_water_elec")
-    .upsert({ property_id: propertyId, hot_water_production: hotWaterProduction, has_gas: hasGas });
+    .select("*")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  const patch = { property_id: propertyId, hot_water_production: hotWaterProduction, has_gas: hasGas };
+  const { error } = await supabase.from("property_water_elec").upsert(patch);
   if (error) throw error;
 
-  await logActivity(supabase, {
+  await logSectionChanges(supabase, {
     propertyId,
     entityType: "property_water_elec",
-    action: "update",
-    summary: "Eau / Élec mis à jour",
+    sectionLabel: "Eau / Élec",
+    existing,
+    patch,
+    labels: PROPERTY_WATER_ELEC_LABELS,
   });
 
   revalidateProperty(propertyId);
