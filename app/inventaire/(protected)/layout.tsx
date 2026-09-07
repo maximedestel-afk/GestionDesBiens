@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getCurrentProfile } from "@/lib/inventaire/queries";
 import { signOut } from "@/lib/inventaire/actions";
 
@@ -11,9 +12,10 @@ export default async function ProtectedLayout({ children }: { children: React.Re
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link
             href="/inventaire"
-            className="truncate text-[17px] font-semibold tracking-tight text-[#1d1d1f]"
+            className="flex min-w-0 items-center gap-2 truncate text-[17px] font-semibold tracking-tight text-[#1d1d1f]"
           >
-            Melvane Gestion des Biens
+            <Image src="/icon.png" alt="" width={28} height={28} className="h-7 w-7 shrink-0" />
+            <span className="truncate">Melvane Gestion des Biens</span>
           </Link>
           <div className="flex shrink-0 items-center gap-4 text-[13px]">
             {profile?.role === "admin" && (
