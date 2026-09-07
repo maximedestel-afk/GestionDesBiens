@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { INVENTORY_CATEGORIES, type Attachment, type InventoryItem } from "@/lib/inventaire/types";
-import { createInventoryItem, loadStandardInventory } from "@/lib/inventaire/actions";
+import { createInventoryItem } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { InventoryItemRow } from "./InventoryItemRow";
 
@@ -11,7 +11,11 @@ function AddItemForm({ propertyId, category }: { propertyId: string; category: s
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="text-sm font-medium text-[#6e6e73] hover:text-[#1d1d1f]">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1 rounded-full border-2 border-[#0071e3] px-3.5 py-1.5 text-sm font-semibold text-[#0071e3] transition hover:bg-[#0071e3]/10"
+      >
         + Ajouter un article
       </button>
     );
@@ -72,34 +76,6 @@ function AddItemForm({ propertyId, category }: { propertyId: string; category: s
   );
 }
 
-function LoadStandardListButton({ propertyId }: { propertyId: string }) {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => {
-          setError(null);
-          startTransition(async () => {
-            try {
-              await loadStandardInventory(propertyId);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Erreur.");
-            }
-          });
-        }}
-        className="btn-primary"
-      >
-        {pending ? "Chargement…" : "Charger la liste standard"}
-      </button>
-      {error && <span className="text-sm text-red-600">{error}</span>}
-    </div>
-  );
-}
-
 export function InventoryTab({
   propertyId,
   items,
@@ -111,13 +87,6 @@ export function InventoryTab({
 }) {
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-black/15 bg-black/[0.02] p-3.5">
-        <p className="text-sm text-[#6e6e73]">
-          ~70 articles standards (hors linge de maison loué à chaque ménage).
-        </p>
-        <LoadStandardListButton propertyId={propertyId} />
-      </div>
-
       {INVENTORY_CATEGORIES.map((category) => {
         const categoryItems = items.filter((i) => i.category === category);
         return (
