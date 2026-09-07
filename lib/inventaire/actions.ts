@@ -279,7 +279,6 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
   if (capacity !== null && (!Number.isInteger(capacity) || capacity < 0)) {
     throw new Error("La capacité doit être un nombre entier positif.");
   }
-  const babyBed = formData.get("babyBed") === "true";
   const surfaceRaw = optionalString(formData.get("surface"));
   const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
   if (surface !== null && (!Number.isFinite(surface) || surface < 0)) {
@@ -288,7 +287,7 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
 
   const { error } = await supabase
     .from("property_agencement")
-    .upsert({ property_id: propertyId, capacity, baby_bed: babyBed, surface });
+    .upsert({ property_id: propertyId, capacity, surface });
   if (error) throw error;
 
   await logActivity(supabase, {
@@ -919,6 +918,61 @@ export async function loadStandardEquipment(propertyId: string, roomId: string) 
 /* Inventaire du foyer                                                 */
 /* ------------------------------------------------------------------ */
 
+export async function createInventoryCategory(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const name = requireNonEmpty(formData.get("name"), "Le nom de la catégorie");
+
+  const { data: maxPos } = await supabase
+    .from("inventory_categories")
+    .select("position")
+    .eq("property_id", propertyId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error } = await supabase.from("inventory_categories").insert({
+    property_id: propertyId,
+    name,
+    position: (maxPos?.position ?? -1) + 1,
+  });
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "inventory_category",
+    action: "create",
+    summary: `Catégorie « ${name} » ajoutée`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function deleteInventoryCategory(propertyId: string, categoryId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { data: category } = await supabase
+    .from("inventory_categories")
+    .select("name")
+    .eq("id", categoryId)
+    .maybeSingle();
+
+  const { error } = await supabase.from("inventory_categories").delete().eq("id", categoryId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "inventory_category",
+    entityId: categoryId,
+    action: "delete",
+    summary: `Catégorie « ${category?.name ?? categoryId} » supprimée`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
 export async function createInventoryItem(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
@@ -991,8 +1045,9 @@ export async function loadStandardInventory(propertyId: string) {
       category: item.category,
       name: item.name,
       in_stock: 0,
-      target: item.isTableware ? null : item.target,
+      target: item.isTableware || item.bedMultiplier ? null : item.target,
       is_tableware: item.isTableware,
+      bed_multiplier: item.bedMultiplier ?? null,
       position,
       stock_updated_at: null,
     };
@@ -1044,10 +1099,12 @@ export async function updateInventoryTarget(propertyId: string, itemId: string, 
 
   const { data: item } = await supabase
     .from("inventory_items")
-    .select("is_tableware")
+    .select("is_tableware, bed_multiplier")
     .eq("id", itemId)
     .maybeSingle();
-  if (item?.is_tableware) throw new Error("La cible de cet article est calculée automatiquement.");
+  if (item?.is_tableware || item?.bed_multiplier != null) {
+    throw new Error("La cible de cet article est calculée automatiquement.");
+  }
 
   const { error } = await supabase.from("inventory_items").update({ target }).eq("id", itemId);
   if (error) throw error;

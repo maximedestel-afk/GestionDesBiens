@@ -6,6 +6,7 @@ import type {
   ActivityLogEntry,
   Attachment,
   Equipment,
+  InventoryCategoryRow,
   InventoryItem,
   Property,
   PropertyAgencement,
@@ -60,6 +61,7 @@ export function PropertyTabs({
   beds,
   equipment,
   inventoryItems,
+  inventoryCategories,
   noteElements,
   attachments,
   activityLog,
@@ -77,6 +79,7 @@ export function PropertyTabs({
   beds: RoomBed[];
   equipment: Equipment[];
   inventoryItems: InventoryItem[];
+  inventoryCategories: InventoryCategoryRow[];
   noteElements: PropertyElement[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
@@ -167,6 +170,7 @@ export function PropertyTabs({
           <InventoryTab
             propertyId={property.id}
             items={inventoryItems}
+            categories={inventoryCategories}
             attachments={inventoryAttachments}
           />
         )}

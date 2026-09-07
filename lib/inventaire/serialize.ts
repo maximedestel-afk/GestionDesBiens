@@ -10,6 +10,7 @@ import type {
   PropertyElement,
   PropertyKey,
   PropertyOwner,
+  InventoryCategoryRow,
   PropertyPlatform,
   PropertyWaterElec,
   Room,
@@ -71,7 +72,6 @@ export function serializeAgencement(row: any): PropertyAgencement {
   return {
     propertyId: row.property_id,
     capacity: row.capacity,
-    babyBed: row.baby_bed,
     surface: row.surface,
   };
 }
@@ -163,6 +163,15 @@ export function serializeEquipment(row: any): Equipment {
   };
 }
 
+export function serializeInventoryCategory(row: any): InventoryCategoryRow {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    name: row.name,
+    position: row.position,
+  };
+}
+
 export function serializeInventoryItem(row: any): InventoryItem {
   return {
     id: row.id,
@@ -172,6 +181,7 @@ export function serializeInventoryItem(row: any): InventoryItem {
     inStock: row.in_stock,
     target: row.target,
     isTableware: row.is_tableware,
+    bedMultiplier: row.bed_multiplier,
     effectiveTarget: row.effective_target,
     gap: row.gap,
     condition: row.condition,

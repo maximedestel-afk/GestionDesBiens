@@ -53,7 +53,6 @@ export interface PropertyOwner {
 export interface PropertyAgencement {
   propertyId: string;
   capacity: number | null;
-  babyBed: boolean;
   surface: number | null;
 }
 
@@ -115,7 +114,7 @@ export interface Room {
   position: number;
 }
 
-export type BedType = "double" | "queen" | "king" | "sofa_bed" | "autre";
+export type BedType = "double" | "queen" | "king" | "sofa_bed" | "lit_bebe" | "autre";
 
 export interface RoomBed {
   id: string;
@@ -143,15 +142,22 @@ export interface Equipment {
 
 export const INVENTORY_CATEGORIES = [
   "Cuisine",
-  "Chambre",
+  "Petit EM",
+  "Literie",
   "Salle de bain",
-  "Salon",
   "Produits d'entretien",
   "Sécurité",
   "Divers",
 ] as const;
 
-export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
+export type InventoryCategory = string;
+
+export interface InventoryCategoryRow {
+  id: string;
+  propertyId: string;
+  name: string;
+  position: number;
+}
 
 export type ItemCondition = "Bon" | "Usé" | "À remplacer";
 
@@ -163,6 +169,7 @@ export interface InventoryItem {
   inStock: number;
   target: number | null;
   isTableware: boolean;
+  bedMultiplier: number | null;
   effectiveTarget: number;
   gap: number;
   condition: ItemCondition;
