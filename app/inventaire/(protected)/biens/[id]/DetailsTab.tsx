@@ -114,6 +114,7 @@ export function DetailsTab({
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("access_video")} />
                 <FileUploadButtons
                   accept="image/*,video/*"
+                  showVideoCamera
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "access_video" }}
                 />
                 <Field
