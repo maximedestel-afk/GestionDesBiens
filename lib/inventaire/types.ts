@@ -21,6 +21,8 @@ export interface PropertyDetails {
   floor: string | null;
   hasElevator: boolean | null;
   accessVideoUrl: string | null;
+  trashRoomUrl: string | null;
+  trashRoomNotes: string | null;
   accessCodeClient: string | null;
   accessCodeCleaning: string | null;
   accessCodeBackup: string | null;
@@ -201,7 +203,8 @@ export type AttachmentKind =
   | "key_set_photo"
   | "rib"
   | "rcp"
-  | "wifi_pto_photo";
+  | "wifi_pto_photo"
+  | "trash_room";
 
 export interface Attachment {
   id: string;
