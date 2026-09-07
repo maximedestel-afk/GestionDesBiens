@@ -20,6 +20,7 @@ export interface PropertyDetails {
   propertyId: string;
   floor: string | null;
   hasElevator: boolean | null;
+  accessVideoUrl: string | null;
   accessCodeClient: string | null;
   accessCodeCleaning: string | null;
   accessCodeBackup: string | null;
