@@ -11,6 +11,7 @@ import {
   serializePropertyElement,
   serializePropertyKey,
   serializePropertyOwner,
+  serializePropertyPlatform,
   serializeRoom,
   serializeWaterElec,
 } from "./serialize";
@@ -28,6 +29,7 @@ import type {
   PropertyElement,
   PropertyKey,
   PropertyOwner,
+  PropertyPlatform,
   PropertyWaterElec,
   Room,
 } from "./types";
@@ -136,6 +138,17 @@ export async function listPropertyKeys(propertyId: string): Promise<PropertyKey[
     .order("position", { ascending: true });
   if (error) throw error;
   return (data ?? []).map(serializePropertyKey);
+}
+
+export async function listPropertyPlatforms(propertyId: string): Promise<PropertyPlatform[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("property_platforms")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("position", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(serializePropertyPlatform);
 }
 
 export async function listRooms(propertyId: string): Promise<Room[]> {

@@ -10,6 +10,7 @@ import type {
   PropertyElement,
   PropertyKey,
   PropertyOwner,
+  PropertyPlatform,
   PropertyWaterElec,
   Room,
 } from "./types";
@@ -102,6 +103,20 @@ export function serializePropertyKey(row: any): PropertyKey {
     boxCode: row.box_code,
     lockerAddress: row.locker_address,
     lockerCode: row.locker_code,
+    position: row.position,
+  };
+}
+
+export function serializePropertyPlatform(row: any): PropertyPlatform {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    platformType: row.platform_type,
+    platformTypeDetail: row.platform_type_detail,
+    listingName: row.listing_name,
+    reference: row.reference,
+    url: row.url,
+    notes: row.notes,
     position: row.position,
   };
 }

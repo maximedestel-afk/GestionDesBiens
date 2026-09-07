@@ -115,6 +115,10 @@ export function DetailsTab({
                 />
               </div>
             </div>
+            <p className="text-[13px] text-[#6e6e73]">
+              Décrivez par écrit comment rejoindre l&apos;appartement (codes, étage, ascenseur…) — le même
+              texte que celui du message automatique envoyé au client.
+            </p>
             <div className="grid gap-3 sm:grid-cols-3">
               <Field
                 label="Code & accès — Client"
