@@ -30,6 +30,7 @@ import { AgencementTab } from "./AgencementTab";
 import { EquipmentTab } from "./EquipmentTab";
 import { InventoryTab } from "./InventoryTab";
 import { NotesTab } from "./NotesTab";
+import { PhotosTab } from "./PhotosTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 
 const TABS = [
@@ -39,6 +40,7 @@ const TABS = [
   { key: "equipements", label: "Équipements" },
   { key: "inventaire", label: "Inventaire" },
   { key: "eauelec", label: "Eau / Élec" },
+  { key: "photos", label: "Photos" },
   { key: "notes", label: "Notes" },
   { key: "plateformes", label: "Plateformes" },
   { key: "proprietaire", label: "Propriétaire" },
@@ -63,6 +65,7 @@ export function PropertyTabs({
   inventoryItems,
   inventoryCategories,
   noteElements,
+  photoAlbums,
   attachments,
   activityLog,
 }: {
@@ -81,6 +84,7 @@ export function PropertyTabs({
   inventoryItems: InventoryItem[];
   inventoryCategories: InventoryCategoryRow[];
   noteElements: PropertyElement[];
+  photoAlbums: PropertyElement[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
@@ -173,6 +177,9 @@ export function PropertyTabs({
             categories={inventoryCategories}
             attachments={inventoryAttachments}
           />
+        )}
+        {activeTab === "photos" && (
+          <PhotosTab propertyId={property.id} albums={photoAlbums} attachments={elementAttachments} />
         )}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
