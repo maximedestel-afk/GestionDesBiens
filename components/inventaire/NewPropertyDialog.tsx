@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { unstable_rethrow } from "next/navigation";
 import { createProperty } from "@/lib/inventaire/actions";
+import { AddressAutocomplete } from "./AddressAutocomplete";
 
 export function NewPropertyDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -47,7 +48,7 @@ export function NewPropertyDialog() {
               <label className="field-label" htmlFor="address">
                 Adresse
               </label>
-              <input id="address" name="address" className="field-input" />
+              <AddressAutocomplete id="address" name="address" className="field-input" />
             </div>
           </div>
           {error && <p className="mt-3 text-[13px] text-red-600">{error}</p>}

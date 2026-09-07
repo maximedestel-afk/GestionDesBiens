@@ -5,6 +5,7 @@ import type { Property } from "@/lib/inventaire/types";
 import { updateProperty } from "@/lib/inventaire/actions";
 import { ActionForm } from "./ActionForm";
 import { SaveStatus } from "./SaveStatus";
+import { AddressAutocomplete } from "./AddressAutocomplete";
 
 export function EditPropertyDialog({ property }: { property: Property }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -48,10 +49,10 @@ export function EditPropertyDialog({ property }: { property: Property }) {
                   <label className="field-label" htmlFor="edit-address">
                     Adresse
                   </label>
-                  <input
+                  <AddressAutocomplete
                     id="edit-address"
                     name="address"
-                    defaultValue={property.address ?? ""}
+                    defaultValue={property.address}
                     className="field-input"
                   />
                 </div>

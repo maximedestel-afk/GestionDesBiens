@@ -6,6 +6,7 @@ import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
+import { AddressAutocomplete } from "@/components/inventaire/AddressAutocomplete";
 
 function Field({
   label,
@@ -73,7 +74,17 @@ export function OwnerTab({
                   <Field label="Email" name="email" type="email" defaultValue={owner?.email} />
                   <Field label="Téléphone" name="phone" type="tel" defaultValue={owner?.phone} />
                 </div>
-                <Field label="Adresse" name="address" defaultValue={owner?.address} />
+                <div>
+                  <label className="field-label" htmlFor="address">
+                    Adresse
+                  </label>
+                  <AddressAutocomplete
+                    id="address"
+                    name="address"
+                    defaultValue={owner?.address}
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                  />
+                </div>
                 <Field label="Notes" name="notes" defaultValue={owner?.notes} textarea />
               </div>
             </fieldset>
