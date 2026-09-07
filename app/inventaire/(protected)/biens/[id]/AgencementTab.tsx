@@ -37,9 +37,11 @@ export function AgencementTab({
                 <div>
                   <label className="field-label" htmlFor="capacity">
                     Nombre de personnes maximum
-                    {missingCheckKeys.includes("capacity") && (
-                      <MissingFieldFlag propertyId={propertyId} checkKey="capacity" />
-                    )}
+                    <MissingFieldFlag
+                      propertyId={propertyId}
+                      checkKey="capacity"
+                      missing={missingCheckKeys.includes("capacity")}
+                    />
                   </label>
                   <input
                     id="capacity"
@@ -54,9 +56,11 @@ export function AgencementTab({
                 <div>
                   <label className="field-label" htmlFor="surface">
                     Superficie (m²)
-                    {missingCheckKeys.includes("surface") && (
-                      <MissingFieldFlag propertyId={propertyId} checkKey="surface" />
-                    )}
+                    <MissingFieldFlag
+                      propertyId={propertyId}
+                      checkKey="surface"
+                      missing={missingCheckKeys.includes("surface")}
+                    />
                   </label>
                   <input
                     id="surface"
@@ -78,9 +82,11 @@ export function AgencementTab({
       <fieldset className="card p-5">
         <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
           Vidéo de visite
-          {missingCheckKeys.includes("visit_video") && (
-            <MissingFieldFlag propertyId={propertyId} checkKey="visit_video" />
-          )}
+          <MissingFieldFlag
+            propertyId={propertyId}
+            checkKey="visit_video"
+            missing={missingCheckKeys.includes("visit_video")}
+          />
         </legend>
         <p className="text-sm text-[#6e6e73]">Vidéo lente montrant tout l&apos;appartement en détail.</p>
         <div className="mt-2 space-y-2">
@@ -95,7 +101,7 @@ export function AgencementTab({
       <fieldset className="card p-5">
         <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
           Pièces &amp; couchages
-          {missingCheckKeys.includes("rooms") && <MissingFieldFlag propertyId={propertyId} checkKey="rooms" />}
+          <MissingFieldFlag propertyId={propertyId} checkKey="rooms" missing={missingCheckKeys.includes("rooms")} />
         </legend>
         <p className="text-sm text-[#6e6e73]">
           Renseignez toutes les pièces du bien : elles alimentent le menu déroulant « Pièce » de l&apos;onglet

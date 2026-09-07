@@ -218,9 +218,11 @@ export function KeysTab({
               <div>
                 <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
                   Photo du trousseau de clé
-                  {missingCheckKeys.includes("key_set_photo") && (
-                    <MissingFieldFlag propertyId={propertyId} checkKey="key_set_photo" />
-                  )}
+                  <MissingFieldFlag
+                    propertyId={propertyId}
+                    checkKey="key_set_photo"
+                    missing={missingCheckKeys.includes("key_set_photo")}
+                  />
                 </p>
                 <div className="mt-1 space-y-2">
                   <AttachmentGallery propertyId={propertyId} attachments={byKind("key_set_photo")} />
