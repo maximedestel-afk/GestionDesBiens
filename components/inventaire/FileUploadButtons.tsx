@@ -18,6 +18,7 @@ export function FileUploadButtons({
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
   const isVideo = accept.startsWith("video/");
 
   function handleFiles(files: FileList | null) {
@@ -35,7 +36,21 @@ export function FileUploadButtons({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragActive(true);
+      }}
+      onDragLeave={() => setDragActive(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragActive(false);
+        handleFiles(e.dataTransfer.files);
+      }}
+      className={`flex flex-wrap items-center gap-2 rounded-[10px] border-2 border-dashed p-2 transition ${
+        dragActive ? "border-[#0071e3] bg-[#0071e3]/5" : "border-transparent"
+      }`}
+    >
       {label && <span className="text-[13px] text-[#6e6e73]">{label}</span>}
       {showCamera && (
         <>
@@ -79,6 +94,7 @@ export function FileUploadButtons({
           e.target.value = "";
         }}
       />
+      <span className="text-[13px] text-black/35">ou glissez-déposez ici</span>
       {pending && <span className="text-[13px] text-[#6e6e73]">Envoi…</span>}
       {error && <span className="text-[13px] text-red-600">{error}</span>}
     </div>

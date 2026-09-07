@@ -66,6 +66,9 @@ export function serializePropertyOwner(row: any): PropertyOwner {
     phone: row.phone,
     address: row.address,
     notes: row.notes,
+    leaseNotes: row.lease_notes,
+    ribNotes: row.rib_notes,
+    rcpNotes: row.rcp_notes,
   };
 }
 

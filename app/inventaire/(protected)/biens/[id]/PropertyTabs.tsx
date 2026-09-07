@@ -31,6 +31,7 @@ import { EquipmentTab } from "./EquipmentTab";
 import { InventoryTab } from "./InventoryTab";
 import { NotesTab } from "./NotesTab";
 import { PhotosTab } from "./PhotosTab";
+import { DocumentsTab } from "./DocumentsTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 
 const TABS = [
@@ -41,6 +42,7 @@ const TABS = [
   { key: "inventaire", label: "Inventaire" },
   { key: "eauelec", label: "Eau / Élec" },
   { key: "photos", label: "Photos" },
+  { key: "documents", label: "Documents" },
   { key: "notes", label: "Notes" },
   { key: "plateformes", label: "Plateformes" },
   { key: "proprietaire", label: "Propriétaire" },
@@ -67,6 +69,8 @@ export function PropertyTabs({
   noteElements,
   photoAlbums,
   keyElements,
+  ownerDocuments,
+  documents,
   attachments,
   activityLog,
 }: {
@@ -87,6 +91,8 @@ export function PropertyTabs({
   noteElements: PropertyElement[];
   photoAlbums: PropertyElement[];
   keyElements: PropertyElement[];
+  ownerDocuments: PropertyElement[];
+  documents: PropertyElement[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
@@ -138,7 +144,13 @@ export function PropertyTabs({
 
       <div className="mt-6">
         {activeTab === "proprietaire" && isAdmin && (
-          <OwnerTab propertyId={property.id} owner={owner} attachments={propertyAttachments} />
+          <OwnerTab
+            propertyId={property.id}
+            owner={owner}
+            attachments={propertyAttachments}
+            documents={ownerDocuments}
+            documentAttachments={elementAttachments}
+          />
         )}
         {activeTab === "details" && (
           <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
@@ -189,6 +201,9 @@ export function PropertyTabs({
         )}
         {activeTab === "photos" && (
           <PhotosTab propertyId={property.id} albums={photoAlbums} attachments={elementAttachments} />
+        )}
+        {activeTab === "documents" && (
+          <DocumentsTab propertyId={property.id} documents={documents} attachments={elementAttachments} />
         )}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />

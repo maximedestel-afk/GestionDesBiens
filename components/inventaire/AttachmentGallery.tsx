@@ -16,13 +16,42 @@ export function AttachmentGallery({
   propertyId,
   attachments,
   emptyLabel = "Aucun fichier",
+  variant = "grid",
 }: {
   propertyId: string;
   attachments: Attachment[];
   emptyLabel?: string;
+  /** "list" : lignes compactes, adapté aux documents (bail, RIB…) plutôt qu'aux photos. */
+  variant?: "grid" | "list";
 }) {
   if (attachments.length === 0) {
     return <p className="text-[13px] text-black/35">{emptyLabel}</p>;
+  }
+
+  if (variant === "list") {
+    return (
+      <ul className="divide-y divide-black/[0.06] overflow-hidden rounded-[10px] border border-black/[0.06]">
+        {attachments.map((attachment) => (
+          <li key={attachment.id} className="flex items-center justify-between gap-3 bg-white px-3.5 py-2.5">
+            <a
+              href={attachment.url ?? "#"}
+              target="_blank"
+              rel="noreferrer"
+              className="flex min-w-0 items-center gap-2 text-[14px] text-[#1d1d1f] hover:underline"
+            >
+              <span>📄</span>
+              <span className="truncate">{attachment.fileName}</span>
+            </a>
+            <ConfirmDeleteButton
+              label="✕"
+              confirmText={`Supprimer « ${attachment.fileName} » ?`}
+              action={() => deleteAttachment(propertyId, attachment.id)}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs text-red-600 transition hover:bg-red-50"
+            />
+          </li>
+        ))}
+      </ul>
+    );
   }
 
   return (
