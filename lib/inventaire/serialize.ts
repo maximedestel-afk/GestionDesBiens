@@ -42,6 +42,7 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     wifiNetwork: row.wifi_network,
     wifiCode: row.wifi_code,
     wifiPtoNumber: row.wifi_pto_number,
+    wifiPtoNotes: row.wifi_pto_notes,
     wifiNotes: row.wifi_notes,
     edfNotes: row.edf_notes,
     clientReference: row.client_reference,

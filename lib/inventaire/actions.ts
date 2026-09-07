@@ -200,6 +200,7 @@ const PROPERTY_DETAILS_STRING_FIELDS: [string, string][] = [
   ["wifiNetwork", "wifi_network"],
   ["wifiCode", "wifi_code"],
   ["wifiPtoNumber", "wifi_pto_number"],
+  ["wifiPtoNotes", "wifi_pto_notes"],
   ["wifiNotes", "wifi_notes"],
   ["edfNotes", "edf_notes"],
   ["edfPrm", "edf_prm"],

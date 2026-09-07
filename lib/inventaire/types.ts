@@ -27,6 +27,7 @@ export interface PropertyDetails {
   wifiNetwork: string | null;
   wifiCode: string | null;
   wifiPtoNumber: string | null;
+  wifiPtoNotes: string | null;
   wifiNotes: string | null;
   edfNotes: string | null;
   clientReference: string | null;

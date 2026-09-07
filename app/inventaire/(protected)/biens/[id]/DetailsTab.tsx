@@ -186,6 +186,12 @@ export function DetailsTab({
                   accept="image/*"
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "wifi_pto_photo" }}
                 />
+                <Field
+                  label="Notes (ex. emplacement)"
+                  name="wifiPtoNotes"
+                  defaultValue={details?.wifiPtoNotes}
+                  textarea
+                />
               </div>
             </div>
           </Section>
