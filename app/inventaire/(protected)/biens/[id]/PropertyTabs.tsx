@@ -40,7 +40,7 @@ const TABS = [
   { key: "notes", label: "Notes" },
   { key: "plateformes", label: "Plateformes" },
   { key: "proprietaire", label: "Propriétaire" },
-  { key: "historique", label: "Historique" },
+  { key: "historique", label: "Log" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
