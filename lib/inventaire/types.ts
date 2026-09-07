@@ -173,7 +173,8 @@ export type AttachmentKind =
   | "equipment_reference_photo"
   | "inventory_item_photo"
   | "element_photo"
-  | "key_set_photo";
+  | "key_set_photo"
+  | "rib";
 
 export interface Attachment {
   id: string;

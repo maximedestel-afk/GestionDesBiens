@@ -57,6 +57,7 @@ export function OwnerTab({
   attachments: Attachment[];
 }) {
   const leaseAttachments = attachments.filter((a) => a.kind === "lease_contract");
+  const ribAttachments = attachments.filter((a) => a.kind === "rib");
 
   return (
     <div className="space-y-4">
@@ -102,6 +103,18 @@ export function OwnerTab({
             accept=".pdf,.doc,.docx,image/*"
             showCamera={false}
             target={{ propertyId, entityType: "property", entityId: propertyId, kind: "lease_contract" }}
+          />
+        </div>
+      </fieldset>
+
+      <fieldset className="card p-5">
+        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">RIB</legend>
+        <div className="mt-2 space-y-2">
+          <AttachmentGallery propertyId={propertyId} attachments={ribAttachments} emptyLabel="Aucun RIB joint" />
+          <FileUploadButtons
+            accept=".pdf,.doc,.docx,image/*"
+            showCamera={false}
+            target={{ propertyId, entityType: "property", entityId: propertyId, kind: "rib" }}
           />
         </div>
       </fieldset>
