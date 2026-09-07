@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { PlatformType, PropertyPlatform } from "@/lib/inventaire/types";
 import { createPropertyPlatform } from "@/lib/inventaire/actions";
+import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
 import { PlatformCard } from "./PlatformCard";
 
 function AddPlatformMenu({ propertyId }: { propertyId: string }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useOutsideClick(containerRef, () => setOpen(false), open);
 
   const add = (platformType: PlatformType) => {
     setOpen(false);
@@ -23,7 +26,7 @@ function AddPlatformMenu({ propertyId }: { propertyId: string }) {
   };
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         disabled={pending}

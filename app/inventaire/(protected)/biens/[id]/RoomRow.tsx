@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { BedType, Room, RoomBed } from "@/lib/inventaire/types";
 import { createRoomBed, deleteRoom, deleteRoomBed, updateRoom, updateRoomBed } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
+import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
 
 const BED_LABELS: Record<BedType, string> = {
   double: "Double",
@@ -55,6 +56,8 @@ function AddBedMenu({ propertyId, roomId }: { propertyId: string; roomId: string
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useOutsideClick(containerRef, () => setOpen(false), open);
 
   const add = (bedType: BedType) => {
     setOpen(false);
@@ -69,7 +72,7 @@ function AddBedMenu({ propertyId, roomId }: { propertyId: string; roomId: string
   };
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         disabled={pending}

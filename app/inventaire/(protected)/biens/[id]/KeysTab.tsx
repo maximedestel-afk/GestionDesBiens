@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useRef, useState, useTransition, type ReactNode } from "react";
 import type { Attachment, PropertyDetails, PropertyKey } from "@/lib/inventaire/types";
 import { createPropertyKey, savePropertyDetails } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
+import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
 import { KeyCard } from "./KeyCard";
 
 function KeyContentField({
@@ -60,6 +61,8 @@ function AddKeyMenu({ propertyId }: { propertyId: string }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useOutsideClick(containerRef, () => setOpen(false), open);
 
   const add = (keyType?: "autre") => {
     setOpen(false);
@@ -74,7 +77,7 @@ function AddKeyMenu({ propertyId }: { propertyId: string }) {
   };
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         disabled={pending}
