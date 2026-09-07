@@ -147,7 +147,7 @@ export async function GET(
       target: i.effectiveTarget,
       gap: i.gap,
       condition: i.condition,
-      stockUpdatedAt: new Date(i.stockUpdatedAt).toLocaleDateString("fr-FR"),
+      stockUpdatedAt: i.stockUpdatedAt ? new Date(i.stockUpdatedAt).toLocaleDateString("fr-FR") : "",
       notes: i.notes ?? "",
     }))
   );
