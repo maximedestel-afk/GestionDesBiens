@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import type { PlatformType, PropertyPlatform } from "@/lib/inventaire/types";
 import { createPropertyPlatform, ensureDefaultPlatforms } from "@/lib/inventaire/actions";
 import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
+import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { PlatformCard } from "./PlatformCard";
 
 function AddPlatformMenu({ propertyId }: { propertyId: string }) {
@@ -76,9 +77,11 @@ function AddPlatformMenu({ propertyId }: { propertyId: string }) {
 export function PlatformsTab({
   propertyId,
   platforms,
+  missingCheckKeys,
 }: {
   propertyId: string;
   platforms: PropertyPlatform[];
+  missingCheckKeys: string[];
 }) {
   useEffect(() => {
     if (platforms.length === 0) {
@@ -89,7 +92,12 @@ export function PlatformsTab({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[#1d1d1f]">Plateformes</h2>
+        <h2 className="flex items-center text-sm font-semibold text-[#1d1d1f]">
+          Plateformes
+          {missingCheckKeys.includes("platforms_info") && (
+            <MissingFieldFlag propertyId={propertyId} checkKey="platforms_info" />
+          )}
+        </h2>
         <AddPlatformMenu propertyId={propertyId} />
       </div>
       {platforms.length === 0 ? (

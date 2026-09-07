@@ -290,20 +290,28 @@ export async function listPropertiesMissingChecks(
   if (propertyIds.length === 0) return {};
   const supabase = await createClient();
 
-  const [{ data: details }, { data: owners }, { data: agencements }, { data: platforms }, { data: attachments }, { data: dismissals }] =
-    await Promise.all([
-      supabase.from("property_details").select("property_id, wifi_network, wifi_code").in("property_id", propertyIds),
-      supabase.from("property_owner").select("property_id, last_name, email").in("property_id", propertyIds),
-      supabase.from("property_agencement").select("property_id, capacity").in("property_id", propertyIds),
-      supabase.from("property_platforms").select("property_id, listing_name").in("property_id", propertyIds),
-      supabase
-        .from("attachments")
-        .select("property_id, kind")
-        .eq("entity_type", "property")
-        .in("kind", ["lease_contract", "rib", "rcp", "key_set_photo", "wifi_contract"])
-        .in("property_id", propertyIds),
-      supabase.from("property_checklist_dismissals").select("property_id, check_key").in("property_id", propertyIds),
-    ]);
+  const [
+    { data: details },
+    { data: owners },
+    { data: agencements },
+    { data: platforms },
+    { data: attachments },
+    { data: rooms },
+    { data: dismissals },
+  ] = await Promise.all([
+    supabase.from("property_details").select("property_id, wifi_network, wifi_code").in("property_id", propertyIds),
+    supabase.from("property_owner").select("property_id, last_name, email").in("property_id", propertyIds),
+    supabase.from("property_agencement").select("property_id, capacity, surface").in("property_id", propertyIds),
+    supabase.from("property_platforms").select("property_id, listing_name").in("property_id", propertyIds),
+    supabase
+      .from("attachments")
+      .select("property_id, kind")
+      .eq("entity_type", "property")
+      .in("kind", ["lease_contract", "rib", "rcp", "key_set_photo", "wifi_contract", "visit_video"])
+      .in("property_id", propertyIds),
+    supabase.from("rooms").select("property_id").in("property_id", propertyIds),
+    supabase.from("property_checklist_dismissals").select("property_id, check_key").in("property_id", propertyIds),
+  ]);
 
   const detailsByProperty = new Map((details ?? []).map((d) => [d.property_id, d]));
   const ownerByProperty = new Map((owners ?? []).map((o) => [o.property_id, o]));
@@ -319,6 +327,11 @@ export async function listPropertiesMissingChecks(
     const set = attachmentKindsByProperty.get(a.property_id) ?? new Set<string>();
     set.add(a.kind);
     attachmentKindsByProperty.set(a.property_id, set);
+  }
+
+  const roomsCountByProperty = new Map<string, number>();
+  for (const r of rooms ?? []) {
+    roomsCountByProperty.set(r.property_id, (roomsCountByProperty.get(r.property_id) ?? 0) + 1);
   }
 
   const dismissedByProperty = new Map<string, Set<string>>();
@@ -345,6 +358,9 @@ export async function listPropertiesMissingChecks(
         hasRcp: kinds.has("rcp"),
         hasKeySetPhoto: kinds.has("key_set_photo"),
         capacity: agencement?.capacity,
+        surface: agencement?.surface,
+        hasVisitVideo: kinds.has("visit_video"),
+        roomsCount: roomsCountByProperty.get(propertyId) ?? 0,
         wifiNetwork: detail?.wifi_network,
         wifiCode: detail?.wifi_code,
         hasWifiContract: kinds.has("wifi_contract"),
@@ -355,4 +371,14 @@ export async function listPropertiesMissingChecks(
   }
 
   return result;
+}
+
+export async function listChecklistDismissals(propertyId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("property_checklist_dismissals")
+    .select("check_key")
+    .eq("property_id", propertyId);
+  if (error) throw error;
+  return (data ?? []).map((d) => d.check_key);
 }

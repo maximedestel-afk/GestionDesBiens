@@ -71,6 +71,7 @@ export function PropertyTabs({
   keyElements,
   ownerDocuments,
   documents,
+  missingCheckKeys,
   attachments,
   activityLog,
 }: {
@@ -93,6 +94,7 @@ export function PropertyTabs({
   keyElements: PropertyElement[];
   ownerDocuments: PropertyElement[];
   documents: PropertyElement[];
+  missingCheckKeys: string[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
@@ -150,10 +152,16 @@ export function PropertyTabs({
             attachments={propertyAttachments}
             documents={ownerDocuments}
             documentAttachments={elementAttachments}
+            missingCheckKeys={missingCheckKeys}
           />
         )}
         {activeTab === "details" && (
-          <DetailsTab propertyId={property.id} details={details} attachments={propertyAttachments} />
+          <DetailsTab
+            propertyId={property.id}
+            details={details}
+            attachments={propertyAttachments}
+            missingCheckKeys={missingCheckKeys}
+          />
         )}
         {activeTab === "cles" && (
           <KeysTab
@@ -163,9 +171,12 @@ export function PropertyTabs({
             keys={keys}
             elements={keyElements}
             elementAttachments={elementAttachments}
+            missingCheckKeys={missingCheckKeys}
           />
         )}
-        {activeTab === "plateformes" && <PlatformsTab propertyId={property.id} platforms={platforms} />}
+        {activeTab === "plateformes" && (
+          <PlatformsTab propertyId={property.id} platforms={platforms} missingCheckKeys={missingCheckKeys} />
+        )}
         {activeTab === "eauelec" && (
           <WaterElecTab
             propertyId={property.id}
@@ -181,6 +192,7 @@ export function PropertyTabs({
             rooms={rooms}
             beds={beds}
             attachments={propertyAttachments}
+            missingCheckKeys={missingCheckKeys}
           />
         )}
         {activeTab === "equipements" && (

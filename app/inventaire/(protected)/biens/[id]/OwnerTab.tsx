@@ -7,6 +7,7 @@ import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { AddressAutocomplete } from "@/components/inventaire/AddressAutocomplete";
+import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
 
@@ -57,6 +58,8 @@ function DocumentField({
   kind,
   noteName,
   noteValue,
+  checkKey,
+  missing,
 }: {
   propertyId: string;
   title: string;
@@ -65,10 +68,15 @@ function DocumentField({
   kind: "lease_contract" | "rib" | "rcp";
   noteName: string;
   noteValue: string | null | undefined;
+  checkKey: string;
+  missing: boolean;
 }) {
   return (
     <fieldset className="rounded-2xl border border-black/[0.06] p-4">
-      <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">{title}</legend>
+      <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
+        {title}
+        {missing && <MissingFieldFlag propertyId={propertyId} checkKey={checkKey} />}
+      </legend>
       <div className="mt-2 space-y-2">
         <AttachmentGallery propertyId={propertyId} attachments={attachments} emptyLabel={emptyLabel} variant="list" />
         <FileUploadButtons
@@ -88,12 +96,14 @@ export function OwnerTab({
   attachments,
   documents,
   documentAttachments,
+  missingCheckKeys,
 }: {
   propertyId: string;
   owner: PropertyOwner | null;
   attachments: Attachment[];
   documents: PropertyElement[];
   documentAttachments: Attachment[];
+  missingCheckKeys: string[];
 }) {
   const leaseAttachments = attachments.filter((a) => a.kind === "lease_contract");
   const ribAttachments = attachments.filter((a) => a.kind === "rib");
@@ -105,7 +115,12 @@ export function OwnerTab({
         {({ pending, error, success }) => (
           <>
             <fieldset className="card p-5">
-              <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Propriétaire</legend>
+              <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
+                Propriétaire
+                {missingCheckKeys.includes("owner_info") && (
+                  <MissingFieldFlag propertyId={propertyId} checkKey="owner_info" />
+                )}
+              </legend>
               <div className="mt-2 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Nom" name="lastName" defaultValue={owner?.lastName} />
@@ -140,6 +155,8 @@ export function OwnerTab({
                 kind="lease_contract"
                 noteName="leaseNotes"
                 noteValue={owner?.leaseNotes}
+                checkKey="lease_contract"
+                missing={missingCheckKeys.includes("lease_contract")}
               />
               <DocumentField
                 propertyId={propertyId}
@@ -149,6 +166,8 @@ export function OwnerTab({
                 kind="rib"
                 noteName="ribNotes"
                 noteValue={owner?.ribNotes}
+                checkKey="rib"
+                missing={missingCheckKeys.includes("rib")}
               />
               <DocumentField
                 propertyId={propertyId}
@@ -158,6 +177,8 @@ export function OwnerTab({
                 kind="rcp"
                 noteName="rcpNotes"
                 noteValue={owner?.rcpNotes}
+                checkKey="rcp"
+                missing={missingCheckKeys.includes("rcp")}
               />
             </fieldset>
 

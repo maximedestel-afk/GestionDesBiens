@@ -1375,6 +1375,7 @@ export async function dismissChecklistItem(propertyId: string, checkKey: string)
   if (error) throw error;
 
   revalidatePath("/inventaire");
+  revalidateProperty(propertyId);
 }
 
 export async function undismissChecklistItem(propertyId: string, checkKey: string) {
@@ -1389,4 +1390,5 @@ export async function undismissChecklistItem(propertyId: string, checkKey: strin
   if (error) throw error;
 
   revalidatePath("/inventaire");
+  revalidateProperty(propertyId);
 }
