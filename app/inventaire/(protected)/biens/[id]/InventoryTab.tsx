@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { INVENTORY_CATEGORIES, type Attachment, type InventoryCategoryRow, type InventoryItem } from "@/lib/inventaire/types";
-import { createInventoryCategory, createInventoryItem, deleteInventoryCategory } from "@/lib/inventaire/actions";
+import {
+  createInventoryCategory,
+  createInventoryItem,
+  deleteInventoryCategory,
+  loadStandardInventory,
+} from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { InventoryItemRow } from "./InventoryItemRow";
@@ -125,6 +130,34 @@ function AddCategoryForm({ propertyId }: { propertyId: string }) {
   );
 }
 
+function LoadStandardListButton({ propertyId }: { propertyId: string }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => {
+          setError(null);
+          startTransition(async () => {
+            try {
+              await loadStandardInventory(propertyId);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Erreur.");
+            }
+          });
+        }}
+        className="btn-primary"
+      >
+        {pending ? "Chargement…" : "Charger la liste standard"}
+      </button>
+      {error && <span className="text-sm text-red-600">{error}</span>}
+    </div>
+  );
+}
+
 export function InventoryTab({
   propertyId,
   items,
@@ -146,6 +179,13 @@ export function InventoryTab({
 
   return (
     <div className="space-y-6">
+      {items.length === 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-black/15 bg-black/[0.02] p-3.5">
+          <p className="text-sm text-[#6e6e73]">Aucun article pour l&apos;instant.</p>
+          <LoadStandardListButton propertyId={propertyId} />
+        </div>
+      )}
+
       <div className="flex justify-end">
         <AddCategoryForm propertyId={propertyId} />
       </div>
