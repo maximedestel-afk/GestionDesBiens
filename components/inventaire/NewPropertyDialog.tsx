@@ -15,7 +15,10 @@ export function NewPropertyDialog() {
       <button type="button" onClick={() => dialogRef.current?.showModal()} className="btn-primary">
         + Nouveau bien
       </button>
-      <dialog ref={dialogRef} className="card w-96 max-w-[90vw] p-0 backdrop:bg-black/30 backdrop:backdrop-blur-sm">
+      <dialog
+        ref={dialogRef}
+        className="card w-96 max-w-[90vw] overflow-visible p-0 backdrop:bg-black/30 backdrop:backdrop-blur-sm"
+      >
         <form
           className="p-6"
           action={(formData) => {
