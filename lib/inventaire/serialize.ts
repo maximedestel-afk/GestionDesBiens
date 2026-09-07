@@ -33,6 +33,7 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     propertyId: row.property_id,
     floor: row.floor,
     hasElevator: row.has_elevator,
+    accessVideoUrl: row.access_video_url,
     accessCodeClient: row.access_code_client,
     accessCodeCleaning: row.access_code_cleaning,
     accessCodeBackup: row.access_code_backup,

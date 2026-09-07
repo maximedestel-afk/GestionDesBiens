@@ -113,6 +113,22 @@ export function DetailsTab({
                   accept="image/*,video/*"
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "access_video" }}
                 />
+                <Field
+                  label="Ou un lien (URL)"
+                  name="accessVideoUrl"
+                  type="url"
+                  defaultValue={details?.accessVideoUrl}
+                />
+                {details?.accessVideoUrl && (
+                  <a
+                    href={details.accessVideoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block text-[13px] text-sky-600 hover:underline"
+                  >
+                    Ouvrir le lien
+                  </a>
+                )}
               </div>
             </div>
             <p className="text-[13px] text-[#6e6e73]">
