@@ -4,7 +4,9 @@
 
 alter table inventory_items add column if not exists bed_multiplier integer;
 
-create or replace view inventory_items_view
+drop view if exists inventory_items_view;
+
+create view inventory_items_view
   with (security_invoker = true)
 as
 select
