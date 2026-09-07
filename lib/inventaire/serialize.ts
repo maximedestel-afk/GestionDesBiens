@@ -55,6 +55,7 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     syndicNotes: row.syndic_notes,
     comment: row.comment,
     lockType: row.lock_type,
+    lockStaticCodesNotes: row.lock_static_codes_notes,
     keyContentType: row.key_content_type,
     keyContentDetail: row.key_content_detail,
     keySetNote: row.key_set_note,

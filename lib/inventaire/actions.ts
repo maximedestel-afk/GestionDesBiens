@@ -212,6 +212,7 @@ const PROPERTY_DETAILS_STRING_FIELDS: [string, string][] = [
   ["syndicNotes", "syndic_notes"],
   ["comment", "comment"],
   ["lockType", "lock_type"],
+  ["lockStaticCodesNotes", "lock_static_codes_notes"],
   ["keyContentType", "key_content_type"],
   ["keyContentDetail", "key_content_detail"],
   ["keySetNote", "key_set_note"],

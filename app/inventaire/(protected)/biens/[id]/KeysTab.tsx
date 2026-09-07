@@ -184,6 +184,7 @@ export function KeysTab({
   missingCheckKeys: string[];
 }) {
   const byKind = (kind: Attachment["kind"]) => attachments.filter((a) => a.kind === kind);
+  const [lockType, setLockType] = useState(details?.lockType ?? "");
 
   return (
     <div className="space-y-6">
@@ -206,7 +207,8 @@ export function KeysTab({
                 <select
                   id="lockType"
                   name="lockType"
-                  defaultValue={details?.lockType ?? ""}
+                  value={lockType}
+                  onChange={(e) => setLockType(e.target.value)}
                   className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                 >
                   <option value="">Non renseigné</option>
@@ -214,6 +216,20 @@ export function KeysTab({
                   <option value="connectee">Connectée</option>
                 </select>
               </div>
+              {lockType === "connectee" && (
+                <div>
+                  <label className="field-label" htmlFor="lockStaticCodesNotes">
+                    Codes Statiques
+                  </label>
+                  <textarea
+                    id="lockStaticCodesNotes"
+                    name="lockStaticCodesNotes"
+                    defaultValue={details?.lockStaticCodesNotes ?? ""}
+                    rows={3}
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                  />
+                </div>
+              )}
               <KeyContentField defaultType={details?.keyContentType} defaultDetail={details?.keyContentDetail} />
               <div>
                 <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
