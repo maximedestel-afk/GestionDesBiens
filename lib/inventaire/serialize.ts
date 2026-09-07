@@ -10,6 +10,7 @@ import type {
   PropertyElement,
   PropertyKey,
   PropertyOwner,
+  InventoryCategoryRow,
   PropertyPlatform,
   PropertyWaterElec,
   Room,
@@ -158,6 +159,15 @@ export function serializeEquipment(row: any): Equipment {
     dryingFunction: row.drying_function,
     videoLink: row.video_link,
     notes: row.notes,
+    position: row.position,
+  };
+}
+
+export function serializeInventoryCategory(row: any): InventoryCategoryRow {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    name: row.name,
     position: row.position,
   };
 }

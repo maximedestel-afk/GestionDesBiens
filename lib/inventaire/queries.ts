@@ -11,6 +11,7 @@ import {
   serializePropertyElement,
   serializePropertyKey,
   serializePropertyOwner,
+  serializeInventoryCategory,
   serializePropertyPlatform,
   serializeRoom,
   serializeRoomBed,
@@ -22,6 +23,7 @@ import type {
   AttachmentEntityType,
   ElementSection,
   Equipment,
+  InventoryCategoryRow,
   InventoryItem,
   Profile,
   Property,
@@ -196,6 +198,17 @@ export async function listInventoryItems(propertyId: string): Promise<InventoryI
     .order("position", { ascending: true });
   if (error) throw error;
   return (data ?? []).map(serializeInventoryItem);
+}
+
+export async function listInventoryCategories(propertyId: string): Promise<InventoryCategoryRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("inventory_categories")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("position", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(serializeInventoryCategory);
 }
 
 export async function listAttachments(

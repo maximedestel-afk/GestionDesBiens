@@ -150,7 +150,14 @@ export const INVENTORY_CATEGORIES = [
   "Divers",
 ] as const;
 
-export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
+export type InventoryCategory = string;
+
+export interface InventoryCategoryRow {
+  id: string;
+  propertyId: string;
+  name: string;
+  position: number;
+}
 
 export type ItemCondition = "Bon" | "Usé" | "À remplacer";
 

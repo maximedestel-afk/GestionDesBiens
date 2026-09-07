@@ -10,6 +10,7 @@ import {
   listActivityLog,
   listAttachmentsForProperty,
   listEquipment,
+  listInventoryCategories,
   listInventoryItems,
   listPropertyElements,
   listPropertyKeys,
@@ -39,6 +40,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     beds,
     equipment,
     inventoryItems,
+    inventoryCategories,
     noteElements,
     attachments,
     activityLog,
@@ -55,6 +57,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listRoomBeds(id),
     listEquipment(id),
     listInventoryItems(id),
+    listInventoryCategories(id),
     listPropertyElements(id, "notes"),
     listAttachmentsForProperty(id),
     listActivityLog(id, 30),
@@ -91,6 +94,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         beds={beds}
         equipment={equipment}
         inventoryItems={inventoryItems}
+        inventoryCategories={inventoryCategories}
         noteElements={noteElements}
         attachments={attachments}
         activityLog={activityLog}
