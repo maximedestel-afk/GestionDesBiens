@@ -135,7 +135,7 @@ export function InventoryItemRow({
         />
       </td>
       <td className="py-2 pr-3">
-        {item.isTableware ? (
+        {item.isTableware || item.bedMultiplier != null ? (
           <span className="inline-flex items-center gap-1 rounded border border-black/10 bg-black/[0.04] px-2 py-1 font-mono text-base tabular-nums text-[#6e6e73]">
             {item.effectiveTarget}
             <span className="rounded bg-black/[0.06] px-1 text-[10px] font-sans uppercase tracking-wide">auto</span>

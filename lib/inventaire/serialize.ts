@@ -181,6 +181,7 @@ export function serializeInventoryItem(row: any): InventoryItem {
     inStock: row.in_stock,
     target: row.target,
     isTableware: row.is_tableware,
+    bedMultiplier: row.bed_multiplier,
     effectiveTarget: row.effective_target,
     gap: row.gap,
     condition: row.condition,

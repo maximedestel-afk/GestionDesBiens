@@ -1045,8 +1045,9 @@ export async function loadStandardInventory(propertyId: string) {
       category: item.category,
       name: item.name,
       in_stock: 0,
-      target: item.isTableware ? null : item.target,
+      target: item.isTableware || item.bedMultiplier ? null : item.target,
       is_tableware: item.isTableware,
+      bed_multiplier: item.bedMultiplier ?? null,
       position,
       stock_updated_at: null,
     };
@@ -1098,10 +1099,12 @@ export async function updateInventoryTarget(propertyId: string, itemId: string, 
 
   const { data: item } = await supabase
     .from("inventory_items")
-    .select("is_tableware")
+    .select("is_tableware, bed_multiplier")
     .eq("id", itemId)
     .maybeSingle();
-  if (item?.is_tableware) throw new Error("La cible de cet article est calculée automatiquement.");
+  if (item?.is_tableware || item?.bed_multiplier != null) {
+    throw new Error("La cible de cet article est calculée automatiquement.");
+  }
 
   const { error } = await supabase.from("inventory_items").update({ target }).eq("id", itemId);
   if (error) throw error;

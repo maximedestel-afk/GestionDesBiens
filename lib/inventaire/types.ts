@@ -142,9 +142,9 @@ export interface Equipment {
 
 export const INVENTORY_CATEGORIES = [
   "Cuisine",
-  "Chambre",
+  "Petit EM",
+  "Literie",
   "Salle de bain",
-  "Salon",
   "Produits d'entretien",
   "Sécurité",
   "Divers",
@@ -169,6 +169,7 @@ export interface InventoryItem {
   inStock: number;
   target: number | null;
   isTableware: boolean;
+  bedMultiplier: number | null;
   effectiveTarget: number;
   gap: number;
   condition: ItemCondition;
