@@ -13,6 +13,7 @@ import type {
   AttachmentEntityType,
   AttachmentKind,
   ElementSection,
+  BedType,
   HotWaterProduction,
   InventoryCategory,
   ItemCondition,
@@ -707,6 +708,77 @@ export async function deleteRoom(propertyId: string, roomId: string) {
     entityId: roomId,
     action: "delete",
     summary: `Pièce « ${room?.name ?? roomId} » supprimée (et ses équipements)`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
+/* Lits (Pièces & couchages)                                           */
+/* ------------------------------------------------------------------ */
+
+export async function createRoomBed(propertyId: string, roomId: string, bedType: BedType) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { data: maxPos } = await supabase
+    .from("room_beds")
+    .select("position")
+    .eq("room_id", roomId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error } = await supabase.from("room_beds").insert({
+    property_id: propertyId,
+    room_id: roomId,
+    bed_type: bedType,
+    position: (maxPos?.position ?? -1) + 1,
+  });
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "room_bed",
+    action: "create",
+    summary: "Lit ajouté",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function updateRoomBed(propertyId: string, bedId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const bedTypeDetail = optionalString(formData.get("bedTypeDetail"));
+  const { error } = await supabase.from("room_beds").update({ bed_type_detail: bedTypeDetail }).eq("id", bedId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "room_bed",
+    entityId: bedId,
+    action: "update",
+    summary: "Lit mis à jour",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function deleteRoomBed(propertyId: string, bedId: string) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase.from("room_beds").delete().eq("id", bedId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "room_bed",
+    entityId: bedId,
+    action: "delete",
+    summary: "Lit supprimé",
   });
 
   revalidateProperty(propertyId);

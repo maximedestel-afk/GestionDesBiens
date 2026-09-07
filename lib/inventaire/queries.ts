@@ -13,6 +13,7 @@ import {
   serializePropertyOwner,
   serializePropertyPlatform,
   serializeRoom,
+  serializeRoomBed,
   serializeWaterElec,
 } from "./serialize";
 import type {
@@ -32,6 +33,7 @@ import type {
   PropertyPlatform,
   PropertyWaterElec,
   Room,
+  RoomBed,
 } from "./types";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1h, largement suffisant pour une session de consultation
@@ -160,6 +162,17 @@ export async function listRooms(propertyId: string): Promise<Room[]> {
     .order("position", { ascending: true });
   if (error) throw error;
   return (data ?? []).map(serializeRoom);
+}
+
+export async function listRoomBeds(propertyId: string): Promise<RoomBed[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("room_beds")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("position", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(serializeRoomBed);
 }
 
 export async function listEquipment(propertyId: string): Promise<Equipment[]> {

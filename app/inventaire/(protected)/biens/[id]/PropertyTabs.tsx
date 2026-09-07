@@ -16,6 +16,7 @@ import type {
   PropertyPlatform,
   PropertyWaterElec,
   Room,
+  RoomBed,
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
@@ -56,6 +57,7 @@ export function PropertyTabs({
   waterElecElements,
   agencement,
   rooms,
+  beds,
   equipment,
   inventoryItems,
   noteElements,
@@ -72,6 +74,7 @@ export function PropertyTabs({
   waterElecElements: PropertyElement[];
   agencement: PropertyAgencement | null;
   rooms: Room[];
+  beds: RoomBed[];
   equipment: Equipment[];
   inventoryItems: InventoryItem[];
   noteElements: PropertyElement[];
@@ -148,6 +151,7 @@ export function PropertyTabs({
             propertyId={property.id}
             agencement={agencement}
             rooms={rooms}
+            beds={beds}
             attachments={propertyAttachments}
           />
         )}

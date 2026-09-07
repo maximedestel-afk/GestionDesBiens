@@ -14,6 +14,7 @@ import {
   listPropertyElements,
   listPropertyKeys,
   listPropertyPlatforms,
+  listRoomBeds,
   listRooms,
 } from "@/lib/inventaire/queries";
 import { PropertyTabs } from "./PropertyTabs";
@@ -35,6 +36,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     waterElecElements,
     agencement,
     rooms,
+    beds,
     equipment,
     inventoryItems,
     noteElements,
@@ -50,6 +52,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listPropertyElements(id, "water_elec"),
     getPropertyAgencement(id),
     listRooms(id),
+    listRoomBeds(id),
     listEquipment(id),
     listInventoryItems(id),
     listPropertyElements(id, "notes"),
@@ -85,6 +88,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         waterElecElements={waterElecElements}
         agencement={agencement}
         rooms={rooms}
+        beds={beds}
         equipment={equipment}
         inventoryItems={inventoryItems}
         noteElements={noteElements}
