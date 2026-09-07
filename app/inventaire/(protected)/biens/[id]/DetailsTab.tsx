@@ -178,6 +178,16 @@ export function DetailsTab({
                 />
               </div>
             </div>
+            <div>
+              <p className="text-sm font-medium text-[#1d1d1f]">Photo Prise Optique et branchements</p>
+              <div className="mt-1 space-y-2">
+                <AttachmentGallery propertyId={propertyId} attachments={byKind("wifi_pto_photo")} />
+                <FileUploadButtons
+                  accept="image/*"
+                  target={{ propertyId, entityType: "property", entityId: propertyId, kind: "wifi_pto_photo" }}
+                />
+              </div>
+            </div>
           </Section>
 
           <Section title="Électricité (EDF)">
