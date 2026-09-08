@@ -823,8 +823,19 @@ export async function createRoom(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
 
-  const name = requireNonEmpty(formData.get("name"), "Le nom de la pièce");
+  const roomType = requireNonEmpty(formData.get("roomType"), "Le type de pièce");
+  const baseName =
+    roomType === "autre" ? requireNonEmpty(formData.get("customName"), "Le nom de la pièce") : roomType;
   const description = optionalString(formData.get("description"));
+
+  const { data: existingRooms } = await supabase.from("rooms").select("name").eq("property_id", propertyId);
+  const existingNames = new Set((existingRooms ?? []).map((r) => r.name));
+  let name = baseName;
+  if (existingNames.has(name)) {
+    let n = 2;
+    while (existingNames.has(`${baseName} ${n}`)) n++;
+    name = `${baseName} ${n}`;
+  }
 
   const { data: maxPos } = await supabase
     .from("rooms")

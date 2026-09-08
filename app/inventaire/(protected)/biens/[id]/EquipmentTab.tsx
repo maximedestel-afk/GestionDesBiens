@@ -158,8 +158,8 @@ export function EquipmentTab({
         const roomEquipment = equipment.filter((e) => e.roomId === room.id);
         return (
           <section key={room.id}>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-[#1d1d1f]">{room.name}</h2>
+            <div className="mb-2 flex items-center justify-between gap-2 rounded-[10px] bg-[#0071e3]/10 px-3.5 py-2">
+              <h2 className="text-sm font-semibold text-[#0071e3]">{room.name}</h2>
               <LoadRoomStandardsButton propertyId={propertyId} room={room} />
             </div>
             {roomEquipment.length === 0 ? (
