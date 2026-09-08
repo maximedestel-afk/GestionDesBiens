@@ -133,7 +133,7 @@ export function AttachmentGallery({
             )}
           </a>
           {attachment.url && (
-            <div className="absolute left-1.5 top-1.5 opacity-80 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+            <div className="absolute left-1.5 top-1.5">
               <a
                 href={downloadHref(attachment.url, attachment.fileName)}
                 download={attachment.fileName}
