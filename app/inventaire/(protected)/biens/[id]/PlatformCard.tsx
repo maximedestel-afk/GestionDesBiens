@@ -16,6 +16,26 @@ const PLATFORM_LABELS: Record<string, string> = {
   vrbo: "Vrbo",
 };
 
+const PLATFORM_COLORS: Record<string, string> = {
+  airbnb: "#FF5A5F",
+  booking: "#003580",
+  vrbo: "#1E54A5",
+};
+
+function PlatformLogo({ platformType, title }: { platformType: string; title: string }) {
+  const color = PLATFORM_COLORS[platformType] ?? "#6e6e73";
+  const letter = (title.trim()[0] ?? "?").toUpperCase();
+  return (
+    <span
+      aria-hidden="true"
+      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
+      style={{ backgroundColor: color }}
+    >
+      {letter}
+    </span>
+  );
+}
+
 export function PlatformCard({
   propertyId,
   platform,
@@ -35,6 +55,7 @@ export function PlatformCard({
           <>
             <div className="flex items-start justify-between gap-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1d1d1f]">
+                <PlatformLogo platformType={platform.platformType} title={title} />
                 {title}
                 {isEmpty && (
                   <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
