@@ -14,11 +14,11 @@ async function compressIfImage(file: File): Promise<File> {
   try {
     const imageCompression = (await import("browser-image-compression")).default;
     return await imageCompression(file, {
-      maxSizeMB: 0.8,
-      maxWidthOrHeight: 1920,
+      maxSizeMB: 0.4,
+      maxWidthOrHeight: 1440,
       useWebWorker: true,
       fileType: "image/jpeg",
-      initialQuality: 0.75,
+      initialQuality: 0.72,
     });
   } catch {
     // La compression est un confort ; en cas d'échec on envoie l'original.
