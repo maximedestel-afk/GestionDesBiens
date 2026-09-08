@@ -226,15 +226,15 @@ export async function listAttachments(
   if (error) throw error;
 
   const rows = data ?? [];
-  const withUrls = await Promise.all(
-    rows.map(async (row) => {
-      const { data: signed } = await supabase.storage
-        .from("property-files")
-        .createSignedUrl(row.file_path, SIGNED_URL_TTL_SECONDS);
-      return serializeAttachment(row, signed?.signedUrl ?? null);
-    })
-  );
-  return withUrls;
+  if (rows.length === 0) return [];
+
+  const { data: signedUrls } = await supabase.storage
+    .from("property-files")
+    .createSignedUrls(
+      rows.map((row) => row.file_path),
+      SIGNED_URL_TTL_SECONDS
+    );
+  return rows.map((row, i) => serializeAttachment(row, signedUrls?.[i]?.signedUrl ?? null));
 }
 
 export async function listAttachmentsForProperty(propertyId: string): Promise<Attachment[]> {
@@ -247,15 +247,15 @@ export async function listAttachmentsForProperty(propertyId: string): Promise<At
   if (error) throw error;
 
   const rows = data ?? [];
-  const withUrls = await Promise.all(
-    rows.map(async (row) => {
-      const { data: signed } = await supabase.storage
-        .from("property-files")
-        .createSignedUrl(row.file_path, SIGNED_URL_TTL_SECONDS);
-      return serializeAttachment(row, signed?.signedUrl ?? null);
-    })
-  );
-  return withUrls;
+  if (rows.length === 0) return [];
+
+  const { data: signedUrls } = await supabase.storage
+    .from("property-files")
+    .createSignedUrls(
+      rows.map((row) => row.file_path),
+      SIGNED_URL_TTL_SECONDS
+    );
+  return rows.map((row, i) => serializeAttachment(row, signedUrls?.[i]?.signedUrl ?? null));
 }
 
 export async function listActivityLog(propertyId: string, limit = 100): Promise<ActivityLogEntry[]> {
