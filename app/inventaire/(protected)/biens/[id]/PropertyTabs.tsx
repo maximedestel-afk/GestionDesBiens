@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { unstable_rethrow } from "next/navigation";
 import type {
   ActivityLogEntry,
@@ -103,7 +103,21 @@ export function PropertyTabs({
   activityLog: ActivityLogEntry[];
 }) {
   const visibleTabs = TABS.filter((tab) => tab.key !== "proprietaire" || isAdmin);
-  const [activeTab, setActiveTab] = useState<TabKey>("details");
+
+  // L'onglet actif est stocké dans l'URL (plutôt qu'un simple useState) pour
+  // qu'il survive aux rafraîchissements déclenchés par l'enregistrement
+  // automatique (revalidatePath) sur les autres onglets.
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const activeTab: TabKey = visibleTabs.some((tab) => tab.key === tabParam) ? (tabParam as TabKey) : "details";
+
+  function setActiveTab(key: TabKey) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", key);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
