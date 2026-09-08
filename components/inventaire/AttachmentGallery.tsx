@@ -12,6 +12,36 @@ function isVideo(mime: string | null) {
   return !!mime && mime.startsWith("video/");
 }
 
+/** Ajoute le paramètre "download" à une URL signée Supabase : le fichier est
+ * alors servi avec Content-Disposition: attachment (téléchargement forcé,
+ * avec le bon nom de fichier) au lieu d'un affichage inline dans le navigateur. */
+function downloadHref(url: string, fileName: string) {
+  try {
+    const u = new URL(url);
+    u.searchParams.set("download", fileName);
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+function DownloadIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3.5 w-3.5"
+      aria-hidden="true"
+    >
+      <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16" />
+    </svg>
+  );
+}
+
 export function AttachmentGallery({
   propertyId,
   attachments,
@@ -42,12 +72,25 @@ export function AttachmentGallery({
               <span>📄</span>
               <span className="truncate">{attachment.fileName}</span>
             </a>
-            <ConfirmDeleteButton
-              label="✕"
-              confirmText={`Supprimer « ${attachment.fileName} » ?`}
-              action={() => deleteAttachment(propertyId, attachment.id)}
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs text-red-600 transition hover:bg-red-50"
-            />
+            <div className="flex shrink-0 items-center gap-1">
+              {attachment.url && (
+                <a
+                  href={downloadHref(attachment.url, attachment.fileName)}
+                  download={attachment.fileName}
+                  title="Télécharger"
+                  aria-label="Télécharger"
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-[#6e6e73] transition hover:bg-black/[0.05] hover:text-[#1d1d1f]"
+                >
+                  <DownloadIcon />
+                </a>
+              )}
+              <ConfirmDeleteButton
+                label="✕"
+                confirmText={`Supprimer « ${attachment.fileName} » ?`}
+                action={() => deleteAttachment(propertyId, attachment.id)}
+                className="flex h-6 w-6 items-center justify-center rounded-full text-xs text-red-600 transition hover:bg-red-50"
+              />
+            </div>
           </li>
         ))}
       </ul>
@@ -89,6 +132,19 @@ export function AttachmentGallery({
               </div>
             )}
           </a>
+          {attachment.url && (
+            <div className="absolute left-1.5 top-1.5 opacity-80 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+              <a
+                href={downloadHref(attachment.url, attachment.fileName)}
+                download={attachment.fileName}
+                title="Télécharger"
+                aria-label="Télécharger"
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-[#1d1d1f] shadow-sm transition hover:bg-white"
+              >
+                <DownloadIcon />
+              </a>
+            </div>
+          )}
           <div className="absolute right-1.5 top-1.5 opacity-80 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
             <ConfirmDeleteButton
               label="✕"
