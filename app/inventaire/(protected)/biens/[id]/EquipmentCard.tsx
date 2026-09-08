@@ -76,7 +76,7 @@ export function EquipmentCard({
   }
 
   return (
-    <div className="card p-5">
+    <div id={`missing-check-equipment-${equipment.id}`} className="card p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="flex items-center gap-2 font-medium text-[#1d1d1f]">
