@@ -28,6 +28,16 @@ export function EquipmentCard({
   const instructionVideos = attachments.filter(
     (a) => a.entityId === equipment.id && a.kind === "equipment_instruction_video"
   );
+  const isEmpty =
+    !equipment.brand &&
+    !equipment.model &&
+    !equipment.warranty &&
+    !equipment.serialNumber &&
+    !equipment.videoLink &&
+    !equipment.notes &&
+    photos.length === 0 &&
+    referencePhotos.length === 0 &&
+    instructionVideos.length === 0;
 
   if (editing) {
     return (
@@ -69,7 +79,14 @@ export function EquipmentCard({
     <div className="card p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-medium text-[#1d1d1f]">{equipment.name}</p>
+          <p className="flex items-center gap-2 font-medium text-[#1d1d1f]">
+            {equipment.name}
+            {isEmpty && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                ⚠️ Données manquantes
+              </span>
+            )}
+          </p>
           <p className="text-sm text-[#6e6e73]">
             {[equipment.brand, equipment.model].filter(Boolean).join(" — ") || "—"}
           </p>
