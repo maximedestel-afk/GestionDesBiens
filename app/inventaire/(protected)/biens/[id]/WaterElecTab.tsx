@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Attachment, PropertyElement, PropertyWaterElec } from "@/lib/inventaire/types";
+import type { Attachment, HeatingProduction, PropertyElement, PropertyWaterElec } from "@/lib/inventaire/types";
 import { loadStandardWaterElecElements, saveWaterElec } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
@@ -47,6 +47,10 @@ export function WaterElecTab({
   elements: PropertyElement[];
   attachments: Attachment[];
 }) {
+  const [heatingProduction, setHeatingProduction] = useState<HeatingProduction | "">(
+    waterElec?.heatingProduction ?? ""
+  );
+
   return (
     <div className="space-y-6">
       <fieldset className="card p-5">
@@ -85,6 +89,37 @@ export function WaterElecTab({
                     <option value="false">Non</option>
                   </select>
                 </div>
+                <div>
+                  <label className="field-label" htmlFor="heatingProduction">
+                    Production Chauffage
+                  </label>
+                  <select
+                    id="heatingProduction"
+                    name="heatingProduction"
+                    value={heatingProduction}
+                    onChange={(e) => setHeatingProduction(e.target.value as HeatingProduction | "")}
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                  >
+                    <option value="">Non renseigné</option>
+                    <option value="individuelle">Individuelle</option>
+                    <option value="collective">Collective</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </div>
+                {heatingProduction === "autre" && (
+                  <div className="sm:col-span-2">
+                    <label className="field-label" htmlFor="heatingProductionNotes">
+                      Production Chauffage — précisez
+                    </label>
+                    <textarea
+                      id="heatingProductionNotes"
+                      name="heatingProductionNotes"
+                      defaultValue={waterElec?.heatingProductionNotes ?? ""}
+                      rows={2}
+                      className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                    />
+                  </div>
+                )}
               </div>
               <SaveStatus pending={pending} error={error} success={success} />
             </>
