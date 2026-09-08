@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Attachment, PropertyAgencement, Room, RoomBed } from "@/lib/inventaire/types";
 import { createRoom, saveAgencement } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
@@ -8,6 +9,8 @@ import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { RoomRow } from "./RoomRow";
+
+const ROOM_TYPES = ["Chambre", "Cuisine", "Salon", "Salle à Manger", "WC", "SDB", "Espace Travail"] as const;
 
 export function AgencementTab({
   propertyId,
@@ -26,6 +29,7 @@ export function AgencementTab({
 }) {
   const visitVideos = attachments.filter((a) => a.kind === "visit_video");
   const plans = attachments.filter((a) => a.kind === "plan");
+  const [roomType, setRoomType] = useState("");
 
   return (
     <div className="space-y-6">
@@ -135,19 +139,42 @@ export function AgencementTab({
         <ActionForm
           className="mt-4 flex flex-wrap items-end gap-2 border-t border-black/[0.06] pt-4"
           resetOnSuccess
+          onSuccess={() => setRoomType("")}
           action={(formData) => createRoom(propertyId, formData)}
         >
           {({ pending, error }) => (
             <>
               <div className="flex-1 min-w-[10rem]">
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Nom de la pièce</label>
-                <input
-                  name="name"
+                <label className="block text-[12px] font-medium text-[#6e6e73]">Type de pièce</label>
+                <select
+                  name="roomType"
                   required
-                  placeholder="Chambre 1"
+                  value={roomType}
+                  onChange={(e) => setRoomType(e.target.value)}
                   className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-                />
+                >
+                  <option value="" disabled>
+                    Choisir…
+                  </option>
+                  {ROOM_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                  <option value="autre">Autre</option>
+                </select>
               </div>
+              {roomType === "autre" && (
+                <div className="flex-1 min-w-[10rem]">
+                  <label className="block text-[12px] font-medium text-[#6e6e73]">Précisez</label>
+                  <input
+                    name="customName"
+                    required
+                    placeholder="Nom de la pièce"
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                  />
+                </div>
+              )}
               <div className="flex-1 min-w-[12rem]">
                 <label className="block text-[12px] font-medium text-[#6e6e73]">Couchage / équipement</label>
                 <input
