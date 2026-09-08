@@ -158,7 +158,7 @@ export function EquipmentTab({
         const roomEquipment = equipment.filter((e) => e.roomId === room.id);
         return (
           <section key={room.id}>
-            <div className="mb-2 flex items-center justify-between gap-2 rounded-[10px] bg-[#0071e3]/10 px-3.5 py-2">
+            <div className="sticky top-14 z-[5] mb-2 flex items-center justify-between gap-2 rounded-[10px] border border-[#0071e3]/10 bg-[#eaf3fd]/95 px-3.5 py-2 shadow-sm backdrop-blur-sm">
               <h2 className="text-sm font-semibold text-[#0071e3]">{room.name}</h2>
               <LoadRoomStandardsButton propertyId={propertyId} room={room} />
             </div>
