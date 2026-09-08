@@ -86,7 +86,7 @@ export function EquipmentFields({
             defaultChecked={equipment?.dryingFunction ?? false}
             className="h-4 w-4 rounded border-black/10"
           />
-          Fonction séchante
+          Séchante ?
         </label>
       )}
       <div className="sm:col-span-2">
