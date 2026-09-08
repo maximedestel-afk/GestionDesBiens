@@ -206,7 +206,8 @@ export type AttachmentKind =
   | "rcp"
   | "wifi_pto_photo"
   | "trash_room"
-  | "equipment_instruction_video";
+  | "equipment_instruction_video"
+  | "plan";
 
 export interface Attachment {
   id: string;
