@@ -732,21 +732,18 @@ export async function createPropertyPlatform(propertyId: string, platformType: P
   const supabase = await createClient();
   await requireUser(supabase);
 
-  const [{ data: property }, { data: maxPos }] = await Promise.all([
-    supabase.from("properties").select("name").eq("id", propertyId).maybeSingle(),
-    supabase
-      .from("property_platforms")
-      .select("position")
-      .eq("property_id", propertyId)
-      .order("position", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const { data: maxPos } = await supabase
+    .from("property_platforms")
+    .select("position")
+    .eq("property_id", propertyId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   const { error } = await supabase.from("property_platforms").insert({
     property_id: propertyId,
     platform_type: platformType,
-    listing_name: property?.name ?? null,
+    listing_name: null,
     position: (maxPos?.position ?? -1) + 1,
   });
   if (error) throw error;
@@ -771,11 +768,9 @@ export async function ensureDefaultPlatforms(propertyId: string) {
     .eq("property_id", propertyId);
   if (count) return;
 
-  const { data: property } = await supabase.from("properties").select("name").eq("id", propertyId).maybeSingle();
-
   const { error } = await supabase.from("property_platforms").insert([
-    { property_id: propertyId, platform_type: "airbnb", listing_name: property?.name ?? null, position: 0 },
-    { property_id: propertyId, platform_type: "booking", listing_name: property?.name ?? null, position: 1 },
+    { property_id: propertyId, platform_type: "airbnb", listing_name: null, position: 0 },
+    { property_id: propertyId, platform_type: "booking", listing_name: null, position: 1 },
   ]);
   if (error) throw error;
 
