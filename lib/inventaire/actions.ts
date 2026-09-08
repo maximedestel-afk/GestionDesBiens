@@ -166,8 +166,8 @@ export async function createProperty(formData: FormData) {
   await supabase.from("property_owner").insert({ property_id: data.id });
   await supabase.from("property_water_elec").insert({ property_id: data.id });
   await supabase.from("property_platforms").insert([
-    { property_id: data.id, platform_type: "airbnb", listing_name: name, position: 0 },
-    { property_id: data.id, platform_type: "booking", listing_name: name, position: 1 },
+    { property_id: data.id, platform_type: "airbnb", listing_name: null, position: 0 },
+    { property_id: data.id, platform_type: "booking", listing_name: null, position: 1 },
   ]);
   await loadStandardInventory(data.id);
   await logActivity(supabase, {
