@@ -310,7 +310,21 @@ const PROPERTY_OWNER_LABELS: Record<string, string> = {
   lease_notes: "Note Bail",
   rib_notes: "Note RIB",
   rcp_notes: "Note RCP",
+  rent_amount: "Loyer",
+  charges_amount: "Charges",
+  other_amount_label: "Autre (précisez)",
+  other_amount: "Autre (montant)",
 };
+
+function optionalAmount(value: FormDataEntryValue | null, label: string): number | null {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return null;
+  const amount = Number.parseFloat(raw.replace(",", "."));
+  if (!Number.isFinite(amount) || amount < 0) {
+    throw new Error(`${label} doit être un nombre positif.`);
+  }
+  return amount;
+}
 
 export async function savePropertyOwner(propertyId: string, formData: FormData) {
   const supabase = await createClient();
@@ -333,6 +347,10 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     lease_notes: optionalString(formData.get("leaseNotes")),
     rib_notes: optionalString(formData.get("ribNotes")),
     rcp_notes: optionalString(formData.get("rcpNotes")),
+    rent_amount: optionalAmount(formData.get("rentAmount"), "Le loyer"),
+    charges_amount: optionalAmount(formData.get("chargesAmount"), "Les charges"),
+    other_amount_label: optionalString(formData.get("otherAmountLabel")),
+    other_amount: optionalAmount(formData.get("otherAmount"), "Le montant « Autre »"),
   };
 
   const { error } = await supabase.from("property_owner").upsert(patch);

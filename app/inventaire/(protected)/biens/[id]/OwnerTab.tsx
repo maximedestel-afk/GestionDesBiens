@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Attachment, PropertyElement, PropertyOwner } from "@/lib/inventaire/types";
 import { savePropertyOwner } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
@@ -47,6 +48,95 @@ function Field({
         />
       )}
     </div>
+  );
+}
+
+const AMOUNT_INPUT_CLASS =
+  "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
+
+function parseAmount(value: string): number {
+  const n = Number.parseFloat(value.replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function RentFieldset({ owner }: { owner: PropertyOwner | null }) {
+  const [rent, setRent] = useState(owner?.rentAmount != null ? String(owner.rentAmount) : "");
+  const [charges, setCharges] = useState(owner?.chargesAmount != null ? String(owner.chargesAmount) : "");
+  const [other, setOther] = useState(owner?.otherAmount != null ? String(owner.otherAmount) : "");
+
+  const total = parseAmount(rent) + parseAmount(charges) + parseAmount(other);
+
+  return (
+    <fieldset className="card p-5">
+      <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Loyer</legend>
+      <div className="mt-2 space-y-3">
+        <div>
+          <label className="field-label" htmlFor="rentAmount">
+            Loyer
+          </label>
+          <input
+            id="rentAmount"
+            name="rentAmount"
+            type="number"
+            min={0}
+            step="0.01"
+            value={rent}
+            onChange={(e) => setRent(e.target.value)}
+            className={AMOUNT_INPUT_CLASS}
+          />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="chargesAmount">
+            Charges
+          </label>
+          <input
+            id="chargesAmount"
+            name="chargesAmount"
+            type="number"
+            min={0}
+            step="0.01"
+            value={charges}
+            onChange={(e) => setCharges(e.target.value)}
+            className={AMOUNT_INPUT_CLASS}
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="field-label" htmlFor="otherAmountLabel">
+              Autre (précisez)
+            </label>
+            <input
+              id="otherAmountLabel"
+              name="otherAmountLabel"
+              type="text"
+              defaultValue={owner?.otherAmountLabel ?? ""}
+              className={AMOUNT_INPUT_CLASS}
+            />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="otherAmount">
+              Montant
+            </label>
+            <input
+              id="otherAmount"
+              name="otherAmount"
+              type="number"
+              min={0}
+              step="0.01"
+              value={other}
+              onChange={(e) => setOther(e.target.value)}
+              className={AMOUNT_INPUT_CLASS}
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-between rounded-[10px] bg-black/[0.03] px-3.5 py-2.5">
+          <span className="text-[15px] font-semibold text-[#1d1d1f]">Total</span>
+          <span className="text-[15px] font-semibold text-[#1d1d1f]">
+            {total.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+          </span>
+        </div>
+      </div>
+    </fieldset>
   );
 }
 
@@ -146,6 +236,8 @@ export function OwnerTab({
                 <Field label="Notes" name="notes" defaultValue={owner?.notes} textarea />
               </div>
             </fieldset>
+
+            <RentFieldset owner={owner} />
 
             <fieldset className="card space-y-3 p-5">
               <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Documents</legend>
