@@ -126,6 +126,7 @@ export function PropertyTabs({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
+  const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
 
   const equipmentMissingChecks: CompletenessCheck[] = equipment
@@ -187,7 +188,6 @@ export function PropertyTabs({
     };
   }, [searchParams, activeTab, pathname, router]);
 
-  const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const inventoryAttachments = attachments.filter((a) => a.entityType === "inventory_item");
   const elementAttachments = attachments.filter((a) => a.entityType === "property_element");
 
