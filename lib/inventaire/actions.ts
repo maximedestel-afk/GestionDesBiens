@@ -14,6 +14,7 @@ import type {
   AttachmentKind,
   ElementSection,
   BedType,
+  HeatingProduction,
   HotWaterProduction,
   InventoryCategory,
   ItemCondition,
@@ -402,6 +403,8 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
 const PROPERTY_WATER_ELEC_LABELS: Record<string, string> = {
   hot_water_production: "Production eau chaude",
   has_gas: "Gaz",
+  heating_production: "Production chauffage",
+  heating_production_notes: "Production chauffage › Note",
 };
 
 export async function saveWaterElec(propertyId: string, formData: FormData) {
@@ -414,6 +417,12 @@ export async function saveWaterElec(propertyId: string, formData: FormData) {
       ? (hotWaterProductionRaw as HotWaterProduction)
       : null;
   const hasGas = formData.has("hasGas") ? formData.get("hasGas") === "true" : null;
+  const heatingProductionRaw = optionalString(formData.get("heatingProduction"));
+  const heatingProduction =
+    heatingProductionRaw === "individuelle" || heatingProductionRaw === "collective" || heatingProductionRaw === "autre"
+      ? (heatingProductionRaw as HeatingProduction)
+      : null;
+  const heatingProductionNotes = optionalString(formData.get("heatingProductionNotes"));
 
   const { data: existing } = await supabase
     .from("property_water_elec")
@@ -421,7 +430,13 @@ export async function saveWaterElec(propertyId: string, formData: FormData) {
     .eq("property_id", propertyId)
     .maybeSingle();
 
-  const patch = { property_id: propertyId, hot_water_production: hotWaterProduction, has_gas: hasGas };
+  const patch = {
+    property_id: propertyId,
+    hot_water_production: hotWaterProduction,
+    has_gas: hasGas,
+    heating_production: heatingProduction,
+    heating_production_notes: heatingProductionNotes,
+  };
   const { error } = await supabase.from("property_water_elec").upsert(patch);
   if (error) throw error;
 

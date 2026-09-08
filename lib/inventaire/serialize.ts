@@ -90,6 +90,8 @@ export function serializeWaterElec(row: any): PropertyWaterElec {
     propertyId: row.property_id,
     hotWaterProduction: row.hot_water_production,
     hasGas: row.has_gas,
+    heatingProduction: row.heating_production,
+    heatingProductionNotes: row.heating_production_notes,
   };
 }
 

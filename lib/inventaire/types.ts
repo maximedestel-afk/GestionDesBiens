@@ -66,11 +66,14 @@ export interface PropertyAgencement {
 }
 
 export type HotWaterProduction = "individuelle" | "collective";
+export type HeatingProduction = "individuelle" | "collective" | "autre";
 
 export interface PropertyWaterElec {
   propertyId: string;
   hotWaterProduction: HotWaterProduction | null;
   hasGas: boolean | null;
+  heatingProduction: HeatingProduction | null;
+  heatingProductionNotes: string | null;
 }
 
 export type KeyType = "guest" | "menage" | "backup" | "autre";
