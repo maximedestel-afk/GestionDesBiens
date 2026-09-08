@@ -24,7 +24,7 @@ export function MissingFieldFlag({
 
   if (state === "just_dismissed") {
     return (
-      <span className="ml-1.5 inline-flex items-center gap-1 text-[11px] text-[#6e6e73]">
+      <span id={`missing-check-${checkKey}`} className="ml-1.5 inline-flex items-center gap-1 text-[11px] text-[#6e6e73]">
         Masqué ·
         <button
           type="button"
@@ -45,6 +45,7 @@ export function MissingFieldFlag({
 
   return (
     <button
+      id={`missing-check-${checkKey}`}
       type="button"
       disabled={pending}
       title="Information manquante — cliquer pour marquer comme normal (ne plus signaler)"

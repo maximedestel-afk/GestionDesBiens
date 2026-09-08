@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { unstable_rethrow } from "next/navigation";
 import type {
@@ -20,7 +21,7 @@ import type {
   RoomBed,
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
-import type { CompletenessCheck } from "@/lib/inventaire/completeness";
+import { getCompletenessCheck, type CompletenessCheck } from "@/lib/inventaire/completeness";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { DismissedChecksPanel } from "@/components/inventaire/DismissedChecksPanel";
 import { OwnerTab } from "./OwnerTab";
@@ -35,6 +36,7 @@ import { NotesTab } from "./NotesTab";
 import { PhotosTab } from "./PhotosTab";
 import { DocumentsTab } from "./DocumentsTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
+import { MissingDataTab } from "./MissingDataTab";
 
 const TABS = [
   { key: "details", label: "Détails appartement" },
@@ -49,7 +51,12 @@ const TABS = [
   { key: "plateformes", label: "Plateformes" },
   { key: "proprietaire", label: "Propriétaire" },
   { key: "historique", label: "Log" },
+  { key: "manquant", label: "Données manquantes" },
 ] as const;
+
+const TAB_LABEL_TO_KEY: Record<string, (typeof TABS)[number]["key"]> = Object.fromEntries(
+  TABS.map((t) => [t.label, t.key])
+);
 
 type TabKey = (typeof TABS)[number]["key"];
 
@@ -119,6 +126,45 @@ export function PropertyTabs({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
+  const missingChecks = missingCheckKeys
+    .map((key) => getCompletenessCheck(key))
+    .filter((check): check is CompletenessCheck => !!check);
+
+  function navigateToCheck(check: CompletenessCheck) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", TAB_LABEL_TO_KEY[check.tab] ?? "details");
+    params.set("scrollTo", check.key);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
+  // Fait défiler jusqu'à l'icône ⚠️ correspondante et la met brièvement en
+  // évidence, une fois l'onglet ciblé actif (déclenché par navigateToCheck).
+  useEffect(() => {
+    const scrollTo = searchParams.get("scrollTo");
+    if (!scrollTo) return;
+    let attempts = 0;
+    let cancelled = false;
+    const tryScroll = () => {
+      if (cancelled) return;
+      const el = document.getElementById(`missing-check-${scrollTo}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-amber-400", "rounded-full");
+        window.setTimeout(() => el.classList.remove("ring-2", "ring-amber-400", "rounded-full"), 2000);
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("scrollTo");
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      } else if (attempts < 20) {
+        attempts++;
+        requestAnimationFrame(tryScroll);
+      }
+    };
+    requestAnimationFrame(tryScroll);
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, activeTab, pathname, router]);
+
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
   const inventoryAttachments = attachments.filter((a) => a.entityType === "inventory_item");
@@ -140,6 +186,11 @@ export function PropertyTabs({
               }`}
             >
               {tab.label}
+              {tab.key === "manquant" && missingChecks.length > 0 && (
+                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                  {missingChecks.length}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -240,6 +291,7 @@ export function PropertyTabs({
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}
         {activeTab === "historique" && <ActivityLogPanel entries={activityLog} />}
+        {activeTab === "manquant" && <MissingDataTab checks={missingChecks} onNavigate={navigateToCheck} />}
       </div>
     </div>
   );
