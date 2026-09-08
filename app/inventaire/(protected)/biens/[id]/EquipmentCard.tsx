@@ -103,11 +103,13 @@ export function EquipmentCard({
       </div>
 
       <div className="mt-3">
-        <p className="text-[12px] font-medium text-[#6e6e73]">Photos (équipement, plaque signalétique…)</p>
+        <p className="text-[12px] font-medium text-[#6e6e73]">
+          Photos (équipement, plaque signalétique…) + Vidéo Instructions (facultatif)
+        </p>
         <div className="mt-1 space-y-2">
           <AttachmentGallery
             propertyId={propertyId}
-            attachments={[...photos, ...referencePhotos]}
+            attachments={[...photos, ...referencePhotos, ...instructionVideos]}
             emptyLabel="Aucune photo"
           />
           <FileUploadButtons
@@ -118,22 +120,6 @@ export function EquipmentCard({
               entityType: "equipment",
               entityId: equipment.id,
               kind: "equipment_photo",
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <p className="text-[12px] font-medium text-[#6e6e73]">Vidéo instructions (facultatif)</p>
-        <div className="mt-1 space-y-2">
-          <AttachmentGallery propertyId={propertyId} attachments={instructionVideos} emptyLabel="Aucune vidéo" />
-          <FileUploadButtons
-            accept="video/*"
-            target={{
-              propertyId,
-              entityType: "equipment",
-              entityId: equipment.id,
-              kind: "equipment_instruction_video",
             }}
           />
         </div>
