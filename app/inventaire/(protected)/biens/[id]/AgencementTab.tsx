@@ -25,6 +25,7 @@ export function AgencementTab({
   missingCheckKeys: string[];
 }) {
   const visitVideos = attachments.filter((a) => a.kind === "visit_video");
+  const plans = attachments.filter((a) => a.kind === "plan");
 
   return (
     <div className="space-y-6">
@@ -94,6 +95,18 @@ export function AgencementTab({
           <FileUploadButtons
             accept="video/*"
             target={{ propertyId, entityType: "property", entityId: propertyId, kind: "visit_video" }}
+          />
+        </div>
+      </fieldset>
+
+      <fieldset className="card p-5">
+        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Plan</legend>
+        <p className="text-sm text-[#6e6e73]">Insérer le plan (même à main levée).</p>
+        <div className="mt-2 space-y-2">
+          <AttachmentGallery propertyId={propertyId} attachments={plans} emptyLabel="Aucun plan" />
+          <FileUploadButtons
+            accept=".pdf,.doc,.docx,image/*"
+            target={{ propertyId, entityType: "property", entityId: propertyId, kind: "plan" }}
           />
         </div>
       </fieldset>
