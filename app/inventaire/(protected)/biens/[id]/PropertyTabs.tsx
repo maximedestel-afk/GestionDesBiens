@@ -126,9 +126,31 @@ export function PropertyTabs({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
-  const missingChecks = missingCheckKeys
-    .map((key) => getCompletenessCheck(key))
-    .filter((check): check is CompletenessCheck => !!check);
+  const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
+
+  const equipmentMissingChecks: CompletenessCheck[] = equipment
+    .filter((item) => {
+      const itemAttachments = equipmentAttachments.filter((a) => a.entityId === item.id);
+      return (
+        !item.brand &&
+        !item.model &&
+        !item.warranty &&
+        !item.serialNumber &&
+        !item.videoLink &&
+        !item.notes &&
+        itemAttachments.length === 0
+      );
+    })
+    .map((item) => ({
+      key: `equipment-${item.id}`,
+      label: `Équipement « ${item.name} » sans donnée`,
+      tab: "Équipements",
+    }));
+
+  const missingChecks = [
+    ...missingCheckKeys.map((key) => getCompletenessCheck(key)).filter((check): check is CompletenessCheck => !!check),
+    ...equipmentMissingChecks,
+  ];
 
   function navigateToCheck(check: CompletenessCheck) {
     const params = new URLSearchParams(searchParams.toString());
@@ -149,8 +171,8 @@ export function PropertyTabs({
       const el = document.getElementById(`missing-check-${scrollTo}`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.classList.add("ring-2", "ring-amber-400", "rounded-full");
-        window.setTimeout(() => el.classList.remove("ring-2", "ring-amber-400", "rounded-full"), 2000);
+        el.classList.add("ring-2", "ring-amber-400", "ring-offset-2");
+        window.setTimeout(() => el.classList.remove("ring-2", "ring-amber-400", "ring-offset-2"), 2000);
         const params = new URLSearchParams(searchParams.toString());
         params.delete("scrollTo");
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
@@ -166,7 +188,6 @@ export function PropertyTabs({
   }, [searchParams, activeTab, pathname, router]);
 
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
-  const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
   const inventoryAttachments = attachments.filter((a) => a.entityType === "inventory_item");
   const elementAttachments = attachments.filter((a) => a.entityType === "property_element");
 
