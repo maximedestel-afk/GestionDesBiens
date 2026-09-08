@@ -125,8 +125,8 @@ export function FileUploadButtons({
         onClick={() => galleryInputRef.current?.click()}
         title="Joindre un fichier"
         aria-label="Joindre un fichier"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.05] text-[#1d1d1f]
-          transition hover:bg-black/[0.08] active:bg-black/[0.1] disabled:cursor-not-allowed disabled:opacity-40"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#0071e3] text-white
+          transition hover:bg-[#0077ed] active:bg-[#0068d1] disabled:cursor-not-allowed disabled:opacity-40"
       >
         <PaperclipIcon />
       </button>
