@@ -25,6 +25,9 @@ export function EquipmentCard({
   const referencePhotos = attachments.filter(
     (a) => a.entityId === equipment.id && a.kind === "equipment_reference_photo"
   );
+  const instructionVideos = attachments.filter(
+    (a) => a.entityId === equipment.id && a.kind === "equipment_instruction_video"
+  );
 
   if (editing) {
     return (
@@ -108,11 +111,29 @@ export function EquipmentCard({
             emptyLabel="Aucune photo"
           />
           <FileUploadButtons
+            accept="image/*,video/*"
+            showVideoCamera
             target={{
               propertyId,
               entityType: "equipment",
               entityId: equipment.id,
               kind: "equipment_photo",
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <p className="text-[12px] font-medium text-[#6e6e73]">Vidéo instructions (facultatif)</p>
+        <div className="mt-1 space-y-2">
+          <AttachmentGallery propertyId={propertyId} attachments={instructionVideos} emptyLabel="Aucune vidéo" />
+          <FileUploadButtons
+            accept="video/*"
+            target={{
+              propertyId,
+              entityType: "equipment",
+              entityId: equipment.id,
+              kind: "equipment_instruction_video",
             }}
           />
         </div>
