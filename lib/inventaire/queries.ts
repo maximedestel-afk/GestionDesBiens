@@ -297,11 +297,12 @@ export async function listPropertiesMissingChecks(
     { data: platforms },
     { data: attachments },
     { data: rooms },
+    { data: keys },
     { data: dismissals },
   ] = await Promise.all([
     supabase
       .from("property_details")
-      .select("property_id, wifi_network, wifi_code, edf_prm")
+      .select("property_id, wifi_network, wifi_code, edf_prm, trash_room_url, trash_room_notes, wifi_pto_number, wifi_pto_notes")
       .in("property_id", propertyIds),
     supabase.from("property_owner").select("property_id, last_name, email").in("property_id", propertyIds),
     supabase.from("property_agencement").select("property_id, capacity, surface").in("property_id", propertyIds),
@@ -310,9 +311,20 @@ export async function listPropertiesMissingChecks(
       .from("attachments")
       .select("property_id, kind")
       .eq("entity_type", "property")
-      .in("kind", ["lease_contract", "rib", "rcp", "key_set_photo", "wifi_contract", "visit_video", "edf_contract"])
+      .in("kind", [
+        "lease_contract",
+        "rib",
+        "rcp",
+        "key_set_photo",
+        "wifi_contract",
+        "visit_video",
+        "edf_contract",
+        "trash_room",
+        "wifi_pto_photo",
+      ])
       .in("property_id", propertyIds),
     supabase.from("rooms").select("property_id").in("property_id", propertyIds),
+    supabase.from("property_keys").select("property_id").in("property_id", propertyIds),
     supabase.from("property_checklist_dismissals").select("property_id, check_key").in("property_id", propertyIds),
   ]);
 
@@ -335,6 +347,11 @@ export async function listPropertiesMissingChecks(
   const roomsCountByProperty = new Map<string, number>();
   for (const r of rooms ?? []) {
     roomsCountByProperty.set(r.property_id, (roomsCountByProperty.get(r.property_id) ?? 0) + 1);
+  }
+
+  const keysCountByProperty = new Map<string, number>();
+  for (const k of keys ?? []) {
+    keysCountByProperty.set(k.property_id, (keysCountByProperty.get(k.property_id) ?? 0) + 1);
   }
 
   const dismissedByProperty = new Map<string, Set<string>>();
@@ -370,6 +387,9 @@ export async function listPropertiesMissingChecks(
         edfPrm: detail?.edf_prm,
         hasEdfContract: kinds.has("edf_contract"),
         hasPlatformInfo: platformsByProperty.get(propertyId) ?? false,
+        hasTrashRoomInfo: !!(detail?.trash_room_url || detail?.trash_room_notes || kinds.has("trash_room")),
+        hasWifiPtoInfo: !!(detail?.wifi_pto_number || detail?.wifi_pto_notes || kinds.has("wifi_pto_photo")),
+        keysCount: keysCountByProperty.get(propertyId) ?? 0,
       },
       dismissed
     );
