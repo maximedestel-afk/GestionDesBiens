@@ -26,6 +26,7 @@ export function PlatformCard({
   const [detail, setDetail] = useState(platform.platformTypeDetail ?? "");
   const title =
     platform.platformType === "autre" ? detail.trim() || "Autre" : PLATFORM_LABELS[platform.platformType];
+  const isEmpty = !platform.listingName && !platform.reference && !platform.url && !platform.notes;
 
   return (
     <div className="card p-5">
@@ -33,7 +34,14 @@ export function PlatformCard({
         {({ pending, error, success }) => (
           <>
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-sm font-semibold text-[#1d1d1f]">{title}</h3>
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1d1d1f]">
+                {title}
+                {isEmpty && (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                    ⚠️ Données manquantes
+                  </span>
+                )}
+              </h3>
               <ConfirmDeleteButton
                 confirmText={`Supprimer « ${title} » ?`}
                 action={() => deletePropertyPlatform(propertyId, platform.id)}
