@@ -3,6 +3,23 @@
 import { useRef, useState, useTransition } from "react";
 import { uploadAttachment, type UploadTarget } from "@/lib/inventaire/upload";
 
+function PaperclipIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3.5 3.5 0 015 5l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" />
+    </svg>
+  );
+}
+
 export function FileUploadButtons({
   target,
   accept = "image/*",
@@ -62,9 +79,9 @@ export function FileUploadButtons({
             type="button"
             disabled={pending}
             onClick={() => cameraInputRef.current?.click()}
-            className="btn-secondary btn-sm"
+            className="btn-primary btn-sm"
           >
-            {isVideo ? "🎥 Filmer" : "📷 Prendre une photo"}
+            {isVideo ? "Film" : "Photo"}
           </button>
           <input
             ref={cameraInputRef}
@@ -85,9 +102,9 @@ export function FileUploadButtons({
             type="button"
             disabled={pending}
             onClick={() => videoCameraInputRef.current?.click()}
-            className="btn-secondary btn-sm"
+            className="btn-primary btn-sm"
           >
-            🎥 Filmer
+            Film
           </button>
           <input
             ref={videoCameraInputRef}
@@ -106,9 +123,12 @@ export function FileUploadButtons({
         type="button"
         disabled={pending}
         onClick={() => galleryInputRef.current?.click()}
-        className="btn-secondary btn-sm"
+        title="Joindre un fichier"
+        aria-label="Joindre un fichier"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.05] text-[#1d1d1f]
+          transition hover:bg-black/[0.08] active:bg-black/[0.1] disabled:cursor-not-allowed disabled:opacity-40"
       >
-        🖼 Choisir des fichiers
+        <PaperclipIcon />
       </button>
       <input
         ref={galleryInputRef}
