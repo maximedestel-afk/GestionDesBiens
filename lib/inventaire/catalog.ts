@@ -4,7 +4,15 @@ import type { InventoryCategory } from "./types";
 // équipements standards dépendent du type de pièce (déduit du nom de la
 // pièce). Permet toujours d'ajouter d'autres équipements manuellement.
 const STANDARD_EQUIPMENT_BY_ROOM_TYPE = {
-  cuisine: ["Lave-vaisselle", "Plaques de cuisson", "Hotte aspirante", "Réfrigérateur", "Four", "Micro-ondes"],
+  cuisine: [
+    "Lave-vaisselle",
+    "Lave-linge",
+    "Plaques de cuisson",
+    "Hotte aspirante",
+    "Réfrigérateur",
+    "Four",
+    "Micro-ondes",
+  ],
   salon: ["Box internet/Wifi", "Climatisation", "Téléviseur", "Radiateurs"],
   chambre: ["Téléviseur", "Radiateurs", "Climatisation"],
   "salle de bain": ["Radiateurs"],
