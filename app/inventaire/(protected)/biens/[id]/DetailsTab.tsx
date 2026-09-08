@@ -139,7 +139,14 @@ export function DetailsTab({
               </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-[#1d1d1f]">Local Poubelle</p>
+              <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
+                Local Poubelle
+                <MissingFieldFlag
+                  propertyId={propertyId}
+                  checkKey="trash_room_info"
+                  missing={missingCheckKeys.includes("trash_room_info")}
+                />
+              </p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("trash_room")} />
                 <FileUploadButtons
@@ -227,7 +234,14 @@ export function DetailsTab({
               </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-[#1d1d1f]">Photo Prise Optique et branchements</p>
+              <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
+                Photo Prise Optique et branchements
+                <MissingFieldFlag
+                  propertyId={propertyId}
+                  checkKey="wifi_pto_photo"
+                  missing={missingCheckKeys.includes("wifi_pto_photo")}
+                />
+              </p>
               <div className="mt-1 space-y-2">
                 <AttachmentGallery propertyId={propertyId} attachments={byKind("wifi_pto_photo")} />
                 <FileUploadButtons

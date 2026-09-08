@@ -23,6 +23,9 @@ export const COMPLETENESS_CHECKS: CompletenessCheck[] = [
   { key: "edf_prm", label: "Numéro PRM (EDF)", tab: "Détails appartement" },
   { key: "edf_contract", label: "Contrat EDF", tab: "Détails appartement" },
   { key: "platforms_info", label: "Plateformes (Airbnb/Booking)", tab: "Plateformes" },
+  { key: "trash_room_info", label: "Local Poubelle (vidéo/photo/note)", tab: "Détails appartement" },
+  { key: "wifi_pto_photo", label: "Photo Prise Optique et branchements", tab: "Détails appartement" },
+  { key: "keys_count", label: "Gestion des clés (au moins une clé)", tab: "Clés/Serrure" },
 ];
 
 export interface PropertyCompletenessInput {
@@ -42,6 +45,9 @@ export interface PropertyCompletenessInput {
   edfPrm: string | null | undefined;
   hasEdfContract: boolean;
   hasPlatformInfo: boolean;
+  hasTrashRoomInfo: boolean;
+  hasWifiPtoInfo: boolean;
+  keysCount: number;
 }
 
 const CHECK_PREDICATES: Record<string, (input: PropertyCompletenessInput) => boolean> = {
@@ -59,6 +65,9 @@ const CHECK_PREDICATES: Record<string, (input: PropertyCompletenessInput) => boo
   edf_prm: (i) => !!i.edfPrm,
   edf_contract: (i) => i.hasEdfContract,
   platforms_info: (i) => i.hasPlatformInfo,
+  trash_room_info: (i) => i.hasTrashRoomInfo,
+  wifi_pto_photo: (i) => i.hasWifiPtoInfo,
+  keys_count: (i) => i.keysCount > 0,
 };
 
 export function computeMissingChecks(

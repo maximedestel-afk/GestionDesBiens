@@ -95,6 +95,17 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       edfPrm: details?.edfPrm,
       hasEdfContract: attachments.some((a) => a.kind === "edf_contract"),
       hasPlatformInfo: platformHasListing,
+      hasTrashRoomInfo: !!(
+        details?.trashRoomUrl ||
+        details?.trashRoomNotes ||
+        attachments.some((a) => a.kind === "trash_room")
+      ),
+      hasWifiPtoInfo: !!(
+        details?.wifiPtoNumber ||
+        details?.wifiPtoNotes ||
+        attachments.some((a) => a.kind === "wifi_pto_photo")
+      ),
+      keysCount: keys.length,
     },
     new Set(dismissedChecks)
   ).map((check) => check.key);

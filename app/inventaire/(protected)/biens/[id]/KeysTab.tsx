@@ -113,11 +113,26 @@ function AddKeyMenu({ propertyId }: { propertyId: string }) {
   );
 }
 
-function KeysSection({ propertyId, keys }: { propertyId: string; keys: PropertyKey[] }) {
+function KeysSection({
+  propertyId,
+  keys,
+  missingCheckKeys,
+}: {
+  propertyId: string;
+  keys: PropertyKey[];
+  missingCheckKeys: string[];
+}) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[#1d1d1f]">Gestion des clés</h2>
+        <h2 className="flex items-center text-sm font-semibold text-[#1d1d1f]">
+          Gestion des clés
+          <MissingFieldFlag
+            propertyId={propertyId}
+            checkKey="keys_count"
+            missing={missingCheckKeys.includes("keys_count")}
+          />
+        </h2>
         <AddKeyMenu propertyId={propertyId} />
       </div>
       {(() => {
@@ -265,7 +280,7 @@ export function KeysTab({
         )}
       </ActionForm>
 
-      <KeysSection propertyId={propertyId} keys={keys} />
+      <KeysSection propertyId={propertyId} keys={keys} missingCheckKeys={missingCheckKeys} />
       <KeyElementsSection propertyId={propertyId} elements={elements} attachments={elementAttachments} />
     </div>
   );
