@@ -74,6 +74,10 @@ export function serializePropertyOwner(row: any): PropertyOwner {
     leaseNotes: row.lease_notes,
     ribNotes: row.rib_notes,
     rcpNotes: row.rcp_notes,
+    rentAmount: row.rent_amount,
+    chargesAmount: row.charges_amount,
+    otherAmountLabel: row.other_amount_label,
+    otherAmount: row.other_amount,
   };
 }
 

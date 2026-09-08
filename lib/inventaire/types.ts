@@ -57,6 +57,10 @@ export interface PropertyOwner {
   leaseNotes: string | null;
   ribNotes: string | null;
   rcpNotes: string | null;
+  rentAmount: number | null;
+  chargesAmount: number | null;
+  otherAmountLabel: string | null;
+  otherAmount: number | null;
 }
 
 export interface PropertyAgencement {
