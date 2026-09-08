@@ -145,33 +145,14 @@ export function EquipmentTab({
     );
   }
 
-  const equipmentWithoutPhotos = equipment.filter(
-    (item) =>
-      !attachments.some(
-        (a) => a.entityId === item.id && (a.kind === "equipment_photo" || a.kind === "equipment_reference_photo")
-      )
-  );
-
   return (
     <div className="space-y-6 pb-20">
-      {equipmentWithoutPhotos.length > 0 && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">
-            ⚠️ ATTENTION — Équipements sans photo ({equipmentWithoutPhotos.length})
-          </p>
-          <ul className="mt-2 space-y-1 text-sm text-amber-700">
-            {equipmentWithoutPhotos.map((item) => {
-              const room = rooms.find((r) => r.id === item.roomId);
-              return (
-                <li key={item.id}>
-                  {item.name}
-                  {room && <span className="text-amber-600"> — {room.name}</span>}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-semibold text-amber-800">
+          ⚠️ ATTENTION — Listez tous les équipements réellement présents dans le bien, même si vous n&apos;avez pas
+          encore de photo à ajouter. Ne listez aucun équipement qui n&apos;est pas présent.
+        </p>
+      </div>
 
       {rooms.map((room) => {
         const roomEquipment = equipment.filter((e) => e.roomId === room.id);
