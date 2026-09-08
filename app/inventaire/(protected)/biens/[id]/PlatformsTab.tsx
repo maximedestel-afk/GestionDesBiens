@@ -27,18 +27,9 @@ function AddPlatformMenu({ propertyId }: { propertyId: string }) {
   };
 
   return (
-    <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Ajouter une plateforme"
-        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#0071e3] text-lg font-semibold text-[#0071e3] transition hover:bg-[#0071e3]/10 disabled:opacity-50"
-      >
-        +
-      </button>
+    <div ref={containerRef} className="fixed bottom-6 right-6 z-40">
       {open && (
-        <div className="absolute right-0 z-10 mt-1 w-48 overflow-hidden rounded-[10px] border border-black/10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+        <div className="absolute bottom-full right-0 z-10 mb-2 w-48 overflow-hidden rounded-[10px] border border-black/10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
           <button
             type="button"
             onClick={() => add("airbnb")}
@@ -69,7 +60,20 @@ function AddPlatformMenu({ propertyId }: { propertyId: string }) {
           </button>
         </div>
       )}
-      {error && <p className="absolute right-0 mt-1 w-48 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="absolute bottom-full right-0 mb-2 w-48 rounded-[10px] bg-white p-2 text-sm text-red-600 shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+          {error}
+        </p>
+      )}
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Ajouter une plateforme"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#0071e3] text-2xl font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition hover:bg-[#0077ed] active:scale-95 disabled:opacity-50"
+      >
+        +
+      </button>
     </div>
   );
 }
@@ -90,18 +94,15 @@ export function PlatformsTab({
   }, [propertyId, platforms.length]);
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center text-sm font-semibold text-[#1d1d1f]">
-          Plateformes
-          <MissingFieldFlag
-            propertyId={propertyId}
-            checkKey="platforms_info"
-            missing={missingCheckKeys.includes("platforms_info")}
-          />
-        </h2>
-        <AddPlatformMenu propertyId={propertyId} />
-      </div>
+    <div className="space-y-3 pb-20">
+      <h2 className="flex items-center text-sm font-semibold text-[#1d1d1f]">
+        Plateformes
+        <MissingFieldFlag
+          propertyId={propertyId}
+          checkKey="platforms_info"
+          missing={missingCheckKeys.includes("platforms_info")}
+        />
+      </h2>
       {platforms.length === 0 ? (
         <p className="text-sm text-black/35">Chargement…</p>
       ) : (
@@ -111,6 +112,7 @@ export function PlatformsTab({
           ))}
         </div>
       )}
+      <AddPlatformMenu propertyId={propertyId} />
     </div>
   );
 }
