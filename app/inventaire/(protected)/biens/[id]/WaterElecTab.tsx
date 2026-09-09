@@ -143,6 +143,7 @@ export function WaterElecTab({
             propertyId={propertyId}
             element={el}
             attachments={attachments.filter((a) => a.entityId === el.id)}
+            showMissingBadge
           />
         ))}
       </div>

@@ -128,6 +128,7 @@ export function PropertyTabs({
 
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
+  const elementAttachments = attachments.filter((a) => a.entityType === "property_element");
 
   const equipmentMissingChecks: CompletenessCheck[] = equipment
     .filter((item) => {
@@ -148,9 +149,18 @@ export function PropertyTabs({
       tab: "Équipements",
     }));
 
+  const waterElecMissingChecks: CompletenessCheck[] = waterElecElements
+    .filter((el) => !el.notes && elementAttachments.filter((a) => a.entityId === el.id).length === 0)
+    .map((el) => ({
+      key: `water-elec-${el.id}`,
+      label: `Élément « ${el.name} » sans donnée`,
+      tab: "Eau / Élec",
+    }));
+
   const missingChecks = [
     ...missingCheckKeys.map((key) => getCompletenessCheck(key)).filter((check): check is CompletenessCheck => !!check),
     ...equipmentMissingChecks,
+    ...waterElecMissingChecks,
   ];
 
   function navigateToCheck(check: CompletenessCheck) {
@@ -189,7 +199,6 @@ export function PropertyTabs({
   }, [searchParams, activeTab, pathname, router]);
 
   const inventoryAttachments = attachments.filter((a) => a.entityType === "inventory_item");
-  const elementAttachments = attachments.filter((a) => a.entityType === "property_element");
 
   return (
     <div>
