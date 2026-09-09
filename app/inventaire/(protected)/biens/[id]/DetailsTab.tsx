@@ -292,7 +292,18 @@ export function DetailsTab({
             </div>
           </Section>
 
-          <Section title="Syndic">
+          <Section
+            title={
+              <>
+                Syndic
+                <MissingFieldFlag
+                  propertyId={propertyId}
+                  checkKey="syndic_info"
+                  missing={missingCheckKeys.includes("syndic_info")}
+                />
+              </>
+            }
+          >
             <div className="grid gap-3 sm:grid-cols-3">
               <Field label="Nom" name="syndicName" defaultValue={details?.syndicName} />
               <Field label="Téléphone" name="syndicPhone" defaultValue={details?.syndicPhone} />
