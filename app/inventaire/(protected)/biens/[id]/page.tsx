@@ -23,6 +23,7 @@ import { computeMissingChecks, getCompletenessCheck } from "@/lib/inventaire/com
 import { PropertyTabs } from "./PropertyTabs";
 import { EditPropertyDialog } from "@/components/inventaire/EditPropertyDialog";
 import { PlatformLogo, platformTitle } from "@/components/inventaire/PlatformLogo";
+import { PropertyStatsBar } from "@/components/inventaire/PropertyStatsBar";
 
 export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -117,6 +118,11 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     .map((key) => getCompletenessCheck(key))
     .filter((check) => check !== undefined);
 
+  const bedroomCount = rooms.filter((r) => r.name.startsWith("Chambre")).length;
+  const bathroomCount =
+    rooms.filter((r) => r.name.startsWith("SDB")).length +
+    rooms.filter((r) => r.name.startsWith("WC")).length * 0.5;
+
   return (
     <div>
       <div className="mb-6">
@@ -146,6 +152,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
           <EditPropertyDialog property={property} />
         </div>
         {property.address && <p className="text-[14px] text-[#6e6e73]">{property.address}</p>}
+        <PropertyStatsBar bedroomCount={bedroomCount} bathroomCount={bathroomCount} capacity={agencement?.capacity ?? null} />
       </div>
 
       <PropertyTabs
