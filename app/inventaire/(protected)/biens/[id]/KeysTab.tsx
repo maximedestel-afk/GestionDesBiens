@@ -90,7 +90,7 @@ function AddKeyMenu({ propertyId }: { propertyId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="btn-secondary btn-sm"
+        className="inline-flex items-center gap-1 rounded-full border-2 border-[#0071e3] px-3.5 py-1.5 text-sm font-semibold text-[#0071e3] transition hover:bg-[#0071e3]/10"
       >
         + Ajouter une clé
       </button>
