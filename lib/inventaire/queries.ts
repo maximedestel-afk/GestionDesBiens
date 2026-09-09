@@ -435,6 +435,26 @@ export async function listPropertiesMissingChecks(
   return result;
 }
 
+export async function listPropertiesPlatforms(propertyIds: string[]): Promise<Record<string, PropertyPlatform[]>> {
+  if (propertyIds.length === 0) return {};
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("property_platforms")
+    .select("*")
+    .in("property_id", propertyIds)
+    .order("position", { ascending: true });
+
+  const result: Record<string, PropertyPlatform[]> = {};
+  for (const propertyId of propertyIds) result[propertyId] = [];
+  for (const row of data ?? []) {
+    const platform = serializePropertyPlatform(row);
+    result[platform.propertyId]?.push(platform);
+  }
+
+  return result;
+}
+
 export interface PropertyStats {
   bedroomCount: number;
   bathroomCount: number;

@@ -1,8 +1,14 @@
 import Link from "next/link";
-import { listProperties, listPropertiesMissingChecks, listPropertiesStats } from "@/lib/inventaire/queries";
+import {
+  listProperties,
+  listPropertiesMissingChecks,
+  listPropertiesPlatforms,
+  listPropertiesStats,
+} from "@/lib/inventaire/queries";
 import { NewPropertyDialog } from "@/components/inventaire/NewPropertyDialog";
 import { PropertyCompletenessBadge } from "@/components/inventaire/PropertyCompletenessBadge";
 import { PropertyStatsBar } from "@/components/inventaire/PropertyStatsBar";
+import { PlatformLogo, platformTitle } from "@/components/inventaire/PlatformLogo";
 
 export default async function PropertiesPage({
   searchParams,
@@ -12,9 +18,10 @@ export default async function PropertiesPage({
   const { q } = await searchParams;
   const properties = await listProperties(q);
   const propertyIds = properties.map((p) => p.id);
-  const [missingChecks, stats] = await Promise.all([
+  const [missingChecks, stats, platforms] = await Promise.all([
     listPropertiesMissingChecks(propertyIds),
     listPropertiesStats(propertyIds),
+    listPropertiesPlatforms(propertyIds),
   ]);
 
   return (
@@ -56,6 +63,20 @@ export default async function PropertiesPage({
                   )}
                 </Link>
                 <div className="flex shrink-0 items-center gap-3">
+                  {(platforms[property.id] ?? [])
+                    .filter((p) => p.url)
+                    .map((p) => (
+                      <a
+                        key={p.id}
+                        href={p.url ?? "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={`Ouvrir l'annonce ${platformTitle(p)}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <PlatformLogo platformType={p.platformType} title={platformTitle(p)} className="h-6 w-6 text-[12px]" />
+                      </a>
+                    ))}
                   <PropertyCompletenessBadge propertyId={property.id} missing={missingChecks[property.id] ?? []} />
                   <Link href={`/inventaire/biens/${property.id}`} className="text-black/25">
                     ›
