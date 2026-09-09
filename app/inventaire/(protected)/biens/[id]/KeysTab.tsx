@@ -62,53 +62,64 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 function AddKeyMenu({ propertyId }: { propertyId: string }) {
   const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   useOutsideClick(containerRef, () => setOpen(false), open);
 
-  const add = (keyType?: "autre") => {
-    setOpen(false);
+  const add = () => {
+    if (!name.trim()) {
+      setError("Le nom de la clé est requis.");
+      return;
+    }
     setError(null);
     startTransition(async () => {
       try {
-        await createPropertyKey(propertyId, keyType);
+        await createPropertyKey(propertyId, name.trim());
+        setName("");
+        setOpen(false);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Erreur.");
       }
     });
   };
 
-  return (
-    <div ref={containerRef} className="relative">
+  if (!open) {
+    return (
       <button
         type="button"
-        disabled={pending}
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Ajouter une clé"
-        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#0071e3] text-lg font-semibold text-[#0071e3] transition hover:bg-[#0071e3]/10 disabled:opacity-50"
+        onClick={() => setOpen(true)}
+        className="btn-secondary btn-sm"
       >
-        +
+        + Ajouter une clé
       </button>
-      {open && (
-        <div className="absolute right-0 z-10 mt-1 w-48 overflow-hidden rounded-[10px] border border-black/10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
-          <button
-            type="button"
-            onClick={() => add()}
-            className="block w-full px-3.5 py-2.5 text-left text-sm text-[#1d1d1f] hover:bg-black/[0.04]"
-          >
-            Clé
-          </button>
-          <button
-            type="button"
-            onClick={() => add("autre")}
-            className="block w-full px-3.5 py-2.5 text-left text-sm text-[#1d1d1f] hover:bg-black/[0.04]"
-          >
-            Autre (renseigner)
-          </button>
-        </div>
-      )}
-      {error && <p className="absolute right-0 mt-1 w-48 text-sm text-red-600">{error}</p>}
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="flex flex-wrap items-center gap-2">
+      <input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            add();
+          }
+          if (e.key === "Escape") setOpen(false);
+        }}
+        placeholder="Nom de la clé (ex. Clé principale)"
+        className="rounded-[10px] border border-black/10 bg-white px-3.5 py-2 text-[14px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+      />
+      <button type="button" disabled={pending} onClick={add} className="btn-primary btn-sm">
+        {pending ? "…" : "Ajouter"}
+      </button>
+      <button type="button" onClick={() => setOpen(false)} className="btn-secondary btn-sm">
+        Annuler
+      </button>
+      {error && <span className="w-full text-sm text-red-600">{error}</span>}
     </div>
   );
 }
@@ -137,16 +148,10 @@ function KeysSection({
       </div>
       {keys.length === 0 ? (
         <p className="text-sm text-black/35">
-          Aucune clé « Clé 1 » renseignée — cliquez sur le bouton + pour en ajouter une.
+          Aucune clé renseignée — cliquez sur « + Ajouter une clé » pour en ajouter une.
         </p>
       ) : (
-        (() => {
-          let keyNumber = 0;
-          return keys.map((key) => {
-            const label = key.keyType === "autre" ? "Autre" : `Clé ${++keyNumber}`;
-            return <KeyCard key={key.id} propertyId={propertyId} propertyKey={key} label={label} />;
-          });
-        })()
+        keys.map((key) => <KeyCard key={key.id} propertyId={propertyId} propertyKey={key} />)
       )}
     </div>
   );

@@ -13,16 +13,15 @@ const inputClass =
 export function KeyCard({
   propertyId,
   propertyKey,
-  label,
 }: {
   propertyId: string;
   propertyKey: PropertyKey;
-  label: string;
 }) {
+  const [name, setName] = useState(propertyKey.name ?? "");
   const [keyType, setKeyType] = useState(propertyKey.keyType ?? "");
   const [keyTypeDetail, setKeyTypeDetail] = useState(propertyKey.keyTypeDetail ?? "");
   const [location, setLocation] = useState(propertyKey.location ?? "");
-  const title = keyType === "autre" && keyTypeDetail.trim() ? keyTypeDetail : label;
+  const title = name.trim() || "Clé sans nom";
 
   return (
     <div className="card p-5">
@@ -38,6 +37,16 @@ export function KeyCard({
             </div>
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="block text-[12px] font-medium text-[#6e6e73]">Nom de la clé</label>
+                <input
+                  name="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex. Clé principale, Clé garage…"
+                  className={inputClass}
+                />
+              </div>
               <div>
                 <label className="block text-[12px] font-medium text-[#6e6e73]">Type de clé</label>
                 <select
@@ -123,6 +132,16 @@ export function KeyCard({
                   </div>
                 </>
               )}
+
+              <div className="sm:col-span-2">
+                <label className="block text-[12px] font-medium text-[#6e6e73]">Notes</label>
+                <textarea
+                  name="notes"
+                  defaultValue={propertyKey.notes ?? ""}
+                  rows={3}
+                  className={inputClass}
+                />
+              </div>
             </div>
 
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
