@@ -6,8 +6,19 @@ import { updateUserRole } from "@/lib/inventaire/actions";
 
 export function RoleSelect({ userId, role }: { userId: string; role: UserRole }) {
   const [value, setValue] = useState(role);
+  const [prevRole, setPrevRole] = useState(role);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  // Resynchronise avec la valeur confirmée par le serveur (ex. après un
+  // changement de rôle réussi qui revalidate la page) : sans ça, le menu
+  // pouvait rester bloqué sur l'affichage précédent (ex. "Prestataire")
+  // après un changement effectif, laissant croire qu'on ne peut plus en
+  // changer.
+  if (role !== prevRole) {
+    setPrevRole(role);
+    setValue(role);
+  }
 
   return (
     <div>
