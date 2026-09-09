@@ -1,10 +1,12 @@
-export type UserRole = "admin" | "operations" | "menage";
+export type UserRole = "admin" | "operations" | "menage" | "prestataire";
 
 export interface Profile {
   id: string;
   email: string;
   fullName: string | null;
   role: UserRole;
+  /** Onglets visibles sur la fiche d'un bien — utilisé uniquement pour le rôle "prestataire". */
+  allowedTabs: string[];
 }
 
 export interface Property {

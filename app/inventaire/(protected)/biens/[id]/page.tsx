@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
   getCurrentProfile,
+  getPrestataireAllowedPropertyIds,
   getProperty,
   getPropertyAgencement,
   getPropertyDetails,
@@ -78,6 +79,11 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   ]);
   const isAdmin = profile?.role === "admin";
 
+  if (profile?.role === "prestataire") {
+    const allowedPropertyIds = await getPrestataireAllowedPropertyIds(profile.id);
+    if (!allowedPropertyIds.includes(id)) notFound();
+  }
+
   const platformHasListing = platforms.some((p) => !!p.listingName);
   const missingCheckKeys = computeMissingChecks(
     {
@@ -149,7 +155,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
                 </a>
               ))}
           </div>
-          <EditPropertyDialog property={property} />
+          {profile?.role !== "prestataire" && <EditPropertyDialog property={property} />}
         </div>
         {property.address && <p className="text-[14px] text-[#6e6e73]">{property.address}</p>}
         <PropertyStatsBar bedroomCount={bedroomCount} bathroomCount={bathroomCount} capacity={agencement?.capacity ?? null} />
@@ -179,6 +185,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         dismissedChecks={dismissedChecksList}
         attachments={attachments}
         activityLog={activityLog}
+        allowedTabs={profile?.allowedTabs ?? []}
       />
     </div>
   );

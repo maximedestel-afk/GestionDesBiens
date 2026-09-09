@@ -244,5 +244,6 @@ export function serializeProfile(row: any): Profile {
     email: row.email,
     fullName: row.full_name,
     role: row.role,
+    allowedTabs: row.allowed_tabs ?? [],
   };
 }

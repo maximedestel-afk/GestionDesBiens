@@ -36,17 +36,25 @@ export function MissingDataTab({
           <ul className="mt-2 space-y-1">
             {tabChecks.map((check) => (
               <li key={check.key}>
-                <button
-                  type="button"
+                {/* Un <div role="button"> plutôt qu'un <button> : cette liste reste
+                    cliquable (navigation, pas une écriture) même dans le <fieldset
+                    disabled> qui rend le reste de la fiche en lecture seule pour le
+                    rôle "prestataire". */}
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => onNavigate(check)}
-                  className="flex w-full items-center justify-between gap-2 rounded-[10px] px-3.5 py-2.5 text-left text-[15px] text-[#1d1d1f] transition hover:bg-amber-50"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") onNavigate(check);
+                  }}
+                  className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-[10px] px-3.5 py-2.5 text-left text-[15px] text-[#1d1d1f] transition hover:bg-amber-50"
                 >
                   <span className="flex items-center gap-2">
                     <span>⚠️</span>
                     {check.label}
                   </span>
                   <span className="text-[13px] text-sky-600">Accéder →</span>
-                </button>
+                </div>
               </li>
             ))}
           </ul>

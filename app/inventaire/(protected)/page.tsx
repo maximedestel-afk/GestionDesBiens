@@ -1,5 +1,7 @@
 import Link from "next/link";
 import {
+  getCurrentProfile,
+  getPrestataireAllowedPropertyIds,
   listProperties,
   listPropertiesMissingChecks,
   listPropertiesPlatforms,
@@ -16,7 +18,10 @@ export default async function PropertiesPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  const properties = await listProperties(q);
+  const profile = await getCurrentProfile();
+  const isPrestataire = profile?.role === "prestataire";
+  const allowedPropertyIds = isPrestataire ? await getPrestataireAllowedPropertyIds(profile!.id) : null;
+  const properties = await listProperties(q, allowedPropertyIds);
   const propertyIds = properties.map((p) => p.id);
   const [missingChecks, stats, platforms] = await Promise.all([
     listPropertiesMissingChecks(propertyIds),
@@ -28,7 +33,7 @@ export default async function PropertiesPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[28px] font-semibold tracking-tight text-[#1d1d1f]">Biens</h1>
-        <NewPropertyDialog />
+        {!isPrestataire && <NewPropertyDialog />}
       </div>
 
       <form action="/inventaire" method="get" className="mt-5">
