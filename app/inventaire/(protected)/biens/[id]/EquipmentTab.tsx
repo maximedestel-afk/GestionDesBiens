@@ -1,37 +1,23 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Attachment, Equipment, Room } from "@/lib/inventaire/types";
 import { createEquipment, loadStandardEquipment } from "@/lib/inventaire/actions";
 import { detectRoomType } from "@/lib/inventaire/catalog";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { EquipmentCard } from "./EquipmentCard";
 
-function LoadRoomStandardsButton({ propertyId, room }: { propertyId: string; room: Room }) {
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Charge automatiquement les équipements standards d'une pièce (idempotent :
+// n'ajoute que les équipements standards pas déjà présents) — ainsi tout
+// équipement standard jamais renseigné apparaît directement dans "Données
+// manquantes" sans action manuelle.
+function AutoLoadRoomStandards({ propertyId, room }: { propertyId: string; room: Room }) {
+  useEffect(() => {
+    if (!detectRoomType(room.name)) return;
+    loadStandardEquipment(propertyId, room.id).catch(() => {});
+  }, [propertyId, room.id, room.name]);
 
-  if (!detectRoomType(room.name)) return null;
-
-  return (
-    <span className="inline-flex items-center gap-2">
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => {
-          setError(null);
-          setPending(true);
-          loadStandardEquipment(propertyId, room.id)
-            .catch((e) => setError(e instanceof Error ? e.message : "Erreur."))
-            .finally(() => setPending(false));
-        }}
-        className="text-sm font-medium text-[#6e6e73] hover:text-[#1d1d1f]"
-      >
-        {pending ? "Chargement…" : "Charger les standards"}
-      </button>
-      {error && <span className="text-sm text-red-600">{error}</span>}
-    </span>
-  );
+  return null;
 }
 
 function AddEquipmentFab({ propertyId, rooms }: { propertyId: string; rooms: Room[] }) {
@@ -158,9 +144,9 @@ export function EquipmentTab({
         const roomEquipment = equipment.filter((e) => e.roomId === room.id);
         return (
           <section key={room.id}>
+            <AutoLoadRoomStandards propertyId={propertyId} room={room} />
             <div className="sticky top-14 z-[5] mb-2 flex items-center justify-between gap-2 rounded-[10px] border border-[#0071e3]/10 bg-[#eaf3fd]/95 px-3.5 py-2 shadow-sm backdrop-blur-sm">
               <h2 className="text-sm font-semibold text-[#0071e3]">{room.name}</h2>
-              <LoadRoomStandardsButton propertyId={propertyId} room={room} />
             </div>
             {roomEquipment.length === 0 ? (
               <p className="text-sm text-black/35">Aucun équipement dans cette pièce.</p>

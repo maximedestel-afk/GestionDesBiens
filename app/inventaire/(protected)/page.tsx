@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { listProperties, listPropertiesMissingChecks } from "@/lib/inventaire/queries";
+import { listProperties, listPropertiesMissingChecks, listPropertiesStats } from "@/lib/inventaire/queries";
 import { NewPropertyDialog } from "@/components/inventaire/NewPropertyDialog";
 import { PropertyCompletenessBadge } from "@/components/inventaire/PropertyCompletenessBadge";
+import { PropertyStatsBar } from "@/components/inventaire/PropertyStatsBar";
 
 export default async function PropertiesPage({
   searchParams,
@@ -10,7 +11,11 @@ export default async function PropertiesPage({
 }) {
   const { q } = await searchParams;
   const properties = await listProperties(q);
-  const missingChecks = await listPropertiesMissingChecks(properties.map((p) => p.id));
+  const propertyIds = properties.map((p) => p.id);
+  const [missingChecks, stats] = await Promise.all([
+    listPropertiesMissingChecks(propertyIds),
+    listPropertiesStats(propertyIds),
+  ]);
 
   return (
     <div>
@@ -42,6 +47,13 @@ export default async function PropertiesPage({
                     {property.name && <span className="ml-2 font-normal text-[#6e6e73]">{property.name}</span>}
                   </p>
                   {property.address && <p className="text-[13px] text-[#6e6e73]">{property.address}</p>}
+                  {stats[property.id] && (
+                    <PropertyStatsBar
+                      bedroomCount={stats[property.id].bedroomCount}
+                      bathroomCount={stats[property.id].bathroomCount}
+                      capacity={stats[property.id].capacity}
+                    />
+                  )}
                 </Link>
                 <div className="flex shrink-0 items-center gap-3">
                   <PropertyCompletenessBadge propertyId={property.id} missing={missingChecks[property.id] ?? []} />
