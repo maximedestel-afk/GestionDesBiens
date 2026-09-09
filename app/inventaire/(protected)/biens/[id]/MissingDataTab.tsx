@@ -1,12 +1,7 @@
 "use client";
 
 import type { CompletenessCheck } from "@/lib/inventaire/completeness";
-import { PROPERTY_TABS } from "@/lib/inventaire/tabs";
-
-// Ordre d'affichage des groupes = celui de la barre d'onglets (Détails
-// appartement, Clés/Serrure, Agencement…), pas l'ordre de définition des
-// vérifications dans completeness.ts qui n'a rien à voir.
-const TAB_ORDER: Record<string, number> = Object.fromEntries(PROPERTY_TABS.map((t, i) => [t.label, i]));
+import { tabCode, tabOrder } from "@/lib/inventaire/tabs";
 
 export function MissingDataTab({
   checks,
@@ -30,9 +25,7 @@ export function MissingDataTab({
     byTab.set(check.tab, list);
   }
 
-  const orderedGroups = [...byTab.entries()].sort(
-    ([tabA], [tabB]) => (TAB_ORDER[tabA] ?? 999) - (TAB_ORDER[tabB] ?? 999)
-  );
+  const orderedGroups = [...byTab.entries()].sort(([tabA], [tabB]) => tabOrder(tabA) - tabOrder(tabB));
 
   return (
     <div className="space-y-4">
@@ -42,7 +35,7 @@ export function MissingDataTab({
       </p>
       {orderedGroups.map(([tab, tabChecks]) => (
         <fieldset key={tab} className="card p-5">
-          <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">{tab}</legend>
+          <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">{tabCode(tab)}</legend>
           <ul className="mt-2 space-y-1">
             {tabChecks.map((check) => (
               <li key={check.key}>

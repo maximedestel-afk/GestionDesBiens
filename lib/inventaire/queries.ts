@@ -435,7 +435,7 @@ export async function listPropertiesMissingChecks(
       !equipmentEntityIdsWithAttachment.has(item.id);
     if (!isEmpty) continue;
     const list = equipmentMissingByProperty.get(item.property_id) ?? [];
-    list.push({ key: `equipment-${item.id}`, label: `Équipement « ${item.name} » sans donnée`, tab: "Équipements" });
+    list.push({ key: `equipment-${item.id}`, label: `Équipement « ${item.name} » sans donnée`, tab: "equipements" });
     equipmentMissingByProperty.set(item.property_id, list);
   }
 
@@ -446,7 +446,7 @@ export async function listPropertiesMissingChecks(
     const isEmpty = !el.notes && !elementEntityIdsWithAttachment.has(el.id);
     if (!isEmpty) continue;
     const list = waterElecMissingByProperty.get(el.property_id) ?? [];
-    list.push({ key: `water-elec-${el.id}`, label: `Élément « ${el.name} » sans donnée`, tab: "Eau / Élec" });
+    list.push({ key: `water-elec-${el.id}`, label: `Élément « ${el.name} » sans donnée`, tab: "eauelec" });
     waterElecMissingByProperty.set(el.property_id, list);
   }
 

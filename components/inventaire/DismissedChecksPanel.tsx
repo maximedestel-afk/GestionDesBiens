@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import type { CompletenessCheck } from "@/lib/inventaire/completeness";
 import { undismissChecklistItem } from "@/lib/inventaire/actions";
+import { tabCode } from "@/lib/inventaire/tabs";
 import { useOutsideClick } from "./useOutsideClick";
 
 export function DismissedChecksPanel({
@@ -53,7 +54,7 @@ export function DismissedChecksPanel({
               >
                 <div className="min-w-0">
                   <p className="truncate text-[13px] text-[#1d1d1f]">{check.label}</p>
-                  <p className="truncate text-[11px] text-[#6e6e73]">{check.tab}</p>
+                  <p className="truncate text-[11px] text-[#6e6e73]">{tabCode(check.tab)}</p>
                 </div>
                 <button
                   type="button"
