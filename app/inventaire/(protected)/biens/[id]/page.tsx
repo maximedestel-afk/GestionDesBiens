@@ -22,6 +22,7 @@ import {
 import { computeMissingChecks, getCompletenessCheck } from "@/lib/inventaire/completeness";
 import { PropertyTabs } from "./PropertyTabs";
 import { EditPropertyDialog } from "@/components/inventaire/EditPropertyDialog";
+import { PlatformLogo, platformTitle } from "@/components/inventaire/PlatformLogo";
 
 export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -125,6 +126,21 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
             {property.reference}
             {property.name && <span className="ml-2 font-normal text-[#6e6e73]">{property.name}</span>}
           </h1>
+          <div className="ml-2 flex items-center gap-1">
+            {platforms
+              .filter((p) => p.url)
+              .map((p) => (
+                <a
+                  key={p.id}
+                  href={p.url ?? "#"}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Ouvrir l'annonce ${platformTitle(p)}`}
+                >
+                  <PlatformLogo platformType={p.platformType} title={platformTitle(p)} className="h-6 w-6 text-[12px]" />
+                </a>
+              ))}
+          </div>
           <EditPropertyDialog property={property} />
         </div>
         {property.address && <p className="text-[14px] text-[#6e6e73]">{property.address}</p>}
