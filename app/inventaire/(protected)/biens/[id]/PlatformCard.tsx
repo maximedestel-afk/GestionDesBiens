@@ -6,6 +6,7 @@ import { deletePropertyPlatform, updatePropertyPlatform } from "@/lib/inventaire
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
+import { PlatformLogo } from "@/components/inventaire/PlatformLogo";
 
 const inputClass =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
@@ -15,26 +16,6 @@ const PLATFORM_LABELS: Record<string, string> = {
   booking: "Booking.com",
   vrbo: "Vrbo",
 };
-
-const PLATFORM_COLORS: Record<string, string> = {
-  airbnb: "#FF5A5F",
-  booking: "#003580",
-  vrbo: "#1E54A5",
-};
-
-function PlatformLogo({ platformType, title }: { platformType: string; title: string }) {
-  const color = PLATFORM_COLORS[platformType] ?? "#6e6e73";
-  const letter = (title.trim()[0] ?? "?").toUpperCase();
-  return (
-    <span
-      aria-hidden="true"
-      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
-      style={{ backgroundColor: color }}
-    >
-      {letter}
-    </span>
-  );
-}
 
 export function PlatformCard({
   propertyId,
