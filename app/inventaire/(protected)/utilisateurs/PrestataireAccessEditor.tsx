@@ -37,7 +37,7 @@ export function PrestataireAccessEditor({
             defaultValues={propertyIds}
             options={properties.map((p) => ({
               value: p.id,
-              label: p.name ? `${p.reference} — ${p.name}` : p.reference,
+              label: p.reference,
             }))}
           />
           <MultiSelectDropdown

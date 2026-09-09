@@ -46,7 +46,7 @@ export default async function UsersPage() {
         </div>
       </div>
 
-      <div className="mt-6 overflow-hidden card">
+      <div className="mt-6 overflow-visible card">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-black/[0.06] text-left text-xs uppercase tracking-wide text-black/35">

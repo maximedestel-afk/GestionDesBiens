@@ -46,7 +46,7 @@ export function InviteUserForm({ properties }: { properties: { id: string; refer
                   placeholder="Choisir les biens…"
                   options={properties.map((p) => ({
                     value: p.id,
-                    label: p.name ? `${p.reference} — ${p.name}` : p.reference,
+                    label: p.reference,
                   }))}
                 />
               </div>
