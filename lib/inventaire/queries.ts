@@ -302,7 +302,9 @@ export async function listPropertiesMissingChecks(
   ] = await Promise.all([
     supabase
       .from("property_details")
-      .select("property_id, wifi_network, wifi_code, edf_prm, trash_room_url, trash_room_notes, wifi_pto_number, wifi_pto_notes")
+      .select(
+        "property_id, wifi_network, wifi_code, edf_prm, trash_room_url, trash_room_notes, wifi_pto_number, wifi_pto_notes, syndic_name, syndic_phone"
+      )
       .in("property_id", propertyIds),
     supabase.from("property_owner").select("property_id, last_name, email").in("property_id", propertyIds),
     supabase.from("property_agencement").select("property_id, capacity, surface").in("property_id", propertyIds),
@@ -418,6 +420,8 @@ export async function listPropertiesMissingChecks(
           edfPrm: detail?.edf_prm,
           hasEdfContract: kinds.has("edf_contract"),
           hasPlatformInfo: platformsByProperty.get(propertyId) ?? false,
+          syndicName: detail?.syndic_name,
+          syndicPhone: detail?.syndic_phone,
           hasTrashRoomInfo: !!(detail?.trash_room_url || detail?.trash_room_notes || kinds.has("trash_room")),
           hasWifiPtoInfo: !!(detail?.wifi_pto_number || detail?.wifi_pto_notes || kinds.has("wifi_pto_photo")),
           keysCount: keysCountByProperty.get(propertyId) ?? 0,

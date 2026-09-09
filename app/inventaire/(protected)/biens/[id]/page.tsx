@@ -96,6 +96,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       edfPrm: details?.edfPrm,
       hasEdfContract: attachments.some((a) => a.kind === "edf_contract"),
       hasPlatformInfo: platformHasListing,
+      syndicName: details?.syndicName,
+      syndicPhone: details?.syndicPhone,
       hasTrashRoomInfo: !!(
         details?.trashRoomUrl ||
         details?.trashRoomNotes ||

@@ -135,13 +135,19 @@ function KeysSection({
         </h2>
         <AddKeyMenu propertyId={propertyId} />
       </div>
-      {(() => {
-        let keyNumber = 0;
-        return keys.map((key) => {
-          const label = key.keyType === "autre" ? "Autre" : `Clé ${++keyNumber}`;
-          return <KeyCard key={key.id} propertyId={propertyId} propertyKey={key} label={label} />;
-        });
-      })()}
+      {keys.length === 0 ? (
+        <p className="text-sm text-black/35">
+          Aucune clé « Clé 1 » renseignée — cliquez sur le bouton + pour en ajouter une.
+        </p>
+      ) : (
+        (() => {
+          let keyNumber = 0;
+          return keys.map((key) => {
+            const label = key.keyType === "autre" ? "Autre" : `Clé ${++keyNumber}`;
+            return <KeyCard key={key.id} propertyId={propertyId} propertyKey={key} label={label} />;
+          });
+        })()
+      )}
     </div>
   );
 }
