@@ -14,9 +14,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
             <Link
               href="/inventaire"
-              className="flex min-w-0 items-center gap-2 truncate text-[17px] font-semibold tracking-tight text-[#1d1d1f]"
+              className="flex min-w-0 items-center gap-2 truncate text-[22px] font-semibold tracking-tight text-[#1d1d1f]"
             >
-              <Image src="/icon.png" alt="" width={28} height={28} className="h-7 w-7 shrink-0" />
+              <Image src="/icon.png" alt="" width={32} height={32} className="h-8 w-8 shrink-0" />
               <span className="truncate">M.G.B</span>
             </Link>
             <div className="flex shrink-0 items-center gap-4 text-[13px]">
