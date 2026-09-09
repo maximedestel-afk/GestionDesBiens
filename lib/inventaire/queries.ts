@@ -435,6 +435,38 @@ export async function listPropertiesMissingChecks(
   return result;
 }
 
+export interface PropertyStats {
+  bedroomCount: number;
+  bathroomCount: number;
+  capacity: number | null;
+}
+
+export async function listPropertiesStats(propertyIds: string[]): Promise<Record<string, PropertyStats>> {
+  if (propertyIds.length === 0) return {};
+  const supabase = await createClient();
+
+  const [{ data: rooms }, { data: agencements }] = await Promise.all([
+    supabase.from("rooms").select("property_id, name").in("property_id", propertyIds),
+    supabase.from("property_agencement").select("property_id, capacity").in("property_id", propertyIds),
+  ]);
+
+  const capacityByProperty = new Map((agencements ?? []).map((a) => [a.property_id, a.capacity]));
+
+  const result: Record<string, PropertyStats> = {};
+  for (const propertyId of propertyIds) {
+    result[propertyId] = { bedroomCount: 0, bathroomCount: 0, capacity: capacityByProperty.get(propertyId) ?? null };
+  }
+  for (const r of rooms ?? []) {
+    const stats = result[r.property_id];
+    if (!stats) continue;
+    if (r.name.startsWith("Chambre")) stats.bedroomCount += 1;
+    else if (r.name.startsWith("SDB")) stats.bathroomCount += 1;
+    else if (r.name.startsWith("WC")) stats.bathroomCount += 0.5;
+  }
+
+  return result;
+}
+
 export async function listChecklistDismissals(propertyId: string): Promise<string[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
