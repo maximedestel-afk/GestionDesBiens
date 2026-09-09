@@ -42,6 +42,7 @@ export function CreateUserForm() {
               className="mt-1 rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
             >
               <option value="admin">Admin</option>
+              <option value="operations">Operations</option>
               <option value="menage">Ménage</option>
             </select>
           </div>

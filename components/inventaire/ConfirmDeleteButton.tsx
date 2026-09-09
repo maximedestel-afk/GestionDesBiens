@@ -9,18 +9,27 @@ export function ConfirmDeleteButton({
   confirmText,
   action,
   className = "text-[13px] font-medium text-red-600 transition hover:text-red-700",
+  allowOperationsWhenEmpty = false,
+  isEmpty = false,
 }: {
   label?: string;
   confirmText: string;
   action: () => Promise<void>;
   className?: string;
+  /** Le rôle Operations n'a normalement pas le droit de suppression : ne passer
+   * ce flag à true que pour les suppressions où c'est explicitement autorisé
+   * (ex. équipements), combiné à `isEmpty` pour n'autoriser que les éléments
+   * sans aucune donnée renseignée. */
+  allowOperationsWhenEmpty?: boolean;
+  isEmpty?: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const role = useUserRole();
 
-  if (role === "menage") return null;
+  const canDelete = role === "admin" || (role === "operations" && allowOperationsWhenEmpty && isEmpty);
+  if (!canDelete) return null;
 
   return (
     <>

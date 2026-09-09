@@ -39,6 +39,16 @@ async function requireAdmin(supabase: SupabaseServerClient) {
   return user;
 }
 
+/** Comme requireAdmin, mais laisse passer le rôle Operations (le contrôle
+ * fin — ex. "uniquement si vide" — reste à la charge de l'appelant). */
+async function requireAdminOrOperations(supabase: SupabaseServerClient): Promise<UserRole> {
+  const user = await requireUser(supabase);
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const role = profile?.role as UserRole | undefined;
+  if (role !== "admin" && role !== "operations") throw new Error("Réservé aux administrateurs.");
+  return role;
+}
+
 async function logActivity(
   supabase: SupabaseServerClient,
   params: {
@@ -1050,9 +1060,32 @@ export async function updateEquipment(propertyId: string, equipmentId: string, f
 
 export async function deleteEquipment(propertyId: string, equipmentId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  const role = await requireAdminOrOperations(supabase);
 
-  const { data: item } = await supabase.from("equipment").select("name").eq("id", equipmentId).maybeSingle();
+  const { data: item } = await supabase
+    .from("equipment")
+    .select("name, brand, model, warranty, serial_number, video_link, notes")
+    .eq("id", equipmentId)
+    .maybeSingle();
+
+  if (role === "operations") {
+    const { count } = await supabase
+      .from("attachments")
+      .select("id", { count: "exact", head: true })
+      .eq("entity_type", "equipment")
+      .eq("entity_id", equipmentId);
+    const isEmpty =
+      !item?.brand &&
+      !item?.model &&
+      !item?.warranty &&
+      !item?.serial_number &&
+      !item?.video_link &&
+      !item?.notes &&
+      !count;
+    if (!isEmpty) {
+      throw new Error("Le rôle Operations ne peut supprimer que les équipements sans donnée renseignée.");
+    }
+  }
 
   const { error } = await supabase.from("equipment").delete().eq("id", equipmentId);
   if (error) throw error;

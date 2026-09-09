@@ -115,6 +115,8 @@ export function EquipmentCard({
           <ConfirmDeleteButton
             confirmText={`Supprimer l'équipement « ${equipment.name} » ?`}
             action={() => deleteEquipment(propertyId, equipment.id)}
+            allowOperationsWhenEmpty
+            isEmpty={isEmpty}
           />
         </div>
       </div>
