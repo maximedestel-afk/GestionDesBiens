@@ -26,7 +26,7 @@ export default async function LoginPage({
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1d1d1f] text-xl text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]">
             🏠
           </div>
-          <h1 className="mt-4 text-[26px] font-semibold tracking-tight text-[#1d1d1f]">M.G.B</h1>
+          <h1 className="mt-4 text-[34px] font-semibold tracking-tight text-[#1d1d1f]">M.G.B</h1>
           <p className="mt-1.5 text-[15px] text-[#6e6e73]">Connectez-vous pour accéder à l&apos;inventaire.</p>
         </div>
 
