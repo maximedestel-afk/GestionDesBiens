@@ -44,7 +44,7 @@ export async function GET(
   const roomNameById = new Map(rooms.map((r) => [r.id, r.name]));
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Melvane Gestion des Biens";
+  workbook.creator = "M.G.B";
   workbook.created = new Date();
 
   const infoSheet = workbook.addWorksheet("Détails");
