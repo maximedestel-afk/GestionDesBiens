@@ -115,6 +115,8 @@ export function serializePropertyKey(row: any): PropertyKey {
   return {
     id: row.id,
     propertyId: row.property_id,
+    name: row.name,
+    notes: row.notes,
     keyType: row.key_type,
     keyTypeDetail: row.key_type_detail,
     location: row.location,

@@ -637,6 +637,8 @@ export async function deletePropertyElement(propertyId: string, elementId: strin
 
 function keyPatchFromForm(formData: FormData) {
   return {
+    name: optionalString(formData.get("name")),
+    notes: optionalString(formData.get("notes")),
     key_type: optionalString(formData.get("keyType")),
     key_type_detail: optionalString(formData.get("keyTypeDetail")),
     location: optionalString(formData.get("location")),
@@ -648,9 +650,11 @@ function keyPatchFromForm(formData: FormData) {
   };
 }
 
-export async function createPropertyKey(propertyId: string, keyType?: "autre") {
+export async function createPropertyKey(propertyId: string, name: string) {
   const supabase = await createClient();
   await requireUser(supabase);
+
+  const trimmedName = requireNonEmpty(name, "Le nom de la clé");
 
   const { data: maxPos } = await supabase
     .from("property_keys")
@@ -662,7 +666,7 @@ export async function createPropertyKey(propertyId: string, keyType?: "autre") {
 
   const { error } = await supabase.from("property_keys").insert({
     property_id: propertyId,
-    key_type: keyType ?? null,
+    name: trimmedName,
     position: (maxPos?.position ?? -1) + 1,
   });
   if (error) throw error;
@@ -671,7 +675,7 @@ export async function createPropertyKey(propertyId: string, keyType?: "autre") {
     propertyId,
     entityType: "property_key",
     action: "create",
-    summary: "Clé ajoutée",
+    summary: `Clé « ${trimmedName} » ajoutée`,
   });
 
   revalidateProperty(propertyId);

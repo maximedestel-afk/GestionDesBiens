@@ -86,6 +86,8 @@ export type KeyLocation = "boite_a_cle" | "locker" | "autre";
 export interface PropertyKey {
   id: string;
   propertyId: string;
+  name: string | null;
+  notes: string | null;
   keyType: KeyType | null;
   keyTypeDetail: string | null;
   location: KeyLocation | null;
