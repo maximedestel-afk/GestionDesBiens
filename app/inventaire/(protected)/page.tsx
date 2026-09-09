@@ -29,7 +29,7 @@ export default async function PropertiesPage({
         />
       </form>
 
-      <div className="mt-6 overflow-hidden card">
+      <div className="mt-6 card overflow-visible">
         {properties.length === 0 ? (
           <p className="p-8 text-center text-[15px] text-[#6e6e73]">Aucun bien trouvé.</p>
         ) : (

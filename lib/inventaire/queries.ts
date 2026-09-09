@@ -328,6 +328,18 @@ export async function listPropertiesMissingChecks(
     supabase.from("property_checklist_dismissals").select("property_id, check_key").in("property_id", propertyIds),
   ]);
 
+  const [{ data: equipment }, { data: equipmentAttachments }] = await Promise.all([
+    supabase
+      .from("equipment")
+      .select("id, property_id, name, brand, model, warranty, serial_number, video_link, notes")
+      .in("property_id", propertyIds),
+    supabase
+      .from("attachments")
+      .select("entity_id")
+      .eq("entity_type", "equipment")
+      .in("property_id", propertyIds),
+  ]);
+
   const detailsByProperty = new Map((details ?? []).map((d) => [d.property_id, d]));
   const ownerByProperty = new Map((owners ?? []).map((o) => [o.property_id, o]));
   const agencementByProperty = new Map((agencements ?? []).map((a) => [a.property_id, a]));
@@ -361,6 +373,24 @@ export async function listPropertiesMissingChecks(
     dismissedByProperty.set(d.property_id, set);
   }
 
+  const equipmentEntityIdsWithAttachment = new Set((equipmentAttachments ?? []).map((a) => a.entity_id));
+
+  const equipmentMissingByProperty = new Map<string, CompletenessCheck[]>();
+  for (const item of equipment ?? []) {
+    const isEmpty =
+      !item.brand &&
+      !item.model &&
+      !item.warranty &&
+      !item.serial_number &&
+      !item.video_link &&
+      !item.notes &&
+      !equipmentEntityIdsWithAttachment.has(item.id);
+    if (!isEmpty) continue;
+    const list = equipmentMissingByProperty.get(item.property_id) ?? [];
+    list.push({ key: `equipment-${item.id}`, label: `Équipement « ${item.name} » sans donnée`, tab: "Équipements" });
+    equipmentMissingByProperty.set(item.property_id, list);
+  }
+
   const result: Record<string, CompletenessCheck[]> = {};
   for (const propertyId of propertyIds) {
     const detail = detailsByProperty.get(propertyId);
@@ -369,30 +399,33 @@ export async function listPropertiesMissingChecks(
     const kinds = attachmentKindsByProperty.get(propertyId) ?? new Set<string>();
     const dismissed = dismissedByProperty.get(propertyId) ?? new Set<string>();
 
-    result[propertyId] = computeMissingChecks(
-      {
-        ownerLastName: owner?.last_name,
-        ownerEmail: owner?.email,
-        hasLeaseContract: kinds.has("lease_contract"),
-        hasRib: kinds.has("rib"),
-        hasRcp: kinds.has("rcp"),
-        hasKeySetPhoto: kinds.has("key_set_photo"),
-        capacity: agencement?.capacity,
-        surface: agencement?.surface,
-        hasVisitVideo: kinds.has("visit_video"),
-        roomsCount: roomsCountByProperty.get(propertyId) ?? 0,
-        wifiNetwork: detail?.wifi_network,
-        wifiCode: detail?.wifi_code,
-        hasWifiContract: kinds.has("wifi_contract"),
-        edfPrm: detail?.edf_prm,
-        hasEdfContract: kinds.has("edf_contract"),
-        hasPlatformInfo: platformsByProperty.get(propertyId) ?? false,
-        hasTrashRoomInfo: !!(detail?.trash_room_url || detail?.trash_room_notes || kinds.has("trash_room")),
-        hasWifiPtoInfo: !!(detail?.wifi_pto_number || detail?.wifi_pto_notes || kinds.has("wifi_pto_photo")),
-        keysCount: keysCountByProperty.get(propertyId) ?? 0,
-      },
-      dismissed
-    );
+    result[propertyId] = [
+      ...computeMissingChecks(
+        {
+          ownerLastName: owner?.last_name,
+          ownerEmail: owner?.email,
+          hasLeaseContract: kinds.has("lease_contract"),
+          hasRib: kinds.has("rib"),
+          hasRcp: kinds.has("rcp"),
+          hasKeySetPhoto: kinds.has("key_set_photo"),
+          capacity: agencement?.capacity,
+          surface: agencement?.surface,
+          hasVisitVideo: kinds.has("visit_video"),
+          roomsCount: roomsCountByProperty.get(propertyId) ?? 0,
+          wifiNetwork: detail?.wifi_network,
+          wifiCode: detail?.wifi_code,
+          hasWifiContract: kinds.has("wifi_contract"),
+          edfPrm: detail?.edf_prm,
+          hasEdfContract: kinds.has("edf_contract"),
+          hasPlatformInfo: platformsByProperty.get(propertyId) ?? false,
+          hasTrashRoomInfo: !!(detail?.trash_room_url || detail?.trash_room_notes || kinds.has("trash_room")),
+          hasWifiPtoInfo: !!(detail?.wifi_pto_number || detail?.wifi_pto_notes || kinds.has("wifi_pto_photo")),
+          keysCount: keysCountByProperty.get(propertyId) ?? 0,
+        },
+        dismissed
+      ),
+      ...(equipmentMissingByProperty.get(propertyId) ?? []),
+    ];
   }
 
   return result;
