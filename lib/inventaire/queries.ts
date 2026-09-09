@@ -330,17 +330,28 @@ export async function listPropertiesMissingChecks(
     supabase.from("property_checklist_dismissals").select("property_id, check_key").in("property_id", propertyIds),
   ]);
 
-  const [{ data: equipment }, { data: equipmentAttachments }] = await Promise.all([
-    supabase
-      .from("equipment")
-      .select("id, property_id, name, brand, model, warranty, serial_number, video_link, notes")
-      .in("property_id", propertyIds),
-    supabase
-      .from("attachments")
-      .select("entity_id")
-      .eq("entity_type", "equipment")
-      .in("property_id", propertyIds),
-  ]);
+  const [{ data: equipment }, { data: equipmentAttachments }, { data: waterElecElements }, { data: elementAttachments }] =
+    await Promise.all([
+      supabase
+        .from("equipment")
+        .select("id, property_id, name, brand, model, warranty, serial_number, video_link, notes")
+        .in("property_id", propertyIds),
+      supabase
+        .from("attachments")
+        .select("entity_id")
+        .eq("entity_type", "equipment")
+        .in("property_id", propertyIds),
+      supabase
+        .from("property_elements")
+        .select("id, property_id, name, notes")
+        .eq("section", "water_elec")
+        .in("property_id", propertyIds),
+      supabase
+        .from("attachments")
+        .select("entity_id")
+        .eq("entity_type", "property_element")
+        .in("property_id", propertyIds),
+    ]);
 
   const detailsByProperty = new Map((details ?? []).map((d) => [d.property_id, d]));
   const ownerByProperty = new Map((owners ?? []).map((o) => [o.property_id, o]));
@@ -393,6 +404,17 @@ export async function listPropertiesMissingChecks(
     equipmentMissingByProperty.set(item.property_id, list);
   }
 
+  const elementEntityIdsWithAttachment = new Set((elementAttachments ?? []).map((a) => a.entity_id));
+
+  const waterElecMissingByProperty = new Map<string, CompletenessCheck[]>();
+  for (const el of waterElecElements ?? []) {
+    const isEmpty = !el.notes && !elementEntityIdsWithAttachment.has(el.id);
+    if (!isEmpty) continue;
+    const list = waterElecMissingByProperty.get(el.property_id) ?? [];
+    list.push({ key: `water-elec-${el.id}`, label: `Élément « ${el.name} » sans donnée`, tab: "Eau / Élec" });
+    waterElecMissingByProperty.set(el.property_id, list);
+  }
+
   const result: Record<string, CompletenessCheck[]> = {};
   for (const propertyId of propertyIds) {
     const detail = detailsByProperty.get(propertyId);
@@ -429,6 +451,7 @@ export async function listPropertiesMissingChecks(
         dismissed
       ),
       ...(equipmentMissingByProperty.get(propertyId) ?? []),
+      ...(waterElecMissingByProperty.get(propertyId) ?? []),
     ];
   }
 
