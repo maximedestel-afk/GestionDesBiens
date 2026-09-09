@@ -42,10 +42,6 @@ import { MissingDataTab } from "./MissingDataTab";
 
 const TABS = PROPERTY_TABS;
 
-const TAB_LABEL_TO_KEY: Record<string, (typeof TABS)[number]["key"]> = Object.fromEntries(
-  TABS.map((t) => [t.label, t.key])
-);
-
 type TabKey = (typeof TABS)[number]["key"];
 
 export function PropertyTabs({
@@ -145,7 +141,7 @@ export function PropertyTabs({
     .map((item) => ({
       key: `equipment-${item.id}`,
       label: `Équipement « ${item.name} » sans donnée`,
-      tab: "Équipements",
+      tab: "equipements",
     }));
 
   const waterElecMissingChecks: CompletenessCheck[] = waterElecElements
@@ -153,7 +149,7 @@ export function PropertyTabs({
     .map((el) => ({
       key: `water-elec-${el.id}`,
       label: `Élément « ${el.name} » sans donnée`,
-      tab: "Eau / Élec",
+      tab: "eauelec",
     }));
 
   const missingChecks = [
@@ -164,7 +160,7 @@ export function PropertyTabs({
 
   function navigateToCheck(check: CompletenessCheck) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", TAB_LABEL_TO_KEY[check.tab] ?? "details");
+    params.set("tab", check.tab);
     params.set("scrollTo", check.key);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }

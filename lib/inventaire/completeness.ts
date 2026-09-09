@@ -8,25 +8,27 @@ export interface CompletenessCheck {
 // (badge sur la liste des biens + icônes à côté des champs dans les
 // onglets). Un élément peut être marqué comme normalement vide pour un
 // bien donné (property_checklist_dismissals), il n'est alors plus compté.
+// `tab` référence la clé de l'onglet (voir lib/inventaire/tabs.ts), pas son
+// libellé affiché — le libellé/code à montrer se calcule à l'affichage.
 export const COMPLETENESS_CHECKS: CompletenessCheck[] = [
-  { key: "owner_info", label: "Coordonnées du propriétaire", tab: "Propriétaire" },
-  { key: "lease_contract", label: "Bail", tab: "Propriétaire" },
-  { key: "rib", label: "RIB", tab: "Propriétaire" },
-  { key: "rcp", label: "RCP", tab: "Propriétaire" },
-  { key: "key_set_photo", label: "Photo du trousseau", tab: "Clés/Serrure" },
-  { key: "capacity", label: "Nombre de personnes maximum", tab: "Agencement" },
-  { key: "surface", label: "Superficie", tab: "Agencement" },
-  { key: "visit_video", label: "Vidéo de visite", tab: "Agencement" },
-  { key: "rooms", label: "Pièces & couchages", tab: "Agencement" },
-  { key: "wifi_info", label: "Réseau et code Wifi", tab: "Détails appartement" },
-  { key: "wifi_contract", label: "Contrat internet", tab: "Détails appartement" },
-  { key: "edf_prm", label: "Numéro PRM (EDF)", tab: "Détails appartement" },
-  { key: "edf_contract", label: "Contrat EDF", tab: "Détails appartement" },
-  { key: "platforms_info", label: "Plateformes (Airbnb/Booking)", tab: "Plateformes" },
-  { key: "syndic_info", label: "Syndic", tab: "Détails appartement" },
-  { key: "trash_room_info", label: "Local Poubelle (vidéo/photo/note)", tab: "Détails appartement" },
-  { key: "wifi_pto_photo", label: "Photo Prise Optique et branchements", tab: "Détails appartement" },
-  { key: "keys_count", label: "Gestion des clés (au moins une clé)", tab: "Clés/Serrure" },
+  { key: "owner_info", label: "Coordonnées du propriétaire", tab: "proprietaire" },
+  { key: "lease_contract", label: "Bail", tab: "proprietaire" },
+  { key: "rib", label: "RIB", tab: "proprietaire" },
+  { key: "rcp", label: "RCP", tab: "proprietaire" },
+  { key: "key_set_photo", label: "Photo du trousseau", tab: "cles" },
+  { key: "capacity", label: "Nombre de personnes maximum", tab: "agencement" },
+  { key: "surface", label: "Superficie", tab: "agencement" },
+  { key: "visit_video", label: "Vidéo de visite", tab: "agencement" },
+  { key: "rooms", label: "Pièces & couchages", tab: "agencement" },
+  { key: "wifi_info", label: "Réseau et code Wifi", tab: "details" },
+  { key: "wifi_contract", label: "Contrat internet", tab: "details" },
+  { key: "edf_prm", label: "Numéro PRM (EDF)", tab: "details" },
+  { key: "edf_contract", label: "Contrat EDF", tab: "details" },
+  { key: "platforms_info", label: "Plateformes (Airbnb/Booking)", tab: "plateformes" },
+  { key: "syndic_info", label: "Syndic", tab: "details" },
+  { key: "trash_room_info", label: "Local Poubelle (vidéo/photo/note)", tab: "details" },
+  { key: "wifi_pto_photo", label: "Photo Prise Optique et branchements", tab: "details" },
+  { key: "keys_count", label: "Gestion des clés (au moins une clé)", tab: "cles" },
 ];
 
 export interface PropertyCompletenessInput {
