@@ -979,7 +979,7 @@ export async function updateRoomBed(propertyId: string, bedId: string, formData:
 
 export async function deleteRoomBed(propertyId: string, bedId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireAdminOrOperations(supabase);
 
   const { error } = await supabase.from("room_beds").delete().eq("id", bedId);
   if (error) throw error;

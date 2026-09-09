@@ -40,7 +40,7 @@ function BedChip({ propertyId, bed }: { propertyId: string; bed: RoomBed }) {
       ) : (
         BED_LABELS[bed.bedType]
       )}
-      {role === "admin" && (
+      {(role === "admin" || role === "operations") && (
         <button
           type="button"
           onClick={() => {
