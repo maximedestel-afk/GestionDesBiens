@@ -72,7 +72,6 @@ export default async function PropertiesPage({
                         target="_blank"
                         rel="noreferrer"
                         title={`Ouvrir l'annonce ${platformTitle(p)}`}
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <PlatformLogo platformType={p.platformType} title={platformTitle(p)} className="h-6 w-6 text-[12px]" />
                       </a>
