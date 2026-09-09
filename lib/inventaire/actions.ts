@@ -29,6 +29,12 @@ async function requireUser(supabase: SupabaseServerClient) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Vous devez être connecté.");
+
+  // Le rôle "prestataire" est en lecture seule : bloqué ici pour toute
+  // action d'écriture, quel que soit l'onglet ou le bien concerné.
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  if (profile?.role === "prestataire") throw new Error("Accès en lecture seule.");
+
   return user;
 }
 
@@ -1476,6 +1482,23 @@ export async function updateUserRole(userId: string, role: UserRole) {
   revalidatePath("/inventaire/utilisateurs");
 }
 
+/** Enregistre les biens et onglets autorisés d'un nouvel utilisateur "prestataire". */
+async function applyPrestataireAccess(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string,
+  formData: FormData
+) {
+  const propertyIds = formData.getAll("propertyIds").map(String).filter(Boolean);
+  const allowedTabs = formData.getAll("allowedTabs").map(String).filter(Boolean);
+
+  await admin.from("profiles").update({ allowed_tabs: allowedTabs }).eq("id", userId);
+  if (propertyIds.length > 0) {
+    await admin
+      .from("profile_properties")
+      .insert(propertyIds.map((propertyId) => ({ profile_id: userId, property_id: propertyId })));
+  }
+}
+
 export async function inviteUser(formData: FormData) {
   const supabase = await createClient();
   await requireAdmin(supabase);
@@ -1489,6 +1512,7 @@ export async function inviteUser(formData: FormData) {
 
   if (data.user) {
     await admin.from("profiles").update({ role }).eq("id", data.user.id);
+    if (role === "prestataire") await applyPrestataireAccess(admin, data.user.id, formData);
   }
 
   revalidatePath("/inventaire/utilisateurs");
@@ -1516,6 +1540,30 @@ export async function createUserDirect(formData: FormData) {
 
   if (data.user) {
     await admin.from("profiles").update({ role, full_name: fullName }).eq("id", data.user.id);
+    if (role === "prestataire") await applyPrestataireAccess(admin, data.user.id, formData);
+  }
+
+  revalidatePath("/inventaire/utilisateurs");
+}
+
+export async function updatePrestataireAccess(userId: string, propertyIds: string[], allowedTabs: string[]) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ allowed_tabs: allowedTabs })
+    .eq("id", userId);
+  if (profileError) throw profileError;
+
+  const { error: deleteError } = await supabase.from("profile_properties").delete().eq("profile_id", userId);
+  if (deleteError) throw deleteError;
+
+  if (propertyIds.length > 0) {
+    const { error: insertError } = await supabase
+      .from("profile_properties")
+      .insert(propertyIds.map((propertyId) => ({ profile_id: userId, property_id: propertyId })));
+    if (insertError) throw insertError;
   }
 
   revalidatePath("/inventaire/utilisateurs");

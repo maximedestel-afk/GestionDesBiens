@@ -53,9 +53,19 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   return serializeProfile(data);
 }
 
-export async function listProperties(search?: string): Promise<Property[]> {
+export async function listProperties(
+  search?: string,
+  /** Rôle "prestataire" uniquement : restreint la liste à ces biens. */
+  allowedPropertyIds?: string[] | null
+): Promise<Property[]> {
+  if (allowedPropertyIds && allowedPropertyIds.length === 0) return [];
+
   const supabase = await createClient();
   let query = supabase.from("properties").select("*").order("reference", { ascending: true });
+
+  if (allowedPropertyIds && allowedPropertyIds.length > 0) {
+    query = query.in("id", allowedPropertyIds);
+  }
 
   const term = search?.trim();
   if (term) {
@@ -66,6 +76,31 @@ export async function listProperties(search?: string): Promise<Property[]> {
   const { data, error } = await query;
   if (error) throw error;
   return (data ?? []).map(serializeProperty);
+}
+
+export async function getPrestataireAllowedPropertyIds(profileId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profile_properties")
+    .select("property_id")
+    .eq("profile_id", profileId);
+  if (error) throw error;
+  return (data ?? []).map((r) => r.property_id);
+}
+
+/** Page Utilisateurs (admin) : toutes les attributions bien↔prestataire d'un coup. */
+export async function listAllProfilePropertyAssignments(): Promise<Record<string, string[]>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("profile_properties").select("profile_id, property_id");
+  if (error) throw error;
+
+  const result: Record<string, string[]> = {};
+  for (const row of data ?? []) {
+    const list = result[row.profile_id] ?? [];
+    list.push(row.property_id);
+    result[row.profile_id] = list;
+  }
+  return result;
 }
 
 export async function getProperty(id: string): Promise<Property | null> {

@@ -22,8 +22,10 @@ import type {
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
 import { getCompletenessCheck, type CompletenessCheck } from "@/lib/inventaire/completeness";
+import { PROPERTY_TABS } from "@/lib/inventaire/tabs";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { DismissedChecksPanel } from "@/components/inventaire/DismissedChecksPanel";
+import { useUserRole } from "@/components/inventaire/UserRoleContext";
 import { OwnerTab } from "./OwnerTab";
 import { DetailsTab } from "./DetailsTab";
 import { KeysTab } from "./KeysTab";
@@ -38,21 +40,7 @@ import { DocumentsTab } from "./DocumentsTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 import { MissingDataTab } from "./MissingDataTab";
 
-const TABS = [
-  { key: "details", label: "Détails appartement" },
-  { key: "cles", label: "Clés/Serrure" },
-  { key: "agencement", label: "Agencement" },
-  { key: "equipements", label: "Équipements" },
-  { key: "inventaire", label: "Inventaire" },
-  { key: "eauelec", label: "Eau / Élec" },
-  { key: "photos", label: "Photos" },
-  { key: "documents", label: "Documents" },
-  { key: "notes", label: "Notes" },
-  { key: "plateformes", label: "Plateformes" },
-  { key: "proprietaire", label: "Propriétaire" },
-  { key: "historique", label: "Log" },
-  { key: "manquant", label: "Données manquantes" },
-] as const;
+const TABS = PROPERTY_TABS;
 
 const TAB_LABEL_TO_KEY: Record<string, (typeof TABS)[number]["key"]> = Object.fromEntries(
   TABS.map((t) => [t.label, t.key])
@@ -84,9 +72,12 @@ export function PropertyTabs({
   dismissedChecks,
   attachments,
   activityLog,
+  allowedTabs,
 }: {
   property: Property;
   isAdmin: boolean;
+  /** Rôle "prestataire" uniquement : restreint les onglets visibles à cette liste. */
+  allowedTabs: string[];
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
   keys: PropertyKey[];
@@ -109,7 +100,14 @@ export function PropertyTabs({
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
 }) {
-  const visibleTabs = TABS.filter((tab) => tab.key !== "proprietaire" || isAdmin);
+  const role = useUserRole();
+  const isPrestataire = role === "prestataire";
+  const allowedTabsSet = new Set(allowedTabs);
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.key === "proprietaire") return isAdmin;
+    if (isPrestataire) return allowedTabsSet.has(tab.key);
+    return true;
+  });
 
   // L'onglet actif est stocké dans l'URL (plutôt qu'un simple useState) pour
   // qu'il survive aux rafraîchissements déclenchés par l'enregistrement
@@ -118,7 +116,8 @@ export function PropertyTabs({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const activeTab: TabKey = visibleTabs.some((tab) => tab.key === tabParam) ? (tabParam as TabKey) : "details";
+  const defaultTab: TabKey = visibleTabs[0]?.key ?? "details";
+  const activeTab: TabKey = visibleTabs.some((tab) => tab.key === tabParam) ? (tabParam as TabKey) : defaultTab;
 
   function setActiveTab(key: TabKey) {
     const params = new URLSearchParams(searchParams.toString());
@@ -224,27 +223,30 @@ export function PropertyTabs({
             </button>
           ))}
         </nav>
-        <div className="flex shrink-0 items-center gap-4 text-[13px]">
-          <DismissedChecksPanel propertyId={property.id} checks={dismissedChecks} />
-          <a href={`/inventaire/biens/${property.id}/export`} className="link-quiet text-[13px]">
-            Exporter (Excel)
-          </a>
-          <ConfirmDeleteButton
-            label="Supprimer le bien"
-            confirmText={`Supprimer définitivement « ${property.reference} » et toutes ses données ?`}
-            action={async () => {
-              try {
-                await deleteProperty(property.id);
-              } catch (e) {
-                unstable_rethrow(e);
-                throw e;
-              }
-            }}
-          />
-        </div>
+        {!isPrestataire && (
+          <div className="flex shrink-0 items-center gap-4 text-[13px]">
+            <DismissedChecksPanel propertyId={property.id} checks={dismissedChecks} />
+            <a href={`/inventaire/biens/${property.id}/export`} className="link-quiet text-[13px]">
+              Exporter (Excel)
+            </a>
+            <ConfirmDeleteButton
+              label="Supprimer le bien"
+              confirmText={`Supprimer définitivement « ${property.reference} » et toutes ses données ?`}
+              action={async () => {
+                try {
+                  await deleteProperty(property.id);
+                } catch (e) {
+                  unstable_rethrow(e);
+                  throw e;
+                }
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="mt-6">
+      <fieldset disabled={isPrestataire} className="m-0 min-w-0 border-0 p-0">
+        <div className="mt-6">
         {activeTab === "proprietaire" && isAdmin && (
           <OwnerTab
             propertyId={property.id}
@@ -323,6 +325,7 @@ export function PropertyTabs({
         {activeTab === "historique" && <ActivityLogPanel entries={activityLog} />}
         {activeTab === "manquant" && <MissingDataTab checks={missingChecks} onNavigate={navigateToCheck} />}
       </div>
+      </fieldset>
     </div>
   );
 }
