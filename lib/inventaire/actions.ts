@@ -9,6 +9,7 @@ import {
   STANDARD_WATER_ELEC_ELEMENT_NAMES,
   standardEquipmentNamesForRoom,
 } from "./catalog";
+import { tabCode } from "./tabs";
 import type {
   AttachmentEntityType,
   AttachmentKind,
@@ -303,7 +304,7 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
   await logSectionChanges(supabase, {
     propertyId,
     entityType: "property_details",
-    sectionLabel: "Détails appartement",
+    sectionLabel: tabCode("details"),
     existing,
     patch,
     labels,
@@ -375,7 +376,7 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
   await logSectionChanges(supabase, {
     propertyId,
     entityType: "property_owner",
-    sectionLabel: "Propriétaire",
+    sectionLabel: tabCode("proprietaire"),
     existing,
     patch,
     labels: PROPERTY_OWNER_LABELS,
@@ -421,7 +422,7 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
   await logSectionChanges(supabase, {
     propertyId,
     entityType: "property_agencement",
-    sectionLabel: "Agencement",
+    sectionLabel: tabCode("agencement"),
     existing,
     patch,
     labels: PROPERTY_AGENCEMENT_LABELS,
@@ -477,7 +478,7 @@ export async function saveWaterElec(propertyId: string, formData: FormData) {
   await logSectionChanges(supabase, {
     propertyId,
     entityType: "property_water_elec",
-    sectionLabel: "Eau / Élec",
+    sectionLabel: tabCode("eauelec"),
     existing,
     patch,
     labels: PROPERTY_WATER_ELEC_LABELS,
