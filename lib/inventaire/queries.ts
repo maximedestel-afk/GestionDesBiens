@@ -293,14 +293,13 @@ export async function listAttachmentsForProperty(propertyId: string): Promise<At
   return rows.map((row, i) => serializeAttachment(row, signedUrls?.[i]?.signedUrl ?? null));
 }
 
-export async function listActivityLog(propertyId: string, limit = 100): Promise<ActivityLogEntry[]> {
+export async function listActivityLog(propertyId: string): Promise<ActivityLogEntry[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("activity_log")
     .select("*")
     .eq("property_id", propertyId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map(serializeActivityLogEntry);
 }
