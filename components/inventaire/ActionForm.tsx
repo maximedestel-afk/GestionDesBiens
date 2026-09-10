@@ -24,6 +24,7 @@ export function ActionForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Empêche deux enregistrements de partir en parallèle : sans ça, un envoi
   // plus ancien (avant une suppression de texte) peut se terminer après un
@@ -33,6 +34,11 @@ export function ActionForm({
   // précédent est terminé, avec les valeurs les plus à jour du DOM.
   const submittingRef = useRef(false);
   const pendingFormRef = useRef<HTMLFormElement | null>(null);
+  // Vrai tant qu'une modification n'a pas encore été envoyée (le débounce
+  // n'a pas fini son délai). Permet de forcer l'envoi immédiat si l'utilisateur
+  // quitte le champ ou rafraîchit la page avant la fin du délai normal, pour
+  // éviter de perdre la saisie.
+  const dirtyRef = useRef(false);
 
   const submit = (form: HTMLFormElement) => {
     if (submittingRef.current) {
@@ -66,15 +72,53 @@ export function ActionForm({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    dirtyRef.current = false;
     submit(event.currentTarget);
   }
 
   function handleChange(event: FormEvent<HTMLFormElement>) {
     if (!autoSave) return;
     const form = event.currentTarget;
+    dirtyRef.current = true;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => submit(form), AUTO_SAVE_DEBOUNCE_MS);
+    debounceRef.current = setTimeout(() => {
+      dirtyRef.current = false;
+      submit(form);
+    }, AUTO_SAVE_DEBOUNCE_MS);
   }
+
+  function flushPending(form: HTMLFormElement) {
+    if (!dirtyRef.current) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    dirtyRef.current = false;
+    submit(form);
+  }
+
+  // Enregistre immédiatement (sans attendre le débounce) dès qu'un champ
+  // perd le focus, pour réduire le risque de perdre une saisie si
+  // l'utilisateur rafraîchit la page juste après.
+  function handleBlur(event: FormEvent<HTMLFormElement>) {
+    if (!autoSave) return;
+    flushPending(event.currentTarget);
+  }
+
+  const flushPendingRef = useRef(flushPending);
+  useEffect(() => {
+    flushPendingRef.current = flushPending;
+  });
+
+  useEffect(() => {
+    if (!autoSave) return;
+    function handleUnload() {
+      if (formRef.current) flushPendingRef.current(formRef.current);
+    }
+    window.addEventListener("pagehide", handleUnload);
+    window.addEventListener("beforeunload", handleUnload);
+    return () => {
+      window.removeEventListener("pagehide", handleUnload);
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, [autoSave]);
 
   useEffect(() => {
     return () => {
@@ -83,7 +127,7 @@ export function ActionForm({
   }, []);
 
   return (
-    <form onSubmit={handleSubmit} onChange={handleChange} className={className}>
+    <form ref={formRef} onSubmit={handleSubmit} onChange={handleChange} onBlur={handleBlur} className={className}>
       {children({ pending, error, success })}
     </form>
   );

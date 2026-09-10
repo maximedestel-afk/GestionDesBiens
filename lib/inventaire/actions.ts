@@ -130,6 +130,40 @@ function optionalString(value: FormDataEntryValue | null): string | null {
   return str ? str : null;
 }
 
+/**
+ * Met à jour la ligne "détails d'un bien" d'une table 1-1 avec `properties`
+ * (property_details, property_owner, property_agencement, property_water_elec).
+ * Utilise un vrai UPDATE plutôt qu'un upsert : ces tables sont éditées depuis
+ * plusieurs formulaires distincts qui n'envoient chacun qu'un sous-ensemble de
+ * colonnes (ex. property_details est modifiée à la fois depuis l'onglet
+ * Détails et depuis la section Clé/Serrure de l'onglet Clés) — un upsert avec
+ * un payload partiel ne doit normalement toucher que les colonnes fournies,
+ * mais un UPDATE explicite l'garantit sans ambiguïté et évite qu'un
+ * enregistrement partiel depuis un autre onglet écrase silencieusement une
+ * valeur saisie ailleurs (ex. le numéro PRM qui semblait "s'effacer").
+ * La ligne existe déjà pour tout bien créé normalement (créée avec `createProperty`) ;
+ * si elle manquait malgré tout, on l'insère.
+ */
+async function updatePropertyDetailRow(
+  supabase: SupabaseServerClient,
+  table: "property_details" | "property_owner" | "property_agencement" | "property_water_elec",
+  propertyId: string,
+  patch: Record<string, unknown>
+) {
+  const { data, error } = await supabase
+    .from(table)
+    .update(patch)
+    .eq("property_id", propertyId)
+    .select("property_id");
+  if (error) throw error;
+  if (!data || data.length === 0) {
+    const { error: insertError } = await supabase
+      .from(table)
+      .insert({ property_id: propertyId, ...patch });
+    if (insertError) throw insertError;
+  }
+}
+
 function revalidateProperty(propertyId: string) {
   revalidatePath(`/inventaire/biens/${propertyId}`);
 }
@@ -299,8 +333,7 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
     labels.has_elevator = "Ascenseur";
   }
 
-  const { error } = await supabase.from("property_details").upsert(patch);
-  if (error) throw error;
+  await updatePropertyDetailRow(supabase, "property_details", propertyId, patch);
 
   await logSectionChanges(supabase, {
     propertyId,
@@ -371,8 +404,7 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     other_amount: optionalAmount(formData.get("otherAmount"), "Le montant « Autre »"),
   };
 
-  const { error } = await supabase.from("property_owner").upsert(patch);
-  if (error) throw error;
+  await updatePropertyDetailRow(supabase, "property_owner", propertyId, patch);
 
   await logSectionChanges(supabase, {
     propertyId,
@@ -417,8 +449,7 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
     .maybeSingle();
 
   const patch = { property_id: propertyId, capacity, surface };
-  const { error } = await supabase.from("property_agencement").upsert(patch);
-  if (error) throw error;
+  await updatePropertyDetailRow(supabase, "property_agencement", propertyId, patch);
 
   await logSectionChanges(supabase, {
     propertyId,
@@ -473,8 +504,7 @@ export async function saveWaterElec(propertyId: string, formData: FormData) {
     heating_production: heatingProduction,
     heating_production_notes: heatingProductionNotes,
   };
-  const { error } = await supabase.from("property_water_elec").upsert(patch);
-  if (error) throw error;
+  await updatePropertyDetailRow(supabase, "property_water_elec", propertyId, patch);
 
   await logSectionChanges(supabase, {
     propertyId,
