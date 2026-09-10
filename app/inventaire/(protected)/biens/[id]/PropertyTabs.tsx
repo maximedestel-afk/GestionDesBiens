@@ -9,6 +9,7 @@ import type {
   Equipment,
   InventoryCategoryRow,
   InventoryItem,
+  Profile,
   Property,
   PropertyAgencement,
   PropertyDetails,
@@ -19,6 +20,7 @@ import type {
   PropertyWaterElec,
   Room,
   RoomBed,
+  Task,
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
 import { getCompletenessCheck, type CompletenessCheck } from "@/lib/inventaire/completeness";
@@ -38,6 +40,7 @@ import { NotesTab } from "./NotesTab";
 import { PhotosTab } from "./PhotosTab";
 import { DocumentsTab } from "./DocumentsTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
+import { TasksTab } from "./TasksTab";
 import { MissingDataTab } from "./MissingDataTab";
 
 const TABS = PROPERTY_TABS;
@@ -68,6 +71,8 @@ export function PropertyTabs({
   dismissedChecks,
   attachments,
   activityLog,
+  tasks,
+  profiles,
   allowedTabs,
 }: {
   property: Property;
@@ -95,6 +100,8 @@ export function PropertyTabs({
   dismissedChecks: CompletenessCheck[];
   attachments: Attachment[];
   activityLog: ActivityLogEntry[];
+  tasks: Task[];
+  profiles: Profile[];
 }) {
   const role = useUserRole();
   const isPrestataire = role === "prestataire";
@@ -158,6 +165,8 @@ export function PropertyTabs({
     ...waterElecMissingChecks,
   ];
 
+  const openTasksCount = tasks.filter((t) => !t.done).length;
+
   function navigateToCheck(check: CompletenessCheck) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", check.tab);
@@ -214,6 +223,11 @@ export function PropertyTabs({
               {tab.key === "manquant" && missingChecks.length > 0 && (
                 <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
                   {missingChecks.length}
+                </span>
+              )}
+              {tab.key === "taches" && openTasksCount > 0 && (
+                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-semibold text-white">
+                  {openTasksCount}
                 </span>
               )}
             </button>
@@ -320,6 +334,7 @@ export function PropertyTabs({
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}
         {activeTab === "historique" && <ActivityLogPanel entries={activityLog} />}
+        {activeTab === "taches" && <TasksTab propertyId={property.id} tasks={tasks} profiles={profiles} />}
         {activeTab === "manquant" && <MissingDataTab checks={missingChecks} onNavigate={navigateToCheck} />}
       </div>
       </fieldset>

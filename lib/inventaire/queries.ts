@@ -16,6 +16,8 @@ import {
   serializePropertyPlatform,
   serializeRoom,
   serializeRoomBed,
+  serializeTask,
+  serializeTaskComment,
   serializeWaterElec,
 } from "./serialize";
 import type {
@@ -37,6 +39,7 @@ import type {
   PropertyWaterElec,
   Room,
   RoomBed,
+  Task,
 } from "./types";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1h, largement suffisant pour une session de consultation
@@ -302,6 +305,33 @@ export async function listActivityLog(propertyId: string): Promise<ActivityLogEn
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map(serializeActivityLogEntry);
+}
+
+export async function listTasks(propertyId: string): Promise<Task[]> {
+  const supabase = await createClient();
+  const { data: taskRows, error: taskError } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("created_at", { ascending: false });
+  if (taskError) throw taskError;
+
+  const taskIds = (taskRows ?? []).map((r) => r.id);
+  const commentsQuery =
+    taskIds.length > 0
+      ? await supabase.from("task_comments").select("*").in("task_id", taskIds).order("created_at", { ascending: true })
+      : { data: [], error: null };
+  if (commentsQuery.error) throw commentsQuery.error;
+
+  const commentsByTask = new Map<string, ReturnType<typeof serializeTaskComment>[]>();
+  for (const row of commentsQuery.data ?? []) {
+    const comment = serializeTaskComment(row);
+    const list = commentsByTask.get(comment.taskId) ?? [];
+    list.push(comment);
+    commentsByTask.set(comment.taskId, list);
+  }
+
+  return (taskRows ?? []).map((row) => serializeTask(row, commentsByTask.get(row.id) ?? []));
 }
 
 export async function listProfiles(): Promise<Profile[]> {
