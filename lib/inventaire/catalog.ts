@@ -13,8 +13,8 @@ const STANDARD_EQUIPMENT_BY_ROOM_TYPE = {
     "Four",
     "Micro-ondes",
   ],
-  salon: ["Box internet/Wifi", "Climatisation", "Téléviseur", "Radiateurs"],
-  chambre: ["Radiateurs", "Climatisation"],
+  salon: ["Box internet/Wifi", "Climatisation", "Téléviseur", "Radiateurs", "Ventilateur"],
+  chambre: ["Radiateurs", "Climatisation", "Ventilateur"],
   "salle de bain": ["Radiateurs"],
 } as const;
 
