@@ -22,6 +22,7 @@ export interface PropertyDetails {
   propertyId: string;
   floor: string | null;
   hasElevator: boolean | null;
+  floorElevatorNotes: string | null;
   accessVideoUrl: string | null;
   trashRoomUrl: string | null;
   trashRoomNotes: string | null;

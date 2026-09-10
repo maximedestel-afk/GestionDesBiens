@@ -123,6 +123,12 @@ export function DetailsTab({
                 </select>
               </div>
             </div>
+            <Field
+              label="Note (étage / ascenseur)"
+              name="floorElevatorNotes"
+              defaultValue={details?.floorElevatorNotes}
+              textarea
+            />
             <div>
               <p className="text-sm font-medium text-[#1d1d1f]">
                 Vidéo / photos d&apos;accès (comment entrer dans l&apos;immeuble/appartement)
