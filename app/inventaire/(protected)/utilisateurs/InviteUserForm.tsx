@@ -33,6 +33,7 @@ export function InviteUserForm({ properties }: { properties: { id: string; refer
             >
               <option value="admin">Admin</option>
               <option value="operations">Operations</option>
+              <option value="manager">Manager</option>
               <option value="menage">Ménage</option>
               <option value="prestataire">Prestataire</option>
             </select>
