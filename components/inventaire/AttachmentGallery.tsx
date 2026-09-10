@@ -47,12 +47,16 @@ export function AttachmentGallery({
   attachments,
   emptyLabel = "Aucun fichier",
   variant = "grid",
+  scrollable = false,
 }: {
   propertyId: string;
   attachments: Attachment[];
   emptyLabel?: string;
   /** "list" : lignes compactes, adapté aux documents (bail, RIB…) plutôt qu'aux photos. */
   variant?: "grid" | "list";
+  /** "grid" uniquement : une seule ligne qui défile horizontalement au lieu de
+   * passer à la ligne — évite qu'une carte s'étire en hauteur avec plusieurs photos. */
+  scrollable?: boolean;
 }) {
   if (attachments.length === 0) {
     return <p className="text-[13px] text-black/35">{emptyLabel}</p>;
@@ -98,11 +102,11 @@ export function AttachmentGallery({
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className={scrollable ? "flex flex-nowrap gap-3 overflow-x-auto pb-1" : "flex flex-wrap gap-3"}>
       {attachments.map((attachment) => (
         <div
           key={attachment.id}
-          className="group relative w-28 overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.02] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+          className="group relative w-28 shrink-0 overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.02] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
         >
           <a href={attachment.url ?? "#"} target="_blank" rel="noreferrer" className="block">
             {isImage(attachment.mimeType) && attachment.url ? (

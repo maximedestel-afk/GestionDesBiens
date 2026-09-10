@@ -26,12 +26,13 @@ export function ElementCard({
   showMissingBadge?: boolean;
 }) {
   const isEmpty = !element.notes && attachments.length === 0;
+  const isPhotoGallery = galleryVariant === "grid";
 
   return (
     <div id={showMissingBadge ? `missing-check-water-elec-${element.id}` : undefined} className="card p-5">
-      <div className="sm:flex sm:items-start sm:gap-4">
+      <div className={isPhotoGallery ? undefined : "sm:flex sm:items-start sm:gap-4"}>
         <ActionForm
-          className="min-w-0 sm:flex-1"
+          className={isPhotoGallery ? undefined : "min-w-0 sm:flex-1"}
           autoSave
           action={(formData) => updatePropertyElement(propertyId, element.id, formData)}
         >
@@ -69,25 +70,52 @@ export function ElementCard({
             </>
           )}
         </ActionForm>
-        <div className="mt-2 flex shrink-0 flex-col items-start gap-2 sm:mt-0 sm:w-32">
-          <AttachmentGallery
-            propertyId={propertyId}
-            attachments={attachments}
-            emptyLabel="Aucune photo/fichier"
-            variant={galleryVariant}
-          />
-          <FileUploadButtons
-            accept={accept}
-            showCamera={showCamera}
-            target={{
-              propertyId,
-              entityType: "property_element",
-              entityId: element.id,
-              kind: "element_photo",
-            }}
-          />
-        </div>
+        {!isPhotoGallery && (
+          <div className="mt-2 flex shrink-0 flex-col items-start gap-2 sm:mt-0 sm:w-32">
+            <AttachmentGallery
+              propertyId={propertyId}
+              attachments={attachments}
+              emptyLabel="Aucune photo/fichier"
+              variant={galleryVariant}
+            />
+            <FileUploadButtons
+              accept={accept}
+              showCamera={showCamera}
+              target={{
+                propertyId,
+                entityType: "property_element",
+                entityId: element.id,
+                kind: "element_photo",
+              }}
+            />
+          </div>
+        )}
       </div>
+      {isPhotoGallery && (
+        <div className="mt-3 flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <AttachmentGallery
+              propertyId={propertyId}
+              attachments={attachments}
+              emptyLabel="Aucune photo/fichier"
+              variant={galleryVariant}
+              scrollable
+            />
+          </div>
+          <div className="shrink-0">
+            <FileUploadButtons
+              accept={accept}
+              showCamera={showCamera}
+              target={{
+                propertyId,
+                entityType: "property_element",
+                entityId: element.id,
+                kind: "element_photo",
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
