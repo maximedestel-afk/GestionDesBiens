@@ -74,7 +74,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listPropertyElements(id, "owner_documents"),
     listPropertyElements(id, "documents"),
     listAttachmentsForProperty(id),
-    listActivityLog(id, 30),
+    listActivityLog(id),
     listChecklistDismissals(id),
   ]);
   const isAdmin = profile?.role === "admin";
