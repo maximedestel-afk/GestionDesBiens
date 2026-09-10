@@ -1470,6 +1470,92 @@ export async function deleteAttachment(propertyId: string, attachmentId: string)
 }
 
 /* ------------------------------------------------------------------ */
+/* Tâches (TA)                                                          */
+/* ------------------------------------------------------------------ */
+
+export async function createTask(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  const user = await requireUser(supabase);
+
+  const tabKey = requireNonEmpty(formData.get("tabKey"), "L'onglet");
+  const text = requireNonEmpty(formData.get("text"), "La tâche");
+  const section = optionalString(formData.get("section"));
+  const assignedTo = optionalString(formData.get("assignedTo"));
+
+  const { error } = await supabase.from("tasks").insert({
+    property_id: propertyId,
+    tab_key: tabKey,
+    section,
+    text,
+    created_by: user.id,
+    created_by_email: user.email,
+    assigned_to: assignedTo,
+  });
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "task",
+    action: "create",
+    summary: `Tâche ajoutée (${tabCode(tabKey)}${section ? " · " + section : ""})`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+export async function toggleTaskDone(propertyId: string, taskId: string, done: boolean) {
+  const supabase = await createClient();
+  const user = await requireUser(supabase);
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      done,
+      done_by: done ? user.id : null,
+      done_by_email: done ? user.email : null,
+      done_at: done ? new Date().toISOString() : null,
+    })
+    .eq("id", taskId);
+  if (error) throw error;
+
+  revalidateProperty(propertyId);
+}
+
+export async function addTaskComment(propertyId: string, taskId: string, formData: FormData) {
+  const supabase = await createClient();
+  const user = await requireUser(supabase);
+
+  const text = requireNonEmpty(formData.get("text"), "Le message");
+
+  const { error } = await supabase.from("task_comments").insert({
+    task_id: taskId,
+    text,
+    created_by: user.id,
+    created_by_email: user.email,
+  });
+  if (error) throw error;
+
+  revalidateProperty(propertyId);
+}
+
+export async function deleteTask(propertyId: string, taskId: string) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "task",
+    action: "delete",
+    summary: "Tâche supprimée",
+  });
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
 /* Utilisateurs (admin)                                                 */
 /* ------------------------------------------------------------------ */
 

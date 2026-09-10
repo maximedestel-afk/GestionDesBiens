@@ -14,11 +14,13 @@ import {
   listEquipment,
   listInventoryCategories,
   listInventoryItems,
+  listProfiles,
   listPropertyElements,
   listPropertyKeys,
   listPropertyPlatforms,
   listRoomBeds,
   listRooms,
+  listTasks,
 } from "@/lib/inventaire/queries";
 import { computeMissingChecks, getCompletenessCheck } from "@/lib/inventaire/completeness";
 import { PropertyTabs } from "./PropertyTabs";
@@ -54,6 +56,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     attachments,
     activityLog,
     dismissedChecks,
+    tasks,
+    profiles,
   ] = await Promise.all([
     getCurrentProfile(),
     getPropertyOwner(id),
@@ -76,6 +80,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listAttachmentsForProperty(id),
     listActivityLog(id),
     listChecklistDismissals(id),
+    listTasks(id),
+    listProfiles(),
   ]);
   const isAdmin = profile?.role === "admin";
 
@@ -185,6 +191,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         dismissedChecks={dismissedChecksList}
         attachments={attachments}
         activityLog={activityLog}
+        tasks={tasks}
+        profiles={profiles}
         allowedTabs={profile?.allowedTabs ?? []}
       />
     </div>

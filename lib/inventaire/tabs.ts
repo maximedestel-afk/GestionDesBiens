@@ -15,6 +15,7 @@ export const PROPERTY_TABS = [
   { key: "plateformes", code: "OTA", label: "OTA" },
   { key: "proprietaire", code: "OW", label: "OW - Owner" },
   { key: "historique", code: "LOG", label: "LOG" },
+  { key: "taches", code: "TA", label: "TA - Tâches" },
   { key: "manquant", code: "MIS", label: "MIS - Manquant" },
 ] as const;
 

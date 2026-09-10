@@ -244,3 +244,26 @@ export interface ActivityLogEntry {
   actorEmail: string | null;
   createdAt: string;
 }
+
+export interface TaskComment {
+  id: string;
+  taskId: string;
+  text: string;
+  createdByEmail: string | null;
+  createdAt: string;
+}
+
+export interface Task {
+  id: string;
+  propertyId: string;
+  tabKey: string;
+  section: string | null;
+  text: string;
+  createdByEmail: string | null;
+  createdAt: string;
+  assignedTo: string | null;
+  done: boolean;
+  doneByEmail: string | null;
+  doneAt: string | null;
+  comments: TaskComment[];
+}

@@ -15,6 +15,8 @@ import type {
   PropertyWaterElec,
   Room,
   RoomBed,
+  Task,
+  TaskComment,
 } from "./types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -235,6 +237,33 @@ export function serializeActivityLogEntry(row: any): ActivityLogEntry {
     summary: row.summary,
     actorEmail: row.actor_email,
     createdAt: row.created_at,
+  };
+}
+
+export function serializeTaskComment(row: any): TaskComment {
+  return {
+    id: row.id,
+    taskId: row.task_id,
+    text: row.text,
+    createdByEmail: row.created_by_email,
+    createdAt: row.created_at,
+  };
+}
+
+export function serializeTask(row: any, comments: TaskComment[] = []): Task {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    tabKey: row.tab_key,
+    section: row.section,
+    text: row.text,
+    createdByEmail: row.created_by_email,
+    createdAt: row.created_at,
+    assignedTo: row.assigned_to,
+    done: row.done,
+    doneByEmail: row.done_by_email,
+    doneAt: row.done_at,
+    comments,
   };
 }
 
