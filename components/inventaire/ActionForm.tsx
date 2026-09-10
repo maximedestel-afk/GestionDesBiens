@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-  type FormEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { unstable_rethrow } from "next/navigation";
 
 const AUTO_SAVE_DEBOUNCE_MS = 800;
@@ -33,26 +25,43 @@ export function ActionForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Empêche deux enregistrements de partir en parallèle : sans ça, un envoi
+  // plus ancien (avant une suppression de texte) peut se terminer après un
+  // envoi plus récent et écraser la modification avec la valeur périmée —
+  // le champ "revient tout seul" en arrière. Pendant un envoi en cours, on
+  // mémorise juste le <form> le plus récent et on le renvoie dès que l'envoi
+  // précédent est terminé, avec les valeurs les plus à jour du DOM.
+  const submittingRef = useRef(false);
+  const pendingFormRef = useRef<HTMLFormElement | null>(null);
 
-  const submit = useCallback(
-    (form: HTMLFormElement) => {
-      const formData = new FormData(form);
-      setError(null);
-      setSuccess(false);
-      startTransition(async () => {
-        try {
-          await action(formData);
-          setSuccess(true);
-          if (resetOnSuccess) form.reset();
-          onSuccess?.();
-        } catch (err) {
-          unstable_rethrow(err);
-          setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+  const submit = (form: HTMLFormElement) => {
+    if (submittingRef.current) {
+      pendingFormRef.current = form;
+      return;
+    }
+    submittingRef.current = true;
+    const formData = new FormData(form);
+    setError(null);
+    setSuccess(false);
+    startTransition(async () => {
+      try {
+        await action(formData);
+        setSuccess(true);
+        if (resetOnSuccess) form.reset();
+        onSuccess?.();
+      } catch (err) {
+        unstable_rethrow(err);
+        setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+      } finally {
+        submittingRef.current = false;
+        const nextForm = pendingFormRef.current;
+        if (nextForm) {
+          pendingFormRef.current = null;
+          submit(nextForm);
         }
-      });
-    },
-    [action, onSuccess, resetOnSuccess]
-  );
+      }
+    });
+  };
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
