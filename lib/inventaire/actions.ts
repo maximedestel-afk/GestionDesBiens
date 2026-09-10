@@ -498,7 +498,17 @@ export async function loadStandardWaterElecElements(propertyId: string) {
     .eq("section", "water_elec");
   const existingNames = new Set((existing ?? []).map((r) => r.name));
 
-  const toAdd = STANDARD_WATER_ELEC_ELEMENT_NAMES.filter((name) => !existingNames.has(name));
+  const { data: removed } = await supabase
+    .from("standard_item_removals")
+    .select("name")
+    .eq("property_id", propertyId)
+    .is("room_id", null)
+    .eq("scope", "water_elec");
+  const removedNames = new Set((removed ?? []).map((r) => r.name));
+
+  const toAdd = STANDARD_WATER_ELEC_ELEMENT_NAMES.filter(
+    (name) => !existingNames.has(name) && !removedNames.has(name)
+  );
   if (toAdd.length === 0) return;
 
   const { data: maxPos } = await supabase
@@ -634,12 +644,23 @@ export async function deletePropertyElement(propertyId: string, elementId: strin
 
   const { data: element } = await supabase
     .from("property_elements")
-    .select("name")
+    .select("name, section")
     .eq("id", elementId)
     .maybeSingle();
 
   const { error } = await supabase.from("property_elements").delete().eq("id", elementId);
   if (error) throw error;
+
+  // Empêche le chargement automatique des éléments standards Eau/Élec de
+  // recréer cet élément à la prochaine ouverture de l'onglet.
+  if (element?.section === "water_elec" && element.name) {
+    await supabase.from("standard_item_removals").insert({
+      property_id: propertyId,
+      room_id: null,
+      scope: "water_elec",
+      name: element.name,
+    });
+  }
 
   await logActivity(supabase, {
     propertyId,
@@ -1071,7 +1092,7 @@ export async function deleteEquipment(propertyId: string, equipmentId: string) {
 
   const { data: item } = await supabase
     .from("equipment")
-    .select("name, brand, model, warranty, serial_number, video_link, notes")
+    .select("name, room_id, brand, model, warranty, serial_number, video_link, notes")
     .eq("id", equipmentId)
     .maybeSingle();
 
@@ -1097,6 +1118,17 @@ export async function deleteEquipment(propertyId: string, equipmentId: string) {
   const { error } = await supabase.from("equipment").delete().eq("id", equipmentId);
   if (error) throw error;
 
+  // Empêche le chargement automatique des équipements standards de la pièce
+  // de recréer cet équipement à la prochaine ouverture de l'onglet.
+  if (item?.room_id && item.name) {
+    await supabase.from("standard_item_removals").insert({
+      property_id: propertyId,
+      room_id: item.room_id,
+      scope: "equipment",
+      name: item.name,
+    });
+  }
+
   await logActivity(supabase, {
     propertyId,
     entityType: "equipment",
@@ -1118,7 +1150,15 @@ export async function loadStandardEquipment(propertyId: string, roomId: string) 
 
   const { data: existing } = await supabase.from("equipment").select("name").eq("room_id", roomId);
   const existingNames = new Set((existing ?? []).map((r) => r.name));
-  const namesToAdd = standardNames.filter((name) => !existingNames.has(name));
+
+  const { data: removed } = await supabase
+    .from("standard_item_removals")
+    .select("name")
+    .eq("room_id", roomId)
+    .eq("scope", "equipment");
+  const removedNames = new Set((removed ?? []).map((r) => r.name));
+
+  const namesToAdd = standardNames.filter((name) => !existingNames.has(name) && !removedNames.has(name));
   if (namesToAdd.length === 0) return;
 
   const { data: maxPos } = await supabase
