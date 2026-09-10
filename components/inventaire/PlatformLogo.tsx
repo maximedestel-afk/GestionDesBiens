@@ -17,12 +17,20 @@ export function platformTitle(platform: { platformType: string; platformTypeDeta
 // fichiers d'origine dans cet environnement).
 function AirbnbGlyph() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-[60%] w-[60%]">
+    <svg viewBox="0 0 24 24" fill="none" className="h-[64%] w-[64%]">
       <path
-        d="M12 3.5c1.2 1.7 4.8 7 5.6 9 .6 1.5.2 3.3-1.1 4.3a3.4 3.4 0 0 1-4.5-.3 3.4 3.4 0 0 1-4.5.3 3.4 3.4 0 0 1-1.1-4.3c.8-2 4.4-7.3 5.6-9Z"
-        fill="#FF5A5F"
+        d="M12 1.8 C 7.8 6.2 4.9 10.2 4.9 12.9 C 4.9 13.8 5.3 14.5 6 15"
+        stroke="#FF5A5F"
+        strokeWidth="2.15"
+        strokeLinecap="round"
       />
-      <ellipse cx="12" cy="17.3" rx="4.4" ry="1" fill="#FF5A5F" opacity=".55" />
+      <path
+        d="M12 1.8 C 16.2 6.2 19.1 10.2 19.1 12.9 C 19.1 13.8 18.7 14.5 18 15"
+        stroke="#FF5A5F"
+        strokeWidth="2.15"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="16" r="4.1" stroke="#FF5A5F" strokeWidth="2.15" fill="none" />
     </svg>
   );
 }
