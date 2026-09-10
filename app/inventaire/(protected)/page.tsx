@@ -30,6 +30,7 @@ export default async function PropertiesPage({
     listPropertiesPlatforms(propertyIds),
     listPropertiesOpenTasksCount(propertyIds),
   ]);
+  const totalOpenTasks = Object.values(openTasksCounts).reduce((sum, count) => sum + count, 0);
 
   return (
     <div>
@@ -38,9 +39,14 @@ export default async function PropertiesPage({
         <div className="flex items-center gap-2">
           <Link
             href="/inventaire/taches"
-            className="inline-flex items-center gap-1 rounded-full border-2 border-black/10 px-3.5 py-1.5 text-sm font-semibold text-[#1d1d1f] transition hover:bg-black/[0.03]"
+            className="inline-flex items-center gap-1.5 rounded-full border-2 border-black/10 px-3.5 py-1.5 text-sm font-semibold text-[#1d1d1f] transition hover:bg-black/[0.03]"
           >
             📋 Tâches
+            {totalOpenTasks > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-sky-500 px-1 text-[12px] font-semibold text-white">
+                {totalOpenTasks}
+              </span>
+            )}
           </Link>
           {!isPrestataire && <NewPropertyDialog />}
         </div>
