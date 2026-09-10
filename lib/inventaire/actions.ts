@@ -157,10 +157,19 @@ async function updatePropertyDetailRow(
   if (rowExists) {
     const { error } = await supabase.from(table).update(patch).eq("property_id", propertyId);
     if (error) throw error;
-  } else {
-    const { error } = await supabase.from(table).insert({ property_id: propertyId, ...patch });
-    if (error) throw error;
+    return;
   }
+
+  const { error } = await supabase.from(table).insert({ property_id: propertyId, ...patch });
+  if (!error) return;
+  if (error.code !== "23505") throw error;
+
+  // La ligne existait déjà malgré tout (le SELECT préalable ne l'avait pas
+  // détectée — ex. condition de course entre deux enregistrements) : on
+  // bascule sur UPDATE plutôt que d'échouer, pour ne jamais perdre une
+  // saisie à cause de ce cas.
+  const { error: updateError } = await supabase.from(table).update(patch).eq("property_id", propertyId);
+  if (updateError) throw updateError;
 }
 
 function revalidateProperty(propertyId: string) {
