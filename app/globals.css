@@ -27,6 +27,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Le reset Tailwind (`margin: 0` sur tous les éléments) annule le
+   `margin: auto` que le navigateur utilise pour centrer une <dialog>
+   ouverte avec showModal() — sans ça, les popups (confirmation de
+   suppression, formulaires…) s'affichent collées en haut à gauche. */
+dialog:modal {
+  margin: auto;
+}
+
 /* Composants réutilisés dans toute l'application (esprit apple.com : blanc,
    gris clair, coins généreux, ombres douces, un seul accent bleu). */
 @layer components {
