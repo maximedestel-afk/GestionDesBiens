@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   getCurrentProfile,
   getPrestataireAllowedPropertyIds,
+  listProfiles,
   listProperties,
   listPropertiesMissingChecks,
   listPropertiesOpenTasksCount,
@@ -9,6 +10,7 @@ import {
   listPropertiesStats,
 } from "@/lib/inventaire/queries";
 import { NewPropertyDialog } from "@/components/inventaire/NewPropertyDialog";
+import { NewTaskDialog } from "@/components/inventaire/NewTaskDialog";
 import { PropertyCompletenessBadge } from "@/components/inventaire/PropertyCompletenessBadge";
 import { PropertyStatsBar } from "@/components/inventaire/PropertyStatsBar";
 import { PlatformLogo, platformTitle } from "@/components/inventaire/PlatformLogo";
@@ -24,18 +26,22 @@ export default async function PropertiesPage({
   const allowedPropertyIds = isPrestataire ? await getPrestataireAllowedPropertyIds(profile!.id) : null;
   const properties = await listProperties(q, allowedPropertyIds);
   const propertyIds = properties.map((p) => p.id);
-  const [missingChecks, stats, platforms, openTasksCounts] = await Promise.all([
+  const [missingChecks, stats, platforms, openTasksCounts, profiles] = await Promise.all([
     listPropertiesMissingChecks(propertyIds),
     listPropertiesStats(propertyIds),
     listPropertiesPlatforms(propertyIds),
     listPropertiesOpenTasksCount(propertyIds),
+    listProfiles(),
   ]);
 
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[28px] font-semibold tracking-tight text-[#1d1d1f]">Biens</h1>
-        {!isPrestataire && <NewPropertyDialog />}
+        <div className="flex items-center gap-2">
+          {!isPrestataire && <NewTaskDialog properties={properties} profiles={profiles} />}
+          {!isPrestataire && <NewPropertyDialog />}
+        </div>
       </div>
 
       <form action="/inventaire" method="get" className="mt-5">

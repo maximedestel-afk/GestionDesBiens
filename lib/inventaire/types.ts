@@ -256,8 +256,6 @@ export interface TaskComment {
 export interface Task {
   id: string;
   propertyId: string;
-  tabKey: string;
-  section: string | null;
   text: string;
   createdByEmail: string | null;
   createdAt: string;
