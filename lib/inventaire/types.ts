@@ -101,7 +101,7 @@ export interface PropertyKey {
   position: number;
 }
 
-export type PlatformType = "airbnb" | "booking" | "vrbo" | "autre";
+export type PlatformType = "airbnb" | "booking" | "vrbo" | "hopper" | "autre";
 
 export interface PropertyPlatform {
   id: string;

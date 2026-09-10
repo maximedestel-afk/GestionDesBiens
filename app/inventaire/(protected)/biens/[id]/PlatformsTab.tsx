@@ -53,6 +53,13 @@ function AddPlatformMenu({ propertyId }: { propertyId: string }) {
           </button>
           <button
             type="button"
+            onClick={() => add("hopper")}
+            className="block w-full px-3.5 py-2.5 text-left text-sm text-[#1d1d1f] hover:bg-black/[0.04]"
+          >
+            Hopper
+          </button>
+          <button
+            type="button"
             onClick={() => add("autre")}
             className="block w-full px-3.5 py-2.5 text-left text-sm text-[#1d1d1f] hover:bg-black/[0.04]"
           >
