@@ -334,6 +334,45 @@ export async function listTasks(propertyId: string): Promise<Task[]> {
   return (taskRows ?? []).map((row) => serializeTask(row, commentsByTask.get(row.id) ?? []));
 }
 
+/** Vue globale "Tâches" (écran d'accueil) : les tâches de plusieurs biens
+ * d'un coup, groupées par bien. */
+export async function listTasksForProperties(propertyIds: string[]): Promise<Record<string, Task[]>> {
+  if (propertyIds.length === 0) return {};
+  const supabase = await createClient();
+
+  const { data: taskRows, error: taskError } = await supabase
+    .from("tasks")
+    .select("*")
+    .in("property_id", propertyIds)
+    .order("created_at", { ascending: false });
+  if (taskError) throw taskError;
+
+  const taskIds = (taskRows ?? []).map((r) => r.id);
+  const commentsQuery =
+    taskIds.length > 0
+      ? await supabase.from("task_comments").select("*").in("task_id", taskIds).order("created_at", { ascending: true })
+      : { data: [], error: null };
+  if (commentsQuery.error) throw commentsQuery.error;
+
+  const commentsByTask = new Map<string, ReturnType<typeof serializeTaskComment>[]>();
+  for (const row of commentsQuery.data ?? []) {
+    const comment = serializeTaskComment(row);
+    const list = commentsByTask.get(comment.taskId) ?? [];
+    list.push(comment);
+    commentsByTask.set(comment.taskId, list);
+  }
+
+  const result: Record<string, Task[]> = {};
+  for (const propertyId of propertyIds) result[propertyId] = [];
+  for (const row of taskRows ?? []) {
+    const task = serializeTask(row, commentsByTask.get(row.id) ?? []);
+    const list = result[task.propertyId];
+    if (list) list.push(task);
+  }
+
+  return result;
+}
+
 export async function listProfiles(): Promise<Profile[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("profiles").select("*").order("email", { ascending: true });
