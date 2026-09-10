@@ -6,16 +6,10 @@ import { deletePropertyPlatform, updatePropertyPlatform } from "@/lib/inventaire
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
-import { PlatformLogo } from "@/components/inventaire/PlatformLogo";
+import { PLATFORM_LABELS, PlatformLogo } from "@/components/inventaire/PlatformLogo";
 
 const inputClass =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
-
-const PLATFORM_LABELS: Record<string, string> = {
-  airbnb: "Airbnb",
-  booking: "Booking.com",
-  vrbo: "Vrbo",
-};
 
 export function PlatformCard({
   propertyId,
