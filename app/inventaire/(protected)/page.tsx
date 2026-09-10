@@ -4,6 +4,7 @@ import {
   getPrestataireAllowedPropertyIds,
   listProperties,
   listPropertiesMissingChecks,
+  listPropertiesOpenTasksCount,
   listPropertiesPlatforms,
   listPropertiesStats,
 } from "@/lib/inventaire/queries";
@@ -23,10 +24,11 @@ export default async function PropertiesPage({
   const allowedPropertyIds = isPrestataire ? await getPrestataireAllowedPropertyIds(profile!.id) : null;
   const properties = await listProperties(q, allowedPropertyIds);
   const propertyIds = properties.map((p) => p.id);
-  const [missingChecks, stats, platforms] = await Promise.all([
+  const [missingChecks, stats, platforms, openTasksCounts] = await Promise.all([
     listPropertiesMissingChecks(propertyIds),
     listPropertiesStats(propertyIds),
     listPropertiesPlatforms(propertyIds),
+    listPropertiesOpenTasksCount(propertyIds),
   ]);
 
   return (
@@ -81,6 +83,15 @@ export default async function PropertiesPage({
                         <PlatformLogo platformType={p.platformType} title={platformTitle(p)} className="h-6 w-6 text-[12px]" />
                       </a>
                     ))}
+                  {(openTasksCounts[property.id] ?? 0) > 0 && (
+                    <Link
+                      href={`/inventaire/biens/${property.id}?tab=taches`}
+                      title={`${openTasksCounts[property.id]} tâche${openTasksCounts[property.id] > 1 ? "s" : ""} en cours`}
+                      className="flex items-center gap-1 rounded-full bg-sky-100 px-2 py-1 text-xs font-semibold text-sky-700 transition hover:bg-sky-200"
+                    >
+                      📋 {openTasksCounts[property.id]}
+                    </Link>
+                  )}
                   <PropertyCompletenessBadge propertyId={property.id} missing={missingChecks[property.id] ?? []} />
                   <Link href={`/inventaire/biens/${property.id}`} className="text-black/25">
                     ›

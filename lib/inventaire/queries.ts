@@ -522,6 +522,26 @@ export async function listPropertiesMissingChecks(
   return result;
 }
 
+export async function listPropertiesOpenTasksCount(propertyIds: string[]): Promise<Record<string, number>> {
+  if (propertyIds.length === 0) return {};
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("property_id")
+    .eq("done", false)
+    .in("property_id", propertyIds);
+  if (error) throw error;
+
+  const result: Record<string, number> = {};
+  for (const propertyId of propertyIds) result[propertyId] = 0;
+  for (const row of data ?? []) {
+    result[row.property_id] = (result[row.property_id] ?? 0) + 1;
+  }
+
+  return result;
+}
+
 export async function listPropertiesPlatforms(propertyIds: string[]): Promise<Record<string, PropertyPlatform[]>> {
   if (propertyIds.length === 0) return {};
   const supabase = await createClient();
