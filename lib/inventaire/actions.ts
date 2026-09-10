@@ -148,19 +148,18 @@ async function updatePropertyDetailRow(
   supabase: SupabaseServerClient,
   table: "property_details" | "property_owner" | "property_agencement" | "property_water_elec",
   propertyId: string,
-  patch: Record<string, unknown>
+  patch: Record<string, unknown>,
+  /** true si une ligne existe déjà pour ce bien (déterminé par un SELECT
+   * préalable, pas en se fiant au nombre de lignes affectées par l'UPDATE :
+   * ça enlève toute ambiguïté sur le fait que l'UPDATE ait bien trouvé la ligne. */
+  rowExists: boolean
 ) {
-  const { data, error } = await supabase
-    .from(table)
-    .update(patch)
-    .eq("property_id", propertyId)
-    .select("property_id");
-  if (error) throw error;
-  if (!data || data.length === 0) {
-    const { error: insertError } = await supabase
-      .from(table)
-      .insert({ property_id: propertyId, ...patch });
-    if (insertError) throw insertError;
+  if (rowExists) {
+    const { error } = await supabase.from(table).update(patch).eq("property_id", propertyId);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from(table).insert({ property_id: propertyId, ...patch });
+    if (error) throw error;
   }
 }
 
@@ -333,7 +332,7 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
     labels.has_elevator = "Ascenseur";
   }
 
-  await updatePropertyDetailRow(supabase, "property_details", propertyId, patch);
+  await updatePropertyDetailRow(supabase, "property_details", propertyId, patch, !!existing);
 
   await logSectionChanges(supabase, {
     propertyId,
@@ -404,7 +403,7 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     other_amount: optionalAmount(formData.get("otherAmount"), "Le montant « Autre »"),
   };
 
-  await updatePropertyDetailRow(supabase, "property_owner", propertyId, patch);
+  await updatePropertyDetailRow(supabase, "property_owner", propertyId, patch, !!existing);
 
   await logSectionChanges(supabase, {
     propertyId,
@@ -449,7 +448,7 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
     .maybeSingle();
 
   const patch = { property_id: propertyId, capacity, surface };
-  await updatePropertyDetailRow(supabase, "property_agencement", propertyId, patch);
+  await updatePropertyDetailRow(supabase, "property_agencement", propertyId, patch, !!existing);
 
   await logSectionChanges(supabase, {
     propertyId,
@@ -504,7 +503,7 @@ export async function saveWaterElec(propertyId: string, formData: FormData) {
     heating_production: heatingProduction,
     heating_production_notes: heatingProductionNotes,
   };
-  await updatePropertyDetailRow(supabase, "property_water_elec", propertyId, patch);
+  await updatePropertyDetailRow(supabase, "property_water_elec", propertyId, patch, !!existing);
 
   await logSectionChanges(supabase, {
     propertyId,
