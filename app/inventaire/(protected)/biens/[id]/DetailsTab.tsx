@@ -93,13 +93,15 @@ export function DetailsTab({
 
       <ActionForm
         className="space-y-6"
-        autoSave
         action={(formData) => savePropertyDetails(propertyId, formData)}
       >
         {({ pending, error, success }) => (
           <>
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-3">
             <SaveStatus pending={pending} error={error} success={success} />
+            <button type="submit" disabled={pending} className="btn-primary">
+              {pending ? "Enregistrement…" : "Enregistrer"}
+            </button>
           </div>
 
           <Section title="Appartement">
@@ -341,6 +343,13 @@ export function DetailsTab({
               rows={4}
             />
           </Section>
+
+          <div className="flex items-center justify-end gap-3 pb-8">
+            <SaveStatus pending={pending} error={error} success={success} />
+            <button type="submit" disabled={pending} className="btn-primary">
+              {pending ? "Enregistrement…" : "Enregistrer"}
+            </button>
+          </div>
           </>
         )}
       </ActionForm>
