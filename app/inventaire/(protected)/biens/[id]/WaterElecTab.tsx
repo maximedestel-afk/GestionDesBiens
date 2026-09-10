@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import type { Attachment, HeatingProduction, PropertyElement, PropertyWaterElec } from "@/lib/inventaire/types";
 import { loadStandardWaterElecElements, saveWaterElec } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
@@ -8,32 +8,15 @@ import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
 
-function LoadStandardButton({ propertyId }: { propertyId: string }) {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+// Charge automatiquement les éléments standards Eau/Élec (idempotent :
+// n'ajoute que ceux pas déjà présents) — ainsi tout élément standard jamais
+// renseigné apparaît directement dans "Données manquantes" sans action manuelle.
+function AutoLoadStandards({ propertyId }: { propertyId: string }) {
+  useEffect(() => {
+    loadStandardWaterElecElements(propertyId).catch(() => {});
+  }, [propertyId]);
 
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => {
-          setError(null);
-          startTransition(async () => {
-            try {
-              await loadStandardWaterElecElements(propertyId);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Erreur.");
-            }
-          });
-        }}
-        className="btn-primary"
-      >
-        {pending ? "Chargement…" : "Charger les éléments standards"}
-      </button>
-      {error && <span className="text-sm text-red-600">{error}</span>}
-    </div>
-  );
+  return null;
 }
 
 export function WaterElecTab({
@@ -127,12 +110,11 @@ export function WaterElecTab({
         </ActionForm>
       </fieldset>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-[#1d1d1f]">
-          Éléments (robinet d&apos;arrêt eau, tableau électrique, ballon d&apos;eau chaude…)
-        </h2>
-        <LoadStandardButton propertyId={propertyId} />
-      </div>
+      <AutoLoadStandards propertyId={propertyId} />
+
+      <h2 className="text-sm font-semibold text-[#1d1d1f]">
+        Éléments (robinet d&apos;arrêt eau, tableau électrique, ballon d&apos;eau chaude…)
+      </h2>
 
       <AddElementForm propertyId={propertyId} section="water_elec" label="+ Ajouter un élément (ex. nourrice eau)" />
 
