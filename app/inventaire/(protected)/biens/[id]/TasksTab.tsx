@@ -5,9 +5,6 @@ import type { Profile, Task } from "@/lib/inventaire/types";
 import { addTaskComment, createTask, deleteTask, toggleTaskDone } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
-import { PROPERTY_TABS, tabCode } from "@/lib/inventaire/tabs";
-
-const TASK_TAB_OPTIONS = PROPERTY_TABS.filter((t) => t.key !== "taches" && t.key !== "manquant");
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
@@ -15,44 +12,11 @@ function formatDateTime(iso: string) {
 
 function NewTaskForm({ propertyId, profiles }: { propertyId: string; profiles: Profile[] }) {
   return (
-    <ActionForm className="card space-y-3 p-5" resetOnSuccess action={(formData) => createTask(propertyId, formData)}>
+    <ActionForm className="card space-y-3 p-5" resetOnSuccess action={createTask}>
       {({ pending, error, success }) => (
         <>
           <h2 className="text-sm font-semibold text-[#1d1d1f]">+ Nouvelle tâche</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="field-label" htmlFor="tabKey">
-                Onglet
-              </label>
-              <select
-                id="tabKey"
-                name="tabKey"
-                required
-                defaultValue=""
-                className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-              >
-                <option value="" disabled>
-                  Choisir un onglet…
-                </option>
-                {TASK_TAB_OPTIONS.map((t) => (
-                  <option key={t.key} value={t.key}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="field-label" htmlFor="section">
-                Section (optionnel)
-              </label>
-              <input
-                id="section"
-                name="section"
-                placeholder="ex. Gestion des clés"
-                className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-              />
-            </div>
-          </div>
+          <input type="hidden" name="propertyId" value={propertyId} />
           <div>
             <label className="field-label" htmlFor="text">
               Tâche
@@ -141,13 +105,7 @@ function TaskCard({ propertyId, task, profiles }: { propertyId: string; task: Ta
             className="mt-1 h-4 w-4 shrink-0"
           />
           <div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="rounded-full bg-black/[0.05] px-2 py-0.5 text-[11px] font-semibold text-[#1d1d1f]">
-                {tabCode(task.tabKey)}
-              </span>
-              {task.section && <span className="text-[12px] text-[#6e6e73]">{task.section}</span>}
-            </div>
-            <p className={`mt-1 text-[15px] text-[#1d1d1f] ${task.done ? "line-through" : ""}`}>{task.text}</p>
+            <p className={`text-[15px] text-[#1d1d1f] ${task.done ? "line-through" : ""}`}>{task.text}</p>
             <p className="mt-1 text-[12px] text-[#6e6e73]">
               {task.createdByEmail ?? "?"} · {formatDateTime(task.createdAt)}
               {assignee && <> · Assigné à {assignee.email}</>}

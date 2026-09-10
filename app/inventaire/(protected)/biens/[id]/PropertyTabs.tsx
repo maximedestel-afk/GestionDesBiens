@@ -107,7 +107,7 @@ export function PropertyTabs({
   const isPrestataire = role === "prestataire";
   const allowedTabsSet = new Set(allowedTabs);
   const visibleTabs = TABS.filter((tab) => {
-    if (tab.key === "proprietaire") return isAdmin;
+    if (tab.key === "proprietaire" || tab.key === "documents") return isAdmin;
     if (isPrestataire) return allowedTabsSet.has(tab.key);
     return true;
   });

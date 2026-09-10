@@ -10,20 +10,23 @@ export const PROPERTY_TABS = [
   { key: "inventaire", code: "IN", label: "IN - Inventaire" },
   { key: "eauelec", code: "UT", label: "UT - Eau / Élec" },
   { key: "photos", code: "PH", label: "PH - Photos" },
-  { key: "documents", code: "DOC", label: "DOC - Docs" },
   { key: "notes", code: "AU", label: "AU - Autres" },
   { key: "plateformes", code: "OTA", label: "OTA" },
-  { key: "proprietaire", code: "OW", label: "OW - Owner" },
   { key: "historique", code: "LOG", label: "LOG" },
   { key: "taches", code: "TA", label: "TA - Tâches" },
+  { key: "documents", code: "DOC", label: "DOC - Docs" },
+  { key: "proprietaire", code: "OW", label: "OW - Owner" },
   { key: "manquant", code: "MIS", label: "MIS - Manquant" },
 ] as const;
 
 export type PropertyTabKey = (typeof PROPERTY_TABS)[number]["key"];
 
-// L'onglet Propriétaire reste toujours réservé aux administrateurs : on ne
-// le propose pas dans le choix des onglets d'un prestataire.
-export const PRESTATAIRE_SELECTABLE_TABS = PROPERTY_TABS.filter((t) => t.key !== "proprietaire");
+// Les onglets Propriétaire et Documents restent toujours réservés aux
+// administrateurs : on ne les propose pas dans le choix des onglets d'un
+// prestataire.
+export const PRESTATAIRE_SELECTABLE_TABS = PROPERTY_TABS.filter(
+  (t) => t.key !== "proprietaire" && t.key !== "documents"
+);
 
 const CODE_BY_KEY: Record<string, string> = Object.fromEntries(PROPERTY_TABS.map((t) => [t.key, t.code]));
 const ORDER_BY_KEY: Record<string, number> = Object.fromEntries(PROPERTY_TABS.map((t, i) => [t.key, i]));

@@ -254,8 +254,6 @@ export function serializeTask(row: any, comments: TaskComment[] = []): Task {
   return {
     id: row.id,
     propertyId: row.property_id,
-    tabKey: row.tab_key,
-    section: row.section,
     text: row.text,
     createdByEmail: row.created_by_email,
     createdAt: row.created_at,

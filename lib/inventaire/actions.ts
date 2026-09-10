@@ -1473,19 +1473,16 @@ export async function deleteAttachment(propertyId: string, attachmentId: string)
 /* Tâches (TA)                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function createTask(propertyId: string, formData: FormData) {
+export async function createTask(formData: FormData) {
   const supabase = await createClient();
   const user = await requireUser(supabase);
 
-  const tabKey = requireNonEmpty(formData.get("tabKey"), "L'onglet");
+  const propertyId = requireNonEmpty(formData.get("propertyId"), "Le bien");
   const text = requireNonEmpty(formData.get("text"), "La tâche");
-  const section = optionalString(formData.get("section"));
   const assignedTo = optionalString(formData.get("assignedTo"));
 
   const { error } = await supabase.from("tasks").insert({
     property_id: propertyId,
-    tab_key: tabKey,
-    section,
     text,
     created_by: user.id,
     created_by_email: user.email,
@@ -1497,10 +1494,11 @@ export async function createTask(propertyId: string, formData: FormData) {
     propertyId,
     entityType: "task",
     action: "create",
-    summary: `Tâche ajoutée (${tabCode(tabKey)}${section ? " · " + section : ""})`,
+    summary: "Tâche ajoutée",
   });
 
   revalidateProperty(propertyId);
+  revalidatePath("/inventaire");
 }
 
 export async function toggleTaskDone(propertyId: string, taskId: string, done: boolean) {
@@ -1519,6 +1517,7 @@ export async function toggleTaskDone(propertyId: string, taskId: string, done: b
   if (error) throw error;
 
   revalidateProperty(propertyId);
+  revalidatePath("/inventaire");
 }
 
 export async function addTaskComment(propertyId: string, taskId: string, formData: FormData) {
@@ -1553,6 +1552,7 @@ export async function deleteTask(propertyId: string, taskId: string) {
   });
 
   revalidateProperty(propertyId);
+  revalidatePath("/inventaire");
 }
 
 /* ------------------------------------------------------------------ */
