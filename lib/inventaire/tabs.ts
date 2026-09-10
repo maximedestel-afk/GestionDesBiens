@@ -3,19 +3,19 @@
 // un utilisateur du rôle "prestataire" (page Utilisateurs), et le
 // regroupement de l'onglet "Données manquantes" (affiché par code).
 export const PROPERTY_TABS = [
-  { key: "details", code: "DE", label: "DE" },
-  { key: "cles", code: "CL", label: "CL" },
-  { key: "agencement", code: "AG", label: "AG" },
-  { key: "equipements", code: "EQ", label: "EQ" },
-  { key: "inventaire", code: "IN", label: "IN" },
-  { key: "eauelec", code: "UT", label: "UT" },
-  { key: "photos", code: "PH", label: "PH" },
-  { key: "documents", code: "DOC", label: "DOC" },
-  { key: "notes", code: "AU", label: "AU" },
+  { key: "details", code: "DE", label: "DE - Détails" },
+  { key: "cles", code: "CL", label: "CL - Clés" },
+  { key: "agencement", code: "AG", label: "AG - Agencement" },
+  { key: "equipements", code: "EQ", label: "EQ - Equipement" },
+  { key: "inventaire", code: "IN", label: "IN - Inventaire" },
+  { key: "eauelec", code: "UT", label: "UT - Eau / Élec" },
+  { key: "photos", code: "PH", label: "PH - Photos" },
+  { key: "documents", code: "DOC", label: "DOC - Docs" },
+  { key: "notes", code: "AU", label: "AU - Autres" },
   { key: "plateformes", code: "OTA", label: "OTA" },
-  { key: "proprietaire", code: "OW", label: "OW" },
+  { key: "proprietaire", code: "OW", label: "OW - Owner" },
   { key: "historique", code: "LOG", label: "LOG" },
-  { key: "manquant", code: "MIS", label: "MIS" },
+  { key: "manquant", code: "MIS", label: "MIS - Manquant" },
 ] as const;
 
 export type PropertyTabKey = (typeof PROPERTY_TABS)[number]["key"];
