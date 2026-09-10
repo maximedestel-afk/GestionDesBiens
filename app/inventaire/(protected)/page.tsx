@@ -39,6 +39,12 @@ export default async function PropertiesPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[28px] font-semibold tracking-tight text-[#1d1d1f]">Biens</h1>
         <div className="flex items-center gap-2">
+          <Link
+            href="/inventaire/taches"
+            className="inline-flex items-center gap-1 rounded-full border-2 border-black/10 px-3.5 py-1.5 text-sm font-semibold text-[#1d1d1f] transition hover:bg-black/[0.03]"
+          >
+            📋 Tâches
+          </Link>
           {!isPrestataire && <NewTaskDialog properties={properties} profiles={profiles} />}
           {!isPrestataire && <NewPropertyDialog />}
         </div>
