@@ -97,7 +97,7 @@ export function DetailsTab({
       >
         {({ pending, error, success }) => (
           <>
-          <div className="flex items-center justify-end gap-3">
+          <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-white py-2 pl-4 pr-2 shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
             <SaveStatus pending={pending} error={error} success={success} />
             <button type="submit" disabled={pending} className="btn-primary">
               {pending ? "Enregistrement…" : "Enregistrer"}
@@ -344,12 +344,7 @@ export function DetailsTab({
             />
           </Section>
 
-          <div className="flex items-center justify-end gap-3 pb-8">
-            <SaveStatus pending={pending} error={error} success={success} />
-            <button type="submit" disabled={pending} className="btn-primary">
-              {pending ? "Enregistrement…" : "Enregistrer"}
-            </button>
-          </div>
+          <div className="h-20" aria-hidden="true" />
           </>
         )}
       </ActionForm>
