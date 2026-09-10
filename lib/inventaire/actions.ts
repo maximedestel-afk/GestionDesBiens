@@ -250,6 +250,7 @@ export async function deleteProperty(propertyId: string) {
 // dans le FormData pour ne pas écraser les champs gérés par l'autre morceau.
 const PROPERTY_DETAILS_STRING_FIELDS: [string, string, string][] = [
   ["floor", "floor", "Étage"],
+  ["floorElevatorNotes", "floor_elevator_notes", "Note étage/ascenseur"],
   ["accessVideoUrl", "access_video_url", "Lien vidéo/photos d'accès"],
   ["trashRoomUrl", "trash_room_url", "Local Poubelle (lien)"],
   ["trashRoomNotes", "trash_room_notes", "Local Poubelle (note)"],
