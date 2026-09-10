@@ -46,13 +46,26 @@ async function requireAdmin(supabase: SupabaseServerClient) {
   return user;
 }
 
-/** Comme requireAdmin, mais laisse passer le rôle Operations (le contrôle
- * fin — ex. "uniquement si vide" — reste à la charge de l'appelant). */
+/** Comme requireAdmin, mais laisse passer les rôles Operations et Manager
+ * (Manager a les mêmes droits qu'Operations, plus la suppression de pièces
+ * jointes — voir requireAdminOrManager). Le contrôle fin — ex. "uniquement
+ * si vide" — reste à la charge de l'appelant. */
 async function requireAdminOrOperations(supabase: SupabaseServerClient): Promise<UserRole> {
   const user = await requireUser(supabase);
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   const role = profile?.role as UserRole | undefined;
-  if (role !== "admin" && role !== "operations") throw new Error("Réservé aux administrateurs.");
+  if (role !== "admin" && role !== "operations" && role !== "manager") {
+    throw new Error("Réservé aux administrateurs.");
+  }
+  return role;
+}
+
+/** Réservé à Admin et Manager — ex. suppression de photos/documents. */
+async function requireAdminOrManager(supabase: SupabaseServerClient): Promise<UserRole> {
+  const user = await requireUser(supabase);
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const role = profile?.role as UserRole | undefined;
+  if (role !== "admin" && role !== "manager") throw new Error("Réservé aux administrateurs.");
   return role;
 }
 
@@ -1135,7 +1148,7 @@ export async function deleteEquipment(propertyId: string, equipmentId: string) {
     .eq("id", equipmentId)
     .maybeSingle();
 
-  if (role === "operations") {
+  if (role === "operations" || role === "manager") {
     const { count } = await supabase
       .from("attachments")
       .select("id", { count: "exact", head: true })
@@ -1150,7 +1163,7 @@ export async function deleteEquipment(propertyId: string, equipmentId: string) {
       !item?.notes &&
       !count;
     if (!isEmpty) {
-      throw new Error("Le rôle Operations ne peut supprimer que les équipements sans donnée renseignée.");
+      throw new Error("Ce rôle ne peut supprimer que les équipements sans donnée renseignée.");
     }
   }
 
@@ -1523,7 +1536,7 @@ export async function recordAttachment(input: {
 
 export async function deleteAttachment(propertyId: string, attachmentId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireAdminOrManager(supabase);
 
   const { data: attachment } = await supabase
     .from("attachments")

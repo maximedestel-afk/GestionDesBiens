@@ -43,6 +43,7 @@ export function RoleSelect({ userId, role }: { userId: string; role: UserRole })
       >
         <option value="admin">Admin</option>
         <option value="operations">Operations</option>
+        <option value="manager">Manager</option>
         <option value="menage">Ménage</option>
         <option value="prestataire">Prestataire</option>
       </select>

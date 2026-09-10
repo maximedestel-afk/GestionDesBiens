@@ -93,6 +93,7 @@ export function AttachmentGallery({
                 confirmText={`Supprimer « ${attachment.fileName} » ?`}
                 action={() => deleteAttachment(propertyId, attachment.id)}
                 className="flex h-6 w-6 items-center justify-center rounded-full text-xs text-red-600 transition hover:bg-red-50"
+                allowManager
               />
             </div>
           </li>
@@ -155,6 +156,7 @@ export function AttachmentGallery({
               confirmText={`Supprimer « ${attachment.fileName} » ?`}
               action={() => deleteAttachment(propertyId, attachment.id)}
               className="flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-xs text-red-600 shadow-sm transition hover:bg-white"
+              allowManager
             />
           </div>
         </div>
