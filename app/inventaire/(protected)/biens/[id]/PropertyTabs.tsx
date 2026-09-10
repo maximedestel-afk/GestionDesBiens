@@ -256,6 +256,7 @@ export function PropertyTabs({
         {activeTab === "details" && (
           <DetailsTab
             propertyId={property.id}
+            address={property.address}
             details={details}
             attachments={propertyAttachments}
             missingCheckKeys={missingCheckKeys}

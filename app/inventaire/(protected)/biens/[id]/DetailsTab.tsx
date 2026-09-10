@@ -64,11 +64,13 @@ function Section({ title, children }: { title: ReactNode; children: ReactNode })
 
 export function DetailsTab({
   propertyId,
+  address,
   details,
   attachments,
   missingCheckKeys,
 }: {
   propertyId: string;
+  address: string | null;
   details: PropertyDetails | null;
   attachments: Attachment[];
   missingCheckKeys: string[];
@@ -77,6 +79,18 @@ export function DetailsTab({
 
   return (
     <div className="space-y-6">
+      {address && (
+        <div className="overflow-hidden rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <iframe
+            title="Localisation du bien"
+            src={`https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`}
+            className="h-48 w-full border-0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      )}
+
       <ActionForm
         className="space-y-6"
         autoSave
