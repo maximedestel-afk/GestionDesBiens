@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   getCurrentProfile,
   getPrestataireAllowedPropertyIds,
-  listProfiles,
   listProperties,
   listPropertiesMissingChecks,
   listPropertiesOpenTasksCount,
@@ -10,7 +9,6 @@ import {
   listPropertiesStats,
 } from "@/lib/inventaire/queries";
 import { NewPropertyDialog } from "@/components/inventaire/NewPropertyDialog";
-import { NewTaskDialog } from "@/components/inventaire/NewTaskDialog";
 import { PropertyCompletenessBadge } from "@/components/inventaire/PropertyCompletenessBadge";
 import { PropertyStatsBar } from "@/components/inventaire/PropertyStatsBar";
 import { PlatformLogo, platformTitle } from "@/components/inventaire/PlatformLogo";
@@ -26,12 +24,11 @@ export default async function PropertiesPage({
   const allowedPropertyIds = isPrestataire ? await getPrestataireAllowedPropertyIds(profile!.id) : null;
   const properties = await listProperties(q, allowedPropertyIds);
   const propertyIds = properties.map((p) => p.id);
-  const [missingChecks, stats, platforms, openTasksCounts, profiles] = await Promise.all([
+  const [missingChecks, stats, platforms, openTasksCounts] = await Promise.all([
     listPropertiesMissingChecks(propertyIds),
     listPropertiesStats(propertyIds),
     listPropertiesPlatforms(propertyIds),
     listPropertiesOpenTasksCount(propertyIds),
-    listProfiles(),
   ]);
 
   return (
@@ -45,7 +42,6 @@ export default async function PropertiesPage({
           >
             📋 Tâches
           </Link>
-          {!isPrestataire && <NewTaskDialog properties={properties} profiles={profiles} />}
           {!isPrestataire && <NewPropertyDialog />}
         </div>
       </div>
