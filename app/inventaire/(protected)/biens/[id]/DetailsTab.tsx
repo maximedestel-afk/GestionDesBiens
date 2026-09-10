@@ -93,15 +93,13 @@ export function DetailsTab({
 
       <ActionForm
         className="space-y-6"
+        autoSave
         action={(formData) => savePropertyDetails(propertyId, formData)}
       >
         {({ pending, error, success }) => (
           <>
-          <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-white py-2 pl-4 pr-2 shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
+          <div className="flex justify-end">
             <SaveStatus pending={pending} error={error} success={success} />
-            <button type="submit" disabled={pending} className="btn-primary">
-              {pending ? "Enregistrement…" : "Enregistrer"}
-            </button>
           </div>
 
           <Section title="Appartement">
@@ -343,8 +341,6 @@ export function DetailsTab({
               rows={4}
             />
           </Section>
-
-          <div className="h-20" aria-hidden="true" />
           </>
         )}
       </ActionForm>
