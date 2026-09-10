@@ -131,6 +131,7 @@ export function PropertyTabs({
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
   const equipmentAttachments = attachments.filter((a) => a.entityType === "equipment");
   const elementAttachments = attachments.filter((a) => a.entityType === "property_element");
+  const keyAttachments = attachments.filter((a) => a.entityType === "property_key");
 
   const equipmentMissingChecks: CompletenessCheck[] = equipment
     .filter((item) => {
@@ -282,6 +283,7 @@ export function PropertyTabs({
             details={details}
             attachments={propertyAttachments}
             keys={keys}
+            keyAttachments={keyAttachments}
             elements={keyElements}
             elementAttachments={elementAttachments}
             missingCheckKeys={missingCheckKeys}
