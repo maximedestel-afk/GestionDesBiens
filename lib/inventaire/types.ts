@@ -200,7 +200,7 @@ export interface InventoryItem {
   stockUpdatedAt: string | null;
 }
 
-export type AttachmentEntityType = "property" | "equipment" | "inventory_item" | "property_element";
+export type AttachmentEntityType = "property" | "equipment" | "inventory_item" | "property_element" | "property_key";
 
 export type AttachmentKind =
   | "access_video"
@@ -219,7 +219,8 @@ export type AttachmentKind =
   | "wifi_pto_photo"
   | "trash_room"
   | "equipment_instruction_video"
-  | "plan";
+  | "plan"
+  | "key_photo";
 
 export interface Attachment {
   id: string;

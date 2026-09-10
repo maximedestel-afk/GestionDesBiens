@@ -127,10 +127,12 @@ function AddKeyMenu({ propertyId }: { propertyId: string }) {
 function KeysSection({
   propertyId,
   keys,
+  keyAttachments,
   missingCheckKeys,
 }: {
   propertyId: string;
   keys: PropertyKey[];
+  keyAttachments: Attachment[];
   missingCheckKeys: string[];
 }) {
   return (
@@ -151,7 +153,14 @@ function KeysSection({
           Aucune clé renseignée — cliquez sur « + Ajouter une clé » pour en ajouter une.
         </p>
       ) : (
-        keys.map((key) => <KeyCard key={key.id} propertyId={propertyId} propertyKey={key} />)
+        keys.map((key) => (
+          <KeyCard
+            key={key.id}
+            propertyId={propertyId}
+            propertyKey={key}
+            attachments={keyAttachments.filter((a) => a.entityId === key.id)}
+          />
+        ))
       )}
     </div>
   );
@@ -197,6 +206,7 @@ export function KeysTab({
   details,
   attachments,
   keys,
+  keyAttachments,
   elements,
   elementAttachments,
   missingCheckKeys,
@@ -205,6 +215,7 @@ export function KeysTab({
   details: PropertyDetails | null;
   attachments: Attachment[];
   keys: PropertyKey[];
+  keyAttachments: Attachment[];
   elements: PropertyElement[];
   elementAttachments: Attachment[];
   missingCheckKeys: string[];
@@ -291,7 +302,12 @@ export function KeysTab({
         )}
       </ActionForm>
 
-      <KeysSection propertyId={propertyId} keys={keys} missingCheckKeys={missingCheckKeys} />
+      <KeysSection
+        propertyId={propertyId}
+        keys={keys}
+        keyAttachments={keyAttachments}
+        missingCheckKeys={missingCheckKeys}
+      />
       <KeyElementsSection propertyId={propertyId} elements={elements} attachments={elementAttachments} />
     </div>
   );
