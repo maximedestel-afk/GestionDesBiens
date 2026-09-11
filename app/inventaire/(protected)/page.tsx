@@ -9,6 +9,7 @@ import {
   listPropertiesStats,
 } from "@/lib/inventaire/queries";
 import { NewPropertyDialog } from "@/components/inventaire/NewPropertyDialog";
+import { PropertySearchInput } from "@/components/inventaire/PropertySearchInput";
 import { PropertyCompletenessBadge } from "@/components/inventaire/PropertyCompletenessBadge";
 import { PropertyStatsBar } from "@/components/inventaire/PropertyStatsBar";
 import { PlatformLogo, platformTitle } from "@/components/inventaire/PlatformLogo";
@@ -56,15 +57,9 @@ export default async function PropertiesPage({
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <form action="/inventaire" method="get" className="flex-1">
-          <input
-            type="search"
-            name="q"
-            defaultValue={q ?? ""}
-            placeholder="Rechercher par référence, nom ou propriétaire…"
-            className="field-input max-w-md"
-          />
-        </form>
+        <div className="flex-1">
+          <PropertySearchInput initialValue={q ?? ""} />
+        </div>
         <a
           href={`/inventaire/export-references${q ? `?q=${encodeURIComponent(q)}` : ""}`}
           className="link-quiet text-[13px]"
