@@ -3,6 +3,7 @@ import Image from "next/image";
 import { getCurrentProfile } from "@/lib/inventaire/queries";
 import { signOut } from "@/lib/inventaire/actions";
 import { UserRoleProvider } from "@/components/inventaire/UserRoleContext";
+import { HeaderPropertySearch } from "@/components/inventaire/HeaderPropertySearch";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const profile = await getCurrentProfile();
@@ -40,6 +41,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
                 </button>
               </form>
             </div>
+          </div>
+          <div className="mx-auto max-w-6xl px-4 pb-3 sm:px-6">
+            <HeaderPropertySearch />
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
