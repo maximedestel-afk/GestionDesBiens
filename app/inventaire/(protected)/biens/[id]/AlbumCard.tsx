@@ -73,9 +73,9 @@ export function AlbumCard({
         )}
       </ActionForm>
       <div className="mt-3 space-y-2">
-        <AttachmentGallery propertyId={propertyId} attachments={attachments} emptyLabel="Aucune photo pour l'instant" />
+        <AttachmentGallery propertyId={propertyId} attachments={attachments} emptyLabel="Aucun fichier pour l'instant" />
         <FileUploadButtons
-          accept="image/*"
+          accept="image/*,.pdf,.doc,.docx"
           target={{
             propertyId,
             entityType: "property_element",
