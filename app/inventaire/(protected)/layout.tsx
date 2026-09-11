@@ -25,6 +25,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
                   <Link href="/inventaire/utilisateurs" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
                     Utilisateurs
                   </Link>
+                  <Link href="/inventaire/import" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                    Importer
+                  </Link>
                   <Link href="/inventaire/acces" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
                     Accès
                   </Link>
