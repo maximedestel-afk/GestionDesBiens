@@ -9,6 +9,7 @@ import {
   STANDARD_WATER_ELEC_ELEMENT_NAMES,
   standardEquipmentNamesForRoom,
 } from "./catalog";
+import { decodeCsvBuffer, normalizeHeader, parseCsv } from "./csv";
 import { tabCode } from "./tabs";
 import type {
   AttachmentEntityType,
@@ -292,6 +293,210 @@ export async function deleteProperty(propertyId: string) {
 
   revalidatePath("/inventaire");
   redirect("/inventaire");
+}
+
+/* ------------------------------------------------------------------ */
+/* Import CSV                                                          */
+/* ------------------------------------------------------------------ */
+
+const IMPORT_CSV_COLUMNS = {
+  reference: "reference",
+  name: "nom",
+  address: "adresse",
+  surface: "superficie",
+  capacity: "capacite",
+  airbnb: "url airbnb",
+  booking: "url booking",
+  vrbo: "url vrbo",
+  hopper: "url hopper",
+  lastName: "nom owner",
+  firstName: "prenom owner",
+  phone: "tel owner",
+  email: "email owner",
+} as const;
+
+export interface ImportPropertiesResult {
+  created: number;
+  updated: number;
+  errors: { line: number; reference: string; message: string }[];
+}
+
+/** Crée ou met à jour une ligne property_platforms pour un type de
+ * plateforme donné, sans jamais écraser une URL existante par du vide.
+ * `ensureRow` force la création de la ligne même sans URL (utilisé pour
+ * Airbnb/Booking, toujours présentes par défaut — voir createProperty). */
+async function upsertPlatformUrl(
+  supabase: SupabaseServerClient,
+  propertyId: string,
+  type: PlatformType,
+  url: string | null,
+  existing: { id: string; platform_type: string }[],
+  ensureRow: boolean,
+  nextPositionRef: { value: number }
+) {
+  const match = existing.find((p) => p.platform_type === type);
+  if (match) {
+    if (url) {
+      const { error } = await supabase.from("property_platforms").update({ url }).eq("id", match.id);
+      if (error) throw error;
+    }
+    return;
+  }
+  if (!url && !ensureRow) return;
+  const { error } = await supabase.from("property_platforms").insert({
+    property_id: propertyId,
+    platform_type: type,
+    listing_name: null,
+    url,
+    position: nextPositionRef.value++,
+  });
+  if (error) throw error;
+}
+
+/** Import en masse de biens depuis un fichier CSV (colonnes : Reference,
+ * Nom, Adresse, Superficie, Capacité, Url AIRBNB, URL BOOKING, URL VRBO,
+ * URL Hopper, Nom Owner, Prénom Owner, Tel Owner, Email Owner — ordre libre).
+ * Un bien dont la référence existe déjà est mis à jour plutôt que dupliqué.
+ * Chaque ligne est traitée indépendamment : une erreur sur une ligne
+ * n'interrompt pas l'import des autres. */
+export async function importProperties(formData: FormData): Promise<ImportPropertiesResult> {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Choisissez un fichier CSV.");
+
+  const text = decodeCsvBuffer(await file.arrayBuffer());
+  const rows = parseCsv(text);
+  if (rows.length === 0) throw new Error("Le fichier est vide.");
+
+  const header = rows[0].map(normalizeHeader);
+  const idx = Object.fromEntries(
+    Object.entries(IMPORT_CSV_COLUMNS).map(([key, label]) => [key, header.indexOf(label)])
+  ) as Record<keyof typeof IMPORT_CSV_COLUMNS, number>;
+
+  if (idx.reference === -1) throw new Error("Colonne « Reference » introuvable dans le fichier.");
+
+  const get = (row: string[], key: keyof typeof IMPORT_CSV_COLUMNS): string | null => {
+    const colIndex = idx[key];
+    return colIndex >= 0 ? optionalString(row[colIndex] ?? null) : null;
+  };
+
+  const result: ImportPropertiesResult = { created: 0, updated: 0, errors: [] };
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.every((cell) => cell.trim() === "")) continue;
+
+    const reference = get(row, "reference");
+    if (!reference) {
+      result.errors.push({ line: i + 1, reference: "(vide)", message: "Référence manquante — ligne ignorée." });
+      continue;
+    }
+
+    try {
+      const name = get(row, "name");
+      const address = get(row, "address");
+
+      const surfaceRaw = get(row, "surface");
+      const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
+      if (surface !== null && !Number.isFinite(surface)) throw new Error("Superficie invalide.");
+
+      const capacityRaw = get(row, "capacity");
+      const capacity = capacityRaw ? Number.parseInt(capacityRaw, 10) : null;
+      if (capacity !== null && !Number.isInteger(capacity)) throw new Error("Capacité invalide.");
+
+      const { data: existingProperty } = await supabase
+        .from("properties")
+        .select("id")
+        .eq("reference", reference)
+        .maybeSingle();
+
+      let propertyId: string;
+      const isNew = !existingProperty;
+
+      if (existingProperty) {
+        propertyId = existingProperty.id;
+        const { error } = await supabase.from("properties").update({ name, address }).eq("id", propertyId);
+        if (error) throw error;
+      } else {
+        const { data: created, error } = await supabase
+          .from("properties")
+          .insert({ reference, name, address })
+          .select("id")
+          .single();
+        if (error) {
+          if (error.code === "23505") throw new Error("Cette référence existe déjà.");
+          throw error;
+        }
+        propertyId = created.id;
+        await supabase.from("property_details").insert({ property_id: propertyId });
+        await supabase.from("property_owner").insert({ property_id: propertyId });
+        await supabase.from("property_water_elec").insert({ property_id: propertyId });
+      }
+
+      const { data: existingAgencement } = await supabase
+        .from("property_agencement")
+        .select("property_id")
+        .eq("property_id", propertyId)
+        .maybeSingle();
+      await updatePropertyDetailRow(
+        supabase,
+        "property_agencement",
+        propertyId,
+        { surface, capacity },
+        !!existingAgencement
+      );
+
+      const ownerPatch = {
+        last_name: get(row, "lastName"),
+        first_name: get(row, "firstName"),
+        phone: get(row, "phone"),
+        email: get(row, "email"),
+      };
+      if (Object.values(ownerPatch).some((v) => v !== null)) {
+        const { data: existingOwner } = await supabase
+          .from("property_owner")
+          .select("property_id")
+          .eq("property_id", propertyId)
+          .maybeSingle();
+        await updatePropertyDetailRow(supabase, "property_owner", propertyId, ownerPatch, !!existingOwner);
+      }
+
+      const { data: existingPlatforms } = await supabase
+        .from("property_platforms")
+        .select("id, platform_type")
+        .eq("property_id", propertyId);
+      const positionRef = { value: existingPlatforms?.length ?? 0 };
+      const platforms = existingPlatforms ?? [];
+      await upsertPlatformUrl(supabase, propertyId, "airbnb", get(row, "airbnb"), platforms, true, positionRef);
+      await upsertPlatformUrl(supabase, propertyId, "booking", get(row, "booking"), platforms, true, positionRef);
+      await upsertPlatformUrl(supabase, propertyId, "vrbo", get(row, "vrbo"), platforms, false, positionRef);
+      await upsertPlatformUrl(supabase, propertyId, "hopper", get(row, "hopper"), platforms, false, positionRef);
+
+      await loadStandardInventory(propertyId);
+
+      await logActivity(supabase, {
+        propertyId,
+        entityType: "property",
+        entityId: propertyId,
+        action: isNew ? "create" : "update",
+        summary: isNew ? `Bien « ${reference} » créé (import CSV)` : `Bien « ${reference} » mis à jour (import CSV)`,
+      });
+
+      if (isNew) result.created++;
+      else result.updated++;
+    } catch (err) {
+      result.errors.push({
+        line: i + 1,
+        reference,
+        message: err instanceof Error ? err.message : "Erreur inconnue.",
+      });
+    }
+  }
+
+  revalidatePath("/inventaire");
+  return result;
 }
 
 /* ------------------------------------------------------------------ */
