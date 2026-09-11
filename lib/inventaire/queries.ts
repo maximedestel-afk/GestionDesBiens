@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { platformTitle } from "@/components/inventaire/PlatformLogo";
 import { computeMissingChecks, type CompletenessCheck } from "./completeness";
 import {
   serializeActivityLogEntry,
@@ -485,7 +486,10 @@ export async function listPropertiesMissingChecks(
       .select("property_id, last_name, email, rent_amount, rent_type")
       .in("property_id", propertyIds),
     supabase.from("property_agencement").select("property_id, capacity, surface").in("property_id", propertyIds),
-    supabase.from("property_platforms").select("property_id, listing_name").in("property_id", propertyIds),
+    supabase
+      .from("property_platforms")
+      .select("id, property_id, platform_type, platform_type_detail, listing_name, reference, url")
+      .in("property_id", propertyIds),
     supabase
       .from("attachments")
       .select("property_id, kind")
@@ -538,6 +542,18 @@ export async function listPropertiesMissingChecks(
   const platformsByProperty = new Map<string, boolean>();
   for (const p of platforms ?? []) {
     if (p.listing_name) platformsByProperty.set(p.property_id, true);
+  }
+
+  const platformsMissingByProperty = new Map<string, CompletenessCheck[]>();
+  for (const p of platforms ?? []) {
+    if (!(p.listing_name || p.url) || p.reference) continue;
+    const list = platformsMissingByProperty.get(p.property_id) ?? [];
+    list.push({
+      key: `platform-reference-${p.id}`,
+      label: `Référence manquante (${platformTitle({ platformType: p.platform_type, platformTypeDetail: p.platform_type_detail })})`,
+      tab: "plateformes",
+    });
+    platformsMissingByProperty.set(p.property_id, list);
   }
 
   const attachmentKindsByProperty = new Map<string, Set<string>>();
@@ -638,6 +654,7 @@ export async function listPropertiesMissingChecks(
       ),
       ...(equipmentMissingByProperty.get(propertyId) ?? []),
       ...(waterElecMissingByProperty.get(propertyId) ?? []),
+      ...(platformsMissingByProperty.get(propertyId) ?? []),
     ];
   }
 

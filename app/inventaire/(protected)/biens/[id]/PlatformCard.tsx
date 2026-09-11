@@ -23,9 +23,10 @@ export function PlatformCard({
   const title =
     platform.platformType === "autre" ? detail.trim() || "Autre" : PLATFORM_LABELS[platform.platformType];
   const isEmpty = !platform.listingName && !platform.reference && !platform.url && !platform.notes;
+  const missingReference = !isEmpty && (platform.listingName || platform.url) && !platform.reference;
 
   return (
-    <div className="card p-5">
+    <div id={`missing-check-platform-reference-${platform.id}`} className="card p-5">
       <ActionForm autoSave action={(formData) => updatePropertyPlatform(propertyId, platform.id, formData)}>
         {({ pending, error, success }) => (
           <>
@@ -36,6 +37,11 @@ export function PlatformCard({
                 {isEmpty && (
                   <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
                     ⚠️ Données manquantes
+                  </span>
+                )}
+                {missingReference && (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                    ⚠️ Référence manquante
                   </span>
                 )}
               </h3>
