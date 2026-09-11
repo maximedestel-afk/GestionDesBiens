@@ -70,6 +70,28 @@ function RentFieldset({ owner }: { owner: PropertyOwner | null }) {
     <fieldset className="card p-5">
       <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Loyer</legend>
       <div className="mt-2 space-y-3">
+        <div className="flex flex-wrap gap-4">
+          <label className="flex items-center gap-2 text-[15px] text-[#1d1d1f]">
+            <input
+              type="radio"
+              name="rentType"
+              value="fixe"
+              defaultChecked={owner?.rentType === "fixe"}
+              className="h-4 w-4 accent-[#0071e3]"
+            />
+            Fixe
+          </label>
+          <label className="flex items-center gap-2 text-[15px] text-[#1d1d1f]">
+            <input
+              type="radio"
+              name="rentType"
+              value="fixe_variable"
+              defaultChecked={owner?.rentType === "fixe_variable"}
+              className="h-4 w-4 accent-[#0071e3]"
+            />
+            Fixe + Variable
+          </label>
+        </div>
         <div>
           <label className="field-label" htmlFor="rentAmount">
             Loyer
@@ -129,6 +151,7 @@ function RentFieldset({ owner }: { owner: PropertyOwner | null }) {
             />
           </div>
         </div>
+        <Field label="Note" name="rentNotes" defaultValue={owner?.rentNotes} textarea />
         <div className="flex items-center justify-between rounded-[10px] bg-black/[0.03] px-3.5 py-2.5">
           <span className="text-[15px] font-semibold text-[#1d1d1f]">Total</span>
           <span className="text-[15px] font-semibold text-[#1d1d1f]">
