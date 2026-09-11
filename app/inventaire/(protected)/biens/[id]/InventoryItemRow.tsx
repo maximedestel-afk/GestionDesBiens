@@ -7,6 +7,7 @@ import { NumericKeypadButton } from "@/components/inventaire/NumericKeypadButton
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
+import { NoteField } from "@/components/inventaire/NoteField";
 
 const CONDITIONS: ItemCondition[] = ["Bon", "Usé", "À remplacer"];
 
@@ -84,13 +85,7 @@ export function InventoryItemRow({
                 </select>
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Notes</label>
-                <textarea
-                  name="notes"
-                  defaultValue={item.notes ?? ""}
-                  rows={2}
-                  className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-                />
+                <NoteField label="Notes" name="notes" defaultValue={item.notes} rows={2} />
               </div>
               <div>
                 <p className="text-[12px] font-medium text-[#6e6e73]">Photos</p>

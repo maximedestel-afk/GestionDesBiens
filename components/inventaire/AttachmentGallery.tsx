@@ -104,43 +104,77 @@ export function AttachmentGallery({
 
   return (
     <div className={scrollable ? "flex flex-nowrap gap-3 overflow-x-auto pb-1" : "flex flex-wrap gap-3"}>
-      {attachments.map((attachment) => (
-        <div
-          key={attachment.id}
-          className="group relative w-28 shrink-0 overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.02] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-        >
-          <a href={attachment.url ?? "#"} target="_blank" rel="noreferrer" className="block">
-            {isImage(attachment.mimeType) && attachment.url ? (
-              <Image
-                src={attachment.url}
-                alt={attachment.fileName}
-                width={112}
-                height={112}
-                unoptimized
-                className="h-28 w-28 object-cover"
+      {attachments.map((attachment) => {
+        const isMedia = (isImage(attachment.mimeType) || isVideo(attachment.mimeType)) && !!attachment.url;
+
+        if (!isMedia) {
+          return (
+            <div
+              key={attachment.id}
+              className="flex h-9 shrink-0 items-center gap-2 self-start rounded-full border border-black/[0.06] bg-white px-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+            >
+              <a
+                href={attachment.url ?? "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-w-0 items-center gap-1.5 text-[13px] text-[#1d1d1f] hover:underline"
+              >
+                <span>📄</span>
+                <span className="max-w-[160px] truncate">{attachment.fileName}</span>
+              </a>
+              {attachment.url && (
+                <a
+                  href={downloadHref(attachment.url, attachment.fileName)}
+                  download={attachment.fileName}
+                  title="Télécharger"
+                  aria-label="Télécharger"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#6e6e73] transition hover:bg-black/[0.05] hover:text-[#1d1d1f]"
+                >
+                  <DownloadIcon />
+                </a>
+              )}
+              <ConfirmDeleteButton
+                label="✕"
+                confirmText={`Supprimer « ${attachment.fileName} » ?`}
+                action={() => deleteAttachment(propertyId, attachment.id)}
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs text-red-600 transition hover:bg-red-50"
+                allowManager
               />
-            ) : isVideo(attachment.mimeType) && attachment.url ? (
-              <div className="relative h-28 w-28">
-                <video src={attachment.url} className="h-28 w-28 object-cover" muted />
-                <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white">
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 h-4 w-4">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
+            </div>
+          );
+        }
+
+        return (
+          <div
+            key={attachment.id}
+            className="group relative w-28 shrink-0 overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.02] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+          >
+            <a href={attachment.url ?? "#"} target="_blank" rel="noreferrer" className="block">
+              {isImage(attachment.mimeType) ? (
+                <Image
+                  src={attachment.url as string}
+                  alt={attachment.fileName}
+                  width={112}
+                  height={112}
+                  unoptimized
+                  className="h-28 w-28 object-cover"
+                />
+              ) : (
+                <div className="relative h-28 w-28">
+                  <video src={attachment.url as string} className="h-28 w-28 object-cover" muted />
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 h-4 w-4">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </span>
                   </span>
-                </span>
-              </div>
-            ) : (
-              <div className="flex h-28 w-28 flex-col items-center justify-center gap-1 p-2 text-center text-xs text-[#6e6e73]">
-                <span className="text-2xl">📄</span>
-                <span className="line-clamp-2 break-all">{attachment.fileName}</span>
-              </div>
-            )}
-          </a>
-          {attachment.url && (
+                </div>
+              )}
+            </a>
             <div className="absolute left-1.5 top-1.5">
               <a
-                href={downloadHref(attachment.url, attachment.fileName)}
+                href={downloadHref(attachment.url as string, attachment.fileName)}
                 download={attachment.fileName}
                 title="Télécharger"
                 aria-label="Télécharger"
@@ -149,18 +183,18 @@ export function AttachmentGallery({
                 <DownloadIcon />
               </a>
             </div>
-          )}
-          <div className="absolute right-1.5 top-1.5 opacity-80 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-            <ConfirmDeleteButton
-              label="✕"
-              confirmText={`Supprimer « ${attachment.fileName} » ?`}
-              action={() => deleteAttachment(propertyId, attachment.id)}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-xs text-red-600 shadow-sm transition hover:bg-white"
-              allowManager
-            />
+            <div className="absolute right-1.5 top-1.5 opacity-80 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+              <ConfirmDeleteButton
+                label="✕"
+                confirmText={`Supprimer « ${attachment.fileName} » ?`}
+                action={() => deleteAttachment(propertyId, attachment.id)}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-xs text-red-600 shadow-sm transition hover:bg-white"
+                allowManager
+              />
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

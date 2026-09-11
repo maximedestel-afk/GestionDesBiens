@@ -8,6 +8,7 @@ import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
+import { NoteField } from "@/components/inventaire/NoteField";
 
 function Field({
   label,
@@ -123,12 +124,7 @@ export function DetailsTab({
                 </select>
               </div>
             </div>
-            <Field
-              label="Note (étage / ascenseur)"
-              name="floorElevatorNotes"
-              defaultValue={details?.floorElevatorNotes}
-              textarea
-            />
+            <NoteField label="Note (étage / ascenseur)" name="floorElevatorNotes" defaultValue={details?.floorElevatorNotes} />
             <div>
               <p className="text-sm font-medium text-[#1d1d1f]">
                 Vidéo / photos d&apos;accès (comment entrer dans l&apos;immeuble/appartement)
@@ -185,7 +181,7 @@ export function DetailsTab({
                     Ouvrir le lien
                   </a>
                 )}
-                <Field label="Note" name="trashRoomNotes" defaultValue={details?.trashRoomNotes} textarea />
+                <NoteField label="Note" name="trashRoomNotes" defaultValue={details?.trashRoomNotes} />
               </div>
             </div>
             <p className="text-[13px] text-[#6e6e73]">
@@ -234,7 +230,7 @@ export function DetailsTab({
               <Field label="Code" name="wifiCode" defaultValue={details?.wifiCode} />
               <Field label="Numéro PTO" name="wifiPtoNumber" defaultValue={details?.wifiPtoNumber} />
             </div>
-            <Field label="Notes" name="wifiNotes" defaultValue={details?.wifiNotes} textarea />
+            <NoteField label="Notes" name="wifiNotes" defaultValue={details?.wifiNotes} />
             <div>
               <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
                 Contrat internet
@@ -268,12 +264,7 @@ export function DetailsTab({
                   accept="image/*"
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "wifi_pto_photo" }}
                 />
-                <Field
-                  label="Notes (ex. emplacement)"
-                  name="wifiPtoNotes"
-                  defaultValue={details?.wifiPtoNotes}
-                  textarea
-                />
+                <NoteField label="Notes (ex. emplacement)" name="wifiPtoNotes" defaultValue={details?.wifiPtoNotes} />
               </div>
             </div>
           </Section>
@@ -291,7 +282,7 @@ export function DetailsTab({
                 />
               }
             />
-            <Field label="Notes" name="edfNotes" defaultValue={details?.edfNotes} textarea />
+            <NoteField label="Notes" name="edfNotes" defaultValue={details?.edfNotes} />
             <div>
               <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
                 Contrat EDF
@@ -329,7 +320,7 @@ export function DetailsTab({
               <Field label="Téléphone" name="syndicPhone" defaultValue={details?.syndicPhone} />
               <Field label="Email" name="syndicEmail" defaultValue={details?.syndicEmail} />
             </div>
-            <Field label="Notes" name="syndicNotes" defaultValue={details?.syndicNotes} textarea />
+            <NoteField label="Notes" name="syndicNotes" defaultValue={details?.syndicNotes} />
           </Section>
 
           <Section title="Commentaire">
