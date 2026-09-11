@@ -68,6 +68,18 @@ export interface PropertyOwner {
   otherAmount: number | null;
 }
 
+/** Un propriétaire déjà renseigné sur un autre bien — sert au "réutiliser
+ * un propriétaire existant" dans l'onglet Propriétaire. */
+export interface OwnerDirectoryEntry {
+  propertyId: string;
+  propertyReference: string;
+  lastName: string | null;
+  firstName: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+}
+
 export interface PropertyAgencement {
   propertyId: string;
   capacity: number | null;

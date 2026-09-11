@@ -14,6 +14,7 @@ import {
   listEquipment,
   listInventoryCategories,
   listInventoryItems,
+  listOwnersDirectory,
   listProfiles,
   listPropertyElements,
   listPropertyKeys,
@@ -58,6 +59,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     dismissedChecks,
     tasks,
     profiles,
+    ownersDirectory,
   ] = await Promise.all([
     getCurrentProfile(),
     getPropertyOwner(id),
@@ -82,6 +84,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listChecklistDismissals(id),
     listTasks(id),
     listProfiles(),
+    listOwnersDirectory(id),
   ]);
   const isAdmin = profile?.role === "admin";
 
@@ -194,6 +197,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         activityLog={activityLog}
         tasks={tasks}
         profiles={profiles}
+        ownersDirectory={ownersDirectory}
         allowedTabs={profile?.allowedTabs ?? []}
       />
     </div>
