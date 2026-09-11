@@ -100,6 +100,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       ownerEmail: owner?.email,
       hasLeaseContract: attachments.some((a) => a.kind === "lease_contract"),
       hasRib: attachments.some((a) => a.kind === "rib"),
+      rentAmount: owner?.rentAmount,
+      rentType: owner?.rentType,
       hasRcp: attachments.some((a) => a.kind === "rcp"),
       hasKeySetPhoto: attachments.some((a) => a.kind === "key_set_photo"),
       capacity: agencement?.capacity,

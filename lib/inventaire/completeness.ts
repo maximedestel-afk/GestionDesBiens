@@ -14,6 +14,8 @@ export const COMPLETENESS_CHECKS: CompletenessCheck[] = [
   { key: "owner_info", label: "Coordonnées du propriétaire", tab: "proprietaire" },
   { key: "lease_contract", label: "Bail", tab: "documents" },
   { key: "rib", label: "RIB", tab: "proprietaire" },
+  { key: "rent_amount", label: "Loyer (montant)", tab: "proprietaire" },
+  { key: "rent_type", label: "Loyer (modèle Fixe / Fixe + Variable)", tab: "proprietaire" },
   { key: "rcp", label: "RCP", tab: "documents" },
   { key: "key_set_photo", label: "Photo du trousseau", tab: "cles" },
   { key: "capacity", label: "Nombre de personnes maximum", tab: "agencement" },
@@ -37,6 +39,8 @@ export interface PropertyCompletenessInput {
   ownerEmail: string | null | undefined;
   hasLeaseContract: boolean;
   hasRib: boolean;
+  rentAmount: number | null | undefined;
+  rentType: string | null | undefined;
   hasRcp: boolean;
   hasKeySetPhoto: boolean;
   capacity: number | null | undefined;
@@ -61,6 +65,8 @@ const CHECK_PREDICATES: Record<string, (input: PropertyCompletenessInput) => boo
   owner_info: (i) => !!(i.ownerLastName || i.ownerEmail),
   lease_contract: (i) => i.hasLeaseContract,
   rib: (i) => i.hasRib,
+  rent_amount: (i) => i.rentAmount != null,
+  rent_type: (i) => i.rentType != null,
   rcp: (i) => i.hasRcp,
   key_set_photo: (i) => i.hasKeySetPhoto,
   capacity: (i) => i.capacity != null,

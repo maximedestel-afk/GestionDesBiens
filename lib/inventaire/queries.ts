@@ -454,7 +454,10 @@ export async function listPropertiesMissingChecks(
         "property_id, wifi_network, wifi_code, edf_prm, trash_room_url, trash_room_notes, wifi_pto_number, wifi_pto_notes, syndic_name, syndic_phone"
       )
       .in("property_id", propertyIds),
-    supabase.from("property_owner").select("property_id, last_name, email").in("property_id", propertyIds),
+    supabase
+      .from("property_owner")
+      .select("property_id, last_name, email, rent_amount, rent_type")
+      .in("property_id", propertyIds),
     supabase.from("property_agencement").select("property_id, capacity, surface").in("property_id", propertyIds),
     supabase.from("property_platforms").select("property_id, listing_name").in("property_id", propertyIds),
     supabase
@@ -584,6 +587,8 @@ export async function listPropertiesMissingChecks(
           ownerEmail: owner?.email,
           hasLeaseContract: kinds.has("lease_contract"),
           hasRib: kinds.has("rib"),
+          rentAmount: owner?.rent_amount,
+          rentType: owner?.rent_type,
           hasRcp: kinds.has("rcp"),
           hasKeySetPhoto: kinds.has("key_set_photo"),
           capacity: agencement?.capacity,
