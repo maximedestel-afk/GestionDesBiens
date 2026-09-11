@@ -61,7 +61,7 @@ export default async function PropertiesPage({
             type="search"
             name="q"
             defaultValue={q ?? ""}
-            placeholder="Rechercher par référence ou nom…"
+            placeholder="Rechercher par référence, nom ou propriétaire…"
             className="field-input max-w-md"
           />
         </form>
