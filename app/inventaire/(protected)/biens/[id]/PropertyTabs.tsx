@@ -330,7 +330,15 @@ export function PropertyTabs({
           <PhotosTab propertyId={property.id} albums={photoAlbums} attachments={elementAttachments} />
         )}
         {activeTab === "documents" && (
-          <DocumentsTab propertyId={property.id} documents={documents} attachments={elementAttachments} />
+          <DocumentsTab
+            propertyId={property.id}
+            owner={owner}
+            leaseAttachments={propertyAttachments.filter((a) => a.kind === "lease_contract")}
+            rcpAttachments={propertyAttachments.filter((a) => a.kind === "rcp")}
+            documents={documents}
+            attachments={elementAttachments}
+            missingCheckKeys={missingCheckKeys}
+          />
         )}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />

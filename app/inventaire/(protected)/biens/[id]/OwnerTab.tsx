@@ -163,7 +163,7 @@ function RentFieldset({ owner }: { owner: PropertyOwner | null }) {
   );
 }
 
-function DocumentField({
+export function DocumentField({
   propertyId,
   title,
   attachments,
@@ -218,9 +218,7 @@ export function OwnerTab({
   documentAttachments: Attachment[];
   missingCheckKeys: string[];
 }) {
-  const leaseAttachments = attachments.filter((a) => a.kind === "lease_contract");
   const ribAttachments = attachments.filter((a) => a.kind === "rib");
-  const rcpAttachments = attachments.filter((a) => a.kind === "rcp");
 
   return (
     <div className="space-y-4">
@@ -264,17 +262,9 @@ export function OwnerTab({
 
             <fieldset className="card space-y-3 p-5">
               <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Documents</legend>
-              <DocumentField
-                propertyId={propertyId}
-                title="Bail"
-                attachments={leaseAttachments}
-                emptyLabel="Aucun bail joint"
-                kind="lease_contract"
-                noteName="leaseNotes"
-                noteValue={owner?.leaseNotes}
-                checkKey="lease_contract"
-                missing={missingCheckKeys.includes("lease_contract")}
-              />
+              <p className="text-[13px] text-[#6e6e73]">
+                Le bail et la RCP se trouvent désormais dans l&apos;onglet Documents.
+              </p>
               <DocumentField
                 propertyId={propertyId}
                 title="RIB"
@@ -285,17 +275,6 @@ export function OwnerTab({
                 noteValue={owner?.ribNotes}
                 checkKey="rib"
                 missing={missingCheckKeys.includes("rib")}
-              />
-              <DocumentField
-                propertyId={propertyId}
-                title="RCP"
-                attachments={rcpAttachments}
-                emptyLabel="Aucune RCP jointe"
-                kind="rcp"
-                noteName="rcpNotes"
-                noteValue={owner?.rcpNotes}
-                checkKey="rcp"
-                missing={missingCheckKeys.includes("rcp")}
               />
             </fieldset>
 

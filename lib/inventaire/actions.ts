@@ -577,23 +577,25 @@ export async function savePropertyDetails(propertyId: string, formData: FormData
 /* Propriétaire                                                        */
 /* ------------------------------------------------------------------ */
 
-const PROPERTY_OWNER_LABELS: Record<string, string> = {
-  last_name: "Nom",
-  first_name: "Prénom",
-  email: "Email",
-  phone: "Téléphone",
-  address: "Adresse",
-  notes: "Notes",
-  lease_notes: "Note Bail",
-  rib_notes: "Note RIB",
-  rcp_notes: "Note RCP",
-  rent_type: "Type de loyer",
-  rent_notes: "Note loyer",
-  rent_amount: "Loyer",
-  charges_amount: "Charges",
-  other_amount_label: "Autre (précisez)",
-  other_amount: "Autre (montant)",
-};
+// Le formulaire "Propriétaire" est scindé en plusieurs <form> (le bloc
+// "Bail" a été déplacé dans l'onglet Documents, avec son propre
+// formulaire) : chaque morceau n'envoie donc que ses propres champs — on ne
+// patch que les champs réellement présents dans le FormData pour ne pas
+// écraser les champs gérés par l'autre morceau (voir savePropertyDetails,
+// même logique).
+const PROPERTY_OWNER_STRING_FIELDS: [string, string, string][] = [
+  ["lastName", "last_name", "Nom"],
+  ["firstName", "first_name", "Prénom"],
+  ["email", "email", "Email"],
+  ["phone", "phone", "Téléphone"],
+  ["address", "address", "Adresse"],
+  ["notes", "notes", "Notes"],
+  ["leaseNotes", "lease_notes", "Note Bail"],
+  ["ribNotes", "rib_notes", "Note RIB"],
+  ["rcpNotes", "rcp_notes", "Note RCP"],
+  ["rentNotes", "rent_notes", "Note loyer"],
+  ["otherAmountLabel", "other_amount_label", "Autre (précisez)"],
+];
 
 function optionalAmount(value: FormDataEntryValue | null, label: string): number | null {
   const raw = typeof value === "string" ? value.trim() : "";
@@ -615,27 +617,31 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     .eq("property_id", propertyId)
     .maybeSingle();
 
-  const rentTypeRaw = optionalString(formData.get("rentType"));
-  const rentType = rentTypeRaw === "fixe" || rentTypeRaw === "fixe_variable" ? rentTypeRaw : null;
-
-  const patch = {
-    property_id: propertyId,
-    last_name: optionalString(formData.get("lastName")),
-    first_name: optionalString(formData.get("firstName")),
-    email: optionalString(formData.get("email")),
-    phone: optionalString(formData.get("phone")),
-    address: optionalString(formData.get("address")),
-    notes: optionalString(formData.get("notes")),
-    lease_notes: optionalString(formData.get("leaseNotes")),
-    rib_notes: optionalString(formData.get("ribNotes")),
-    rcp_notes: optionalString(formData.get("rcpNotes")),
-    rent_type: rentType,
-    rent_notes: optionalString(formData.get("rentNotes")),
-    rent_amount: optionalAmount(formData.get("rentAmount"), "Le loyer"),
-    charges_amount: optionalAmount(formData.get("chargesAmount"), "Les charges"),
-    other_amount_label: optionalString(formData.get("otherAmountLabel")),
-    other_amount: optionalAmount(formData.get("otherAmount"), "Le montant « Autre »"),
-  };
+  const patch: Record<string, unknown> = { property_id: propertyId };
+  const labels: Record<string, string> = {};
+  for (const [formKey, columnKey, label] of PROPERTY_OWNER_STRING_FIELDS) {
+    if (formData.has(formKey)) {
+      patch[columnKey] = optionalString(formData.get(formKey));
+      labels[columnKey] = label;
+    }
+  }
+  if (formData.has("rentType")) {
+    const rentTypeRaw = optionalString(formData.get("rentType"));
+    patch.rent_type = rentTypeRaw === "fixe" || rentTypeRaw === "fixe_variable" ? rentTypeRaw : null;
+    labels.rent_type = "Type de loyer";
+  }
+  if (formData.has("rentAmount")) {
+    patch.rent_amount = optionalAmount(formData.get("rentAmount"), "Le loyer");
+    labels.rent_amount = "Loyer";
+  }
+  if (formData.has("chargesAmount")) {
+    patch.charges_amount = optionalAmount(formData.get("chargesAmount"), "Les charges");
+    labels.charges_amount = "Charges";
+  }
+  if (formData.has("otherAmount")) {
+    patch.other_amount = optionalAmount(formData.get("otherAmount"), "Le montant « Autre »");
+    labels.other_amount = "Autre (montant)";
+  }
 
   await updatePropertyDetailRow(supabase, "property_owner", propertyId, patch, !!existing);
 
@@ -645,7 +651,7 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     sectionLabel: tabCode("proprietaire"),
     existing,
     patch,
-    labels: PROPERTY_OWNER_LABELS,
+    labels,
   });
 
   revalidateProperty(propertyId);

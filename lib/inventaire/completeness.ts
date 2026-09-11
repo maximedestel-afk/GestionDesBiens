@@ -12,9 +12,9 @@ export interface CompletenessCheck {
 // libellé affiché — le libellé/code à montrer se calcule à l'affichage.
 export const COMPLETENESS_CHECKS: CompletenessCheck[] = [
   { key: "owner_info", label: "Coordonnées du propriétaire", tab: "proprietaire" },
-  { key: "lease_contract", label: "Bail", tab: "proprietaire" },
+  { key: "lease_contract", label: "Bail", tab: "documents" },
   { key: "rib", label: "RIB", tab: "proprietaire" },
-  { key: "rcp", label: "RCP", tab: "proprietaire" },
+  { key: "rcp", label: "RCP", tab: "documents" },
   { key: "key_set_photo", label: "Photo du trousseau", tab: "cles" },
   { key: "capacity", label: "Nombre de personnes maximum", tab: "agencement" },
   { key: "surface", label: "Superficie", tab: "agencement" },
