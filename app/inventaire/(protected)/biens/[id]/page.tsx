@@ -103,6 +103,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       surface: agencement?.surface,
       hasVisitVideo: attachments.some((a) => a.kind === "visit_video"),
       roomsCount: rooms.length,
+      bedsCount: beds.length,
       wifiNetwork: details?.wifiNetwork,
       wifiCode: details?.wifiCode,
       hasWifiContract: attachments.some((a) => a.kind === "wifi_contract"),

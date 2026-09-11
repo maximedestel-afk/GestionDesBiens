@@ -401,6 +401,7 @@ export async function listPropertiesMissingChecks(
     { data: attachments },
     { data: rooms },
     { data: keys },
+    { data: beds },
     { data: dismissals },
   ] = await Promise.all([
     supabase
@@ -430,6 +431,7 @@ export async function listPropertiesMissingChecks(
       .in("property_id", propertyIds),
     supabase.from("rooms").select("property_id").in("property_id", propertyIds),
     supabase.from("property_keys").select("property_id").in("property_id", propertyIds),
+    supabase.from("room_beds").select("property_id").in("property_id", propertyIds),
     supabase.from("property_checklist_dismissals").select("property_id, check_key").in("property_id", propertyIds),
   ]);
 
@@ -480,6 +482,11 @@ export async function listPropertiesMissingChecks(
   const keysCountByProperty = new Map<string, number>();
   for (const k of keys ?? []) {
     keysCountByProperty.set(k.property_id, (keysCountByProperty.get(k.property_id) ?? 0) + 1);
+  }
+
+  const bedsCountByProperty = new Map<string, number>();
+  for (const b of beds ?? []) {
+    bedsCountByProperty.set(b.property_id, (bedsCountByProperty.get(b.property_id) ?? 0) + 1);
   }
 
   const dismissedByProperty = new Map<string, Set<string>>();
@@ -539,6 +546,7 @@ export async function listPropertiesMissingChecks(
           surface: agencement?.surface,
           hasVisitVideo: kinds.has("visit_video"),
           roomsCount: roomsCountByProperty.get(propertyId) ?? 0,
+          bedsCount: bedsCountByProperty.get(propertyId) ?? 0,
           wifiNetwork: detail?.wifi_network,
           wifiCode: detail?.wifi_code,
           hasWifiContract: kinds.has("wifi_contract"),
