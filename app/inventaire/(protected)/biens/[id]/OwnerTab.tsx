@@ -167,7 +167,15 @@ function parseAmount(value: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function RentFieldset({ owner }: { owner: PropertyOwner | null }) {
+function RentFieldset({
+  propertyId,
+  owner,
+  missingCheckKeys,
+}: {
+  propertyId: string;
+  owner: PropertyOwner | null;
+  missingCheckKeys: string[];
+}) {
   const [rent, setRent] = useState(owner?.rentAmount != null ? String(owner.rentAmount) : "");
   const [charges, setCharges] = useState(owner?.chargesAmount != null ? String(owner.chargesAmount) : "");
   const [other, setOther] = useState(owner?.otherAmount != null ? String(owner.otherAmount) : "");
@@ -176,7 +184,19 @@ function RentFieldset({ owner }: { owner: PropertyOwner | null }) {
 
   return (
     <fieldset className="card p-5">
-      <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Loyer</legend>
+      <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
+        Loyer
+        <MissingFieldFlag
+          propertyId={propertyId}
+          checkKey="rent_type"
+          missing={missingCheckKeys.includes("rent_type")}
+        />
+        <MissingFieldFlag
+          propertyId={propertyId}
+          checkKey="rent_amount"
+          missing={missingCheckKeys.includes("rent_amount")}
+        />
+      </legend>
       <div className="mt-2 space-y-3">
         <div className="flex flex-wrap gap-4">
           <label className="flex items-center gap-2 text-[15px] text-[#1d1d1f]">
@@ -388,7 +408,7 @@ export function OwnerTab({
               </div>
             </fieldset>
 
-            <RentFieldset owner={owner} />
+            <RentFieldset propertyId={propertyId} owner={owner} missingCheckKeys={missingCheckKeys} />
 
             <fieldset className="card space-y-3 p-5">
               <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Documents</legend>
