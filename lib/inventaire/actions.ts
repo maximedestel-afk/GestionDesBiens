@@ -587,6 +587,8 @@ const PROPERTY_OWNER_LABELS: Record<string, string> = {
   lease_notes: "Note Bail",
   rib_notes: "Note RIB",
   rcp_notes: "Note RCP",
+  rent_type: "Type de loyer",
+  rent_notes: "Note loyer",
   rent_amount: "Loyer",
   charges_amount: "Charges",
   other_amount_label: "Autre (précisez)",
@@ -613,6 +615,9 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     .eq("property_id", propertyId)
     .maybeSingle();
 
+  const rentTypeRaw = optionalString(formData.get("rentType"));
+  const rentType = rentTypeRaw === "fixe" || rentTypeRaw === "fixe_variable" ? rentTypeRaw : null;
+
   const patch = {
     property_id: propertyId,
     last_name: optionalString(formData.get("lastName")),
@@ -624,6 +629,8 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     lease_notes: optionalString(formData.get("leaseNotes")),
     rib_notes: optionalString(formData.get("ribNotes")),
     rcp_notes: optionalString(formData.get("rcpNotes")),
+    rent_type: rentType,
+    rent_notes: optionalString(formData.get("rentNotes")),
     rent_amount: optionalAmount(formData.get("rentAmount"), "Le loyer"),
     charges_amount: optionalAmount(formData.get("chargesAmount"), "Les charges"),
     other_amount_label: optionalString(formData.get("otherAmountLabel")),
