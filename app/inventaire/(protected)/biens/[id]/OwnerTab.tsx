@@ -9,6 +9,7 @@ import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { AddressAutocomplete } from "@/components/inventaire/AddressAutocomplete";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
+import { NoteField } from "@/components/inventaire/NoteField";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
 
@@ -258,7 +259,7 @@ function RentFieldset({ owner }: { owner: PropertyOwner | null }) {
             />
           </div>
         </div>
-        <Field label="Note" name="rentNotes" defaultValue={owner?.rentNotes} textarea />
+        <NoteField label="Note" name="rentNotes" defaultValue={owner?.rentNotes} />
         <div className="flex items-center justify-between rounded-[10px] bg-black/[0.03] px-3.5 py-2.5">
           <span className="text-[15px] font-semibold text-[#1d1d1f]">Total</span>
           <span className="text-[15px] font-semibold text-[#1d1d1f]">
@@ -304,7 +305,7 @@ export function DocumentField({
           showCamera={false}
           target={{ propertyId, entityType: "property", entityId: propertyId, kind }}
         />
-        <Field label="Note" name={noteName} defaultValue={noteValue} textarea />
+        <NoteField label="Note" name={noteName} defaultValue={noteValue} />
       </div>
     </fieldset>
   );
@@ -383,7 +384,7 @@ export function OwnerTab({
                     className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                   />
                 </div>
-                <Field label="Notes" name="notes" defaultValue={owner?.notes} textarea />
+                <NoteField label="Notes" name="notes" defaultValue={owner?.notes} />
               </div>
             </fieldset>
 

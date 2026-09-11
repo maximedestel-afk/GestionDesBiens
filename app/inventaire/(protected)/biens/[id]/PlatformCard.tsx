@@ -7,6 +7,7 @@ import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { PLATFORM_LABELS, PlatformLogo } from "@/components/inventaire/PlatformLogo";
+import { NoteField } from "@/components/inventaire/NoteField";
 
 const inputClass =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
@@ -86,13 +87,7 @@ export function PlatformCard({
                 )}
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Note</label>
-                <textarea
-                  name="notes"
-                  defaultValue={platform.notes ?? ""}
-                  rows={3}
-                  className={inputClass}
-                />
+                <NoteField label="Note" name="notes" defaultValue={platform.notes} rows={3} />
               </div>
             </div>
 
