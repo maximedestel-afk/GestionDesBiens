@@ -28,6 +28,7 @@ import type {
   Equipment,
   InventoryCategoryRow,
   InventoryItem,
+  OwnerDirectoryEntry,
   Profile,
   Property,
   PropertyAgencement,
@@ -133,6 +134,38 @@ export async function getPropertyOwner(propertyId: string): Promise<PropertyOwne
     .maybeSingle();
   if (error) throw error;
   return data ? serializePropertyOwner(data) : null;
+}
+
+/** Pour le "réutiliser un propriétaire existant" (onglet Propriétaire) :
+ * tous les propriétaires déjà renseignés sur d'autres biens. */
+export async function listOwnersDirectory(excludePropertyId: string): Promise<OwnerDirectoryEntry[]> {
+  const supabase = await createClient();
+  const [{ data: owners, error: ownersError }, { data: properties, error: propertiesError }] = await Promise.all([
+    supabase
+      .from("property_owner")
+      .select("property_id, last_name, first_name, email, phone, address")
+      .neq("property_id", excludePropertyId),
+    supabase.from("properties").select("id, reference"),
+  ]);
+  if (ownersError) throw ownersError;
+  if (propertiesError) throw propertiesError;
+
+  const referenceByPropertyId = new Map((properties ?? []).map((p) => [p.id, p.reference]));
+
+  return (owners ?? [])
+    .filter((o) => o.last_name || o.first_name)
+    .map((o) => ({
+      propertyId: o.property_id,
+      propertyReference: referenceByPropertyId.get(o.property_id) ?? "",
+      lastName: o.last_name,
+      firstName: o.first_name,
+      email: o.email,
+      phone: o.phone,
+      address: o.address,
+    }))
+    .sort((a, b) =>
+      `${a.lastName ?? ""} ${a.firstName ?? ""}`.localeCompare(`${b.lastName ?? ""} ${b.firstName ?? ""}`)
+    );
 }
 
 export async function getPropertyAgencement(propertyId: string): Promise<PropertyAgencement | null> {

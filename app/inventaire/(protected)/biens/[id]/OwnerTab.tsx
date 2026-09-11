@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { Attachment, PropertyElement, PropertyOwner } from "@/lib/inventaire/types";
+import { useRef, useState, type RefObject } from "react";
+import type { Attachment, OwnerDirectoryEntry, PropertyElement, PropertyOwner } from "@/lib/inventaire/types";
 import { savePropertyOwner } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
@@ -12,18 +12,23 @@ import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
 
+const FIELD_INPUT_CLASS =
+  "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
+
 function Field({
   label,
   name,
   defaultValue,
   type = "text",
   textarea = false,
+  inputRef,
 }: {
   label: string;
   name: string;
   defaultValue?: string | null;
   type?: string;
   textarea?: boolean;
+  inputRef?: RefObject<HTMLInputElement | null>;
 }) {
   return (
     <div>
@@ -31,28 +36,130 @@ function Field({
         {label}
       </label>
       {textarea ? (
-        <textarea
-          id={name}
-          name={name}
-          defaultValue={defaultValue ?? ""}
-          rows={2}
-          className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-        />
+        <textarea id={name} name={name} defaultValue={defaultValue ?? ""} rows={2} className={FIELD_INPUT_CLASS} />
       ) : (
         <input
+          ref={inputRef}
           id={name}
           name={name}
           type={type}
           defaultValue={defaultValue ?? ""}
-          className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+          className={FIELD_INPUT_CLASS}
         />
       )}
     </div>
   );
 }
 
-const AMOUNT_INPUT_CLASS =
-  "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
+/** Un même propriétaire peut être renseigné sur plusieurs biens : on
+ * regroupe l'annuaire par nom+prénom+email pour "Réutiliser un
+ * propriétaire existant", avec la liste des références concernées. */
+interface DedupedOwner {
+  key: string;
+  lastName: string | null;
+  firstName: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  references: string[];
+}
+
+function dedupeOwners(directory: OwnerDirectoryEntry[]): DedupedOwner[] {
+  const byKey = new Map<string, DedupedOwner>();
+  for (const entry of directory) {
+    const key = `${entry.lastName ?? ""}|${entry.firstName ?? ""}|${entry.email ?? ""}`;
+    const existing = byKey.get(key);
+    if (existing) {
+      if (entry.propertyReference) existing.references.push(entry.propertyReference);
+      continue;
+    }
+    byKey.set(key, {
+      key,
+      lastName: entry.lastName,
+      firstName: entry.firstName,
+      email: entry.email,
+      phone: entry.phone,
+      address: entry.address,
+      references: entry.propertyReference ? [entry.propertyReference] : [],
+    });
+  }
+  return Array.from(byKey.values());
+}
+
+/** Champ "Nom" avec autocomplétion sur les propriétaires déjà renseignés
+ * sur d'autres biens — cliquer une suggestion remplit aussi prénom, email,
+ * téléphone et adresse (via onSelect, géré par le parent). */
+function OwnerNameField({
+  defaultValue,
+  directory,
+  onSelect,
+}: {
+  defaultValue: string | null | undefined;
+  directory: OwnerDirectoryEntry[];
+  onSelect: (owner: DedupedOwner) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState(defaultValue ?? "");
+  const [open, setOpen] = useState(false);
+
+  const deduped = dedupeOwners(directory);
+  const term = query.trim().toLowerCase();
+  const matches = term
+    ? deduped.filter((o) => `${o.lastName ?? ""} ${o.firstName ?? ""}`.toLowerCase().includes(term))
+    : deduped;
+
+  const select = (owner: DedupedOwner) => {
+    if (inputRef.current) {
+      inputRef.current.value = owner.lastName ?? "";
+      inputRef.current.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    setQuery(owner.lastName ?? "");
+    setOpen(false);
+    onSelect(owner);
+  };
+
+  return (
+    <div className="relative">
+      <label className="field-label" htmlFor="lastName">
+        Nom
+      </label>
+      <input
+        ref={inputRef}
+        id="lastName"
+        name="lastName"
+        defaultValue={defaultValue ?? ""}
+        autoComplete="off"
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        className={FIELD_INPUT_CLASS}
+      />
+      {open && matches.length > 0 && (
+        <div className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-[10px] border border-black/10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+          {matches.map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => select(o)}
+              className="block w-full px-3.5 py-2.5 text-left text-sm text-[#1d1d1f] hover:bg-black/[0.04]"
+            >
+              {[o.lastName, o.firstName].filter(Boolean).join(" ") || "(sans nom)"}
+              {o.references.length > 0 && (
+                <span className="ml-1.5 text-[#6e6e73]">— {o.references.join(", ")}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const AMOUNT_INPUT_CLASS = FIELD_INPUT_CLASS;
 
 function parseAmount(value: string): number {
   const n = Number.parseFloat(value.replace(",", "."));
@@ -210,6 +317,7 @@ export function OwnerTab({
   documents,
   documentAttachments,
   missingCheckKeys,
+  ownersDirectory,
 }: {
   propertyId: string;
   owner: PropertyOwner | null;
@@ -217,8 +325,29 @@ export function OwnerTab({
   documents: PropertyElement[];
   documentAttachments: Attachment[];
   missingCheckKeys: string[];
+  ownersDirectory: OwnerDirectoryEntry[];
 }) {
   const ribAttachments = attachments.filter((a) => a.kind === "rib");
+
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+
+  function fillFromOwner(selected: DedupedOwner) {
+    const setValue = (ref: RefObject<HTMLInputElement | null>, value: string | null) => {
+      if (!ref.current) return;
+      ref.current.value = value ?? "";
+      ref.current.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    setValue(firstNameRef, selected.firstName);
+    setValue(emailRef, selected.email);
+    setValue(phoneRef, selected.phone);
+    const addressInput = document.getElementById("address") as HTMLInputElement | null;
+    if (addressInput) {
+      addressInput.value = selected.address ?? "";
+      addressInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -236,12 +365,12 @@ export function OwnerTab({
               </legend>
               <div className="mt-2 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label="Nom" name="lastName" defaultValue={owner?.lastName} />
-                  <Field label="Prénom" name="firstName" defaultValue={owner?.firstName} />
+                  <OwnerNameField defaultValue={owner?.lastName} directory={ownersDirectory} onSelect={fillFromOwner} />
+                  <Field label="Prénom" name="firstName" defaultValue={owner?.firstName} inputRef={firstNameRef} />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label="Email" name="email" type="email" defaultValue={owner?.email} />
-                  <Field label="Téléphone" name="phone" type="tel" defaultValue={owner?.phone} />
+                  <Field label="Email" name="email" type="email" defaultValue={owner?.email} inputRef={emailRef} />
+                  <Field label="Téléphone" name="phone" type="tel" defaultValue={owner?.phone} inputRef={phoneRef} />
                 </div>
                 <div>
                   <label className="field-label" htmlFor="address">

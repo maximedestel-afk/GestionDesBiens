@@ -9,6 +9,7 @@ import type {
   Equipment,
   InventoryCategoryRow,
   InventoryItem,
+  OwnerDirectoryEntry,
   Profile,
   Property,
   PropertyAgencement,
@@ -73,6 +74,7 @@ export function PropertyTabs({
   activityLog,
   tasks,
   profiles,
+  ownersDirectory,
   allowedTabs,
 }: {
   property: Property;
@@ -102,6 +104,7 @@ export function PropertyTabs({
   activityLog: ActivityLogEntry[];
   tasks: Task[];
   profiles: Profile[];
+  ownersDirectory: OwnerDirectoryEntry[];
 }) {
   const role = useUserRole();
   const isPrestataire = role === "prestataire";
@@ -266,6 +269,7 @@ export function PropertyTabs({
             documents={ownerDocuments}
             documentAttachments={elementAttachments}
             missingCheckKeys={missingCheckKeys}
+            ownersDirectory={ownersDirectory}
           />
         )}
         {activeTab === "details" && (
