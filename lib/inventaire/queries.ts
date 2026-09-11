@@ -74,7 +74,18 @@ export async function listProperties(
   const term = search?.trim();
   if (term) {
     const escaped = term.replace(/[%_]/g, (c) => `\\${c}`);
-    query = query.or(`reference.ilike.%${escaped}%,name.ilike.%${escaped}%`);
+
+    const { data: matchingOwners } = await supabase
+      .from("property_owner")
+      .select("property_id")
+      .or(`last_name.ilike.%${escaped}%,first_name.ilike.%${escaped}%`);
+    const ownerPropertyIds = (matchingOwners ?? []).map((o) => o.property_id);
+
+    const orParts = [`reference.ilike.%${escaped}%`, `name.ilike.%${escaped}%`];
+    if (ownerPropertyIds.length > 0) {
+      orParts.push(`id.in.(${ownerPropertyIds.join(",")})`);
+    }
+    query = query.or(orParts.join(","));
   }
 
   const { data, error } = await query;
