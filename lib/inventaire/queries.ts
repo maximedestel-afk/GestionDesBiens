@@ -678,39 +678,6 @@ export async function listPropertiesRentTypes(
   return result;
 }
 
-/** Page "Compléter les données manquantes" : les lignes property_owner /
- * property_agencement / property_details de tous les biens d'un coup,
- * pour préremplir les champs (au cas où l'un des deux champs d'un couple
- * — ex. réseau/code Wifi — est déjà renseigné). */
-export async function listPropertiesOwnersMap(propertyIds: string[]): Promise<Record<string, PropertyOwner>> {
-  if (propertyIds.length === 0) return {};
-  const supabase = await createClient();
-  const { data } = await supabase.from("property_owner").select("*").in("property_id", propertyIds);
-  const result: Record<string, PropertyOwner> = {};
-  for (const row of data ?? []) result[row.property_id] = serializePropertyOwner(row);
-  return result;
-}
-
-export async function listPropertiesAgencementsMap(
-  propertyIds: string[]
-): Promise<Record<string, PropertyAgencement>> {
-  if (propertyIds.length === 0) return {};
-  const supabase = await createClient();
-  const { data } = await supabase.from("property_agencement").select("*").in("property_id", propertyIds);
-  const result: Record<string, PropertyAgencement> = {};
-  for (const row of data ?? []) result[row.property_id] = serializeAgencement(row);
-  return result;
-}
-
-export async function listPropertiesDetailsMap(propertyIds: string[]): Promise<Record<string, PropertyDetails>> {
-  if (propertyIds.length === 0) return {};
-  const supabase = await createClient();
-  const { data } = await supabase.from("property_details").select("*").in("property_id", propertyIds);
-  const result: Record<string, PropertyDetails> = {};
-  for (const row of data ?? []) result[row.property_id] = serializePropertyDetails(row);
-  return result;
-}
-
 export interface PropertyStats {
   bedroomCount: number;
   bathroomCount: number;
