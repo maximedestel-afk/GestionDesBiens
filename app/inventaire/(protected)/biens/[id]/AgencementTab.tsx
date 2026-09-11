@@ -119,6 +119,11 @@ export function AgencementTab({
         <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">
           Pièces &amp; couchages
           <MissingFieldFlag propertyId={propertyId} checkKey="rooms" missing={missingCheckKeys.includes("rooms")} />
+          <MissingFieldFlag
+            propertyId={propertyId}
+            checkKey="beds_missing"
+            missing={missingCheckKeys.includes("beds_missing")}
+          />
         </legend>
         <p className="text-sm text-[#6e6e73]">
           Renseignez toutes les pièces du bien : elles alimentent le menu déroulant « Pièce » de l&apos;onglet

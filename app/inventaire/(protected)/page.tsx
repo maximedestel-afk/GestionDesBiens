@@ -84,6 +84,11 @@ export default async function PropertiesPage({
                   )}
                 </Link>
                 <div className="flex shrink-0 items-center gap-3">
+                  {(missingChecks[property.id] ?? []).some((c) => c.key === "rooms") && (
+                    <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
+                      New
+                    </span>
+                  )}
                   {(platforms[property.id] ?? [])
                     .filter((p) => p.url)
                     .map((p) => (

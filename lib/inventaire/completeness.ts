@@ -20,6 +20,7 @@ export const COMPLETENESS_CHECKS: CompletenessCheck[] = [
   { key: "surface", label: "Superficie", tab: "agencement" },
   { key: "visit_video", label: "Vidéo de visite", tab: "agencement" },
   { key: "rooms", label: "Pièces & couchages", tab: "agencement" },
+  { key: "beds_missing", label: "Manque lit (pièces sans couchage)", tab: "agencement" },
   { key: "wifi_info", label: "Réseau et code Wifi", tab: "details" },
   { key: "wifi_contract", label: "Contrat internet", tab: "details" },
   { key: "edf_prm", label: "Numéro PRM (EDF)", tab: "details" },
@@ -42,6 +43,7 @@ export interface PropertyCompletenessInput {
   surface: number | null | undefined;
   hasVisitVideo: boolean;
   roomsCount: number;
+  bedsCount: number;
   wifiNetwork: string | null | undefined;
   wifiCode: string | null | undefined;
   hasWifiContract: boolean;
@@ -65,6 +67,7 @@ const CHECK_PREDICATES: Record<string, (input: PropertyCompletenessInput) => boo
   surface: (i) => i.surface != null,
   visit_video: (i) => i.hasVisitVideo,
   rooms: (i) => i.roomsCount > 0,
+  beds_missing: (i) => !(i.roomsCount > 0 && i.bedsCount === 0),
   wifi_info: (i) => !!(i.wifiNetwork && i.wifiCode),
   wifi_contract: (i) => i.hasWifiContract,
   edf_prm: (i) => !!i.edfPrm,
