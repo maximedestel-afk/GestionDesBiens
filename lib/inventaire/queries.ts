@@ -351,6 +351,32 @@ export async function listActivityLog(propertyId: string): Promise<ActivityLogEn
   return (data ?? []).map(serializeActivityLogEntry);
 }
 
+export interface JournalEntry extends ActivityLogEntry {
+  propertyReference: string;
+  propertyName: string | null;
+}
+
+/** Page "Journal" (admin) : l'historique de tous les biens d'un coup,
+ * avec la référence/le nom du bien concerné, filtré depuis une date. */
+export async function listAllActivityLog(sinceIso?: string): Promise<JournalEntry[]> {
+  const supabase = await createClient();
+  let query = supabase.from("activity_log").select("*").order("created_at", { ascending: false }).limit(500);
+  if (sinceIso) query = query.gte("created_at", sinceIso);
+
+  const [{ data: logs, error }, { data: properties }] = await Promise.all([
+    query,
+    supabase.from("properties").select("id, reference, name"),
+  ]);
+  if (error) throw error;
+
+  const propertyById = new Map((properties ?? []).map((p) => [p.id, p]));
+  return (logs ?? []).map((row) => {
+    const entry = serializeActivityLogEntry(row);
+    const property = propertyById.get(entry.propertyId);
+    return { ...entry, propertyReference: property?.reference ?? "?", propertyName: property?.name ?? null };
+  });
+}
+
 export async function listTasks(propertyId: string): Promise<Task[]> {
   const supabase = await createClient();
   const { data: taskRows, error: taskError } = await supabase
