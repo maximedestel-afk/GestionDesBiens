@@ -683,25 +683,13 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
 /* Agencement                                                          */
 /* ------------------------------------------------------------------ */
 
-const PROPERTY_AGENCEMENT_LABELS: Record<string, string> = {
-  capacity: "Nombre de personnes maximum",
-  surface: "Superficie",
-};
-
+// Comme savePropertyOwner/savePropertyDetails : ne patch que les champs
+// réellement présents dans le FormData soumis, pour rester utilisable
+// depuis un formulaire ne portant qu'un seul champ (ex. page "Compléter
+// les données manquantes") sans écraser l'autre avec null.
 export async function saveAgencement(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
-
-  const capacityRaw = optionalString(formData.get("capacity"));
-  const capacity = capacityRaw ? Number.parseInt(capacityRaw, 10) : null;
-  if (capacity !== null && (!Number.isInteger(capacity) || capacity < 0)) {
-    throw new Error("La capacité doit être un nombre entier positif.");
-  }
-  const surfaceRaw = optionalString(formData.get("surface"));
-  const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
-  if (surface !== null && (!Number.isFinite(surface) || surface < 0)) {
-    throw new Error("La superficie doit être un nombre positif.");
-  }
 
   const { data: existing } = await supabase
     .from("property_agencement")
@@ -709,7 +697,28 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
     .eq("property_id", propertyId)
     .maybeSingle();
 
-  const patch = { property_id: propertyId, capacity, surface };
+  const patch: Record<string, unknown> = { property_id: propertyId };
+  const labels: Record<string, string> = {};
+
+  if (formData.has("capacity")) {
+    const capacityRaw = optionalString(formData.get("capacity"));
+    const capacity = capacityRaw ? Number.parseInt(capacityRaw, 10) : null;
+    if (capacity !== null && (!Number.isInteger(capacity) || capacity < 0)) {
+      throw new Error("La capacité doit être un nombre entier positif.");
+    }
+    patch.capacity = capacity;
+    labels.capacity = "Nombre de personnes maximum";
+  }
+  if (formData.has("surface")) {
+    const surfaceRaw = optionalString(formData.get("surface"));
+    const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
+    if (surface !== null && (!Number.isFinite(surface) || surface < 0)) {
+      throw new Error("La superficie doit être un nombre positif.");
+    }
+    patch.surface = surface;
+    labels.surface = "Superficie";
+  }
+
   await updatePropertyDetailRow(supabase, "property_agencement", propertyId, patch, !!existing);
 
   await logSectionChanges(supabase, {
@@ -718,7 +727,7 @@ export async function saveAgencement(propertyId: string, formData: FormData) {
     sectionLabel: tabCode("agencement"),
     existing,
     patch,
-    labels: PROPERTY_AGENCEMENT_LABELS,
+    labels,
   });
 
   revalidateProperty(propertyId);
