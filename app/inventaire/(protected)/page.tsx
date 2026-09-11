@@ -6,6 +6,7 @@ import {
   listPropertiesMissingChecks,
   listPropertiesOpenTasksCount,
   listPropertiesPlatforms,
+  listPropertiesRentTypes,
   listPropertiesStats,
 } from "@/lib/inventaire/queries";
 import { NewPropertyDialog } from "@/components/inventaire/NewPropertyDialog";
@@ -25,12 +26,14 @@ export default async function PropertiesPage({
   const allowedPropertyIds = isPrestataire ? await getPrestataireAllowedPropertyIds(profile!.id) : null;
   const properties = await listProperties(q, allowedPropertyIds);
   const propertyIds = properties.map((p) => p.id);
-  const [missingChecks, stats, platforms, openTasksCounts] = await Promise.all([
+  const [missingChecks, stats, platforms, openTasksCounts, rentTypes] = await Promise.all([
     listPropertiesMissingChecks(propertyIds),
     listPropertiesStats(propertyIds),
     listPropertiesPlatforms(propertyIds),
     listPropertiesOpenTasksCount(propertyIds),
+    listPropertiesRentTypes(propertyIds),
   ]);
+  const RENT_TYPE_LABELS = { fixe: "Fixe", fixe_variable: "Fixe + Variable" } as const;
   const totalOpenTasks = Object.values(openTasksCounts).reduce((sum, count) => sum + count, 0);
 
   return (
@@ -88,11 +91,18 @@ export default async function PropertiesPage({
                       capacity={stats[property.id].capacity}
                     />
                   )}
-                  {(missingChecks[property.id] ?? []).some((c) => c.key === "rooms") && (
-                    <span className="mt-1.5 inline-block rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-                      New
-                    </span>
-                  )}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    {(missingChecks[property.id] ?? []).some((c) => c.key === "rooms") && (
+                      <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
+                        New
+                      </span>
+                    )}
+                    {rentTypes[property.id] && (
+                      <span className="inline-block rounded-full bg-black/[0.05] px-3 py-1 text-sm font-medium text-[#6e6e73]">
+                        {RENT_TYPE_LABELS[rentTypes[property.id] as keyof typeof RENT_TYPE_LABELS]}
+                      </span>
+                    )}
+                  </div>
                 </Link>
                 <div className="flex shrink-0 items-center gap-3">
                   {(platforms[property.id] ?? [])

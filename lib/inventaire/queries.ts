@@ -653,6 +653,26 @@ export async function listPropertiesPlatforms(propertyIds: string[]): Promise<Re
   return result;
 }
 
+/** Page Biens (liste) : le type de loyer (Fixe / Fixe+Variable) de chaque
+ * bien, pour l'affichage du "modèle" sur chaque ligne. */
+export async function listPropertiesRentTypes(
+  propertyIds: string[]
+): Promise<Record<string, "fixe" | "fixe_variable" | null>> {
+  if (propertyIds.length === 0) return {};
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("property_owner")
+    .select("property_id, rent_type")
+    .in("property_id", propertyIds);
+
+  const result: Record<string, "fixe" | "fixe_variable" | null> = {};
+  for (const propertyId of propertyIds) result[propertyId] = null;
+  for (const row of data ?? []) result[row.property_id] = row.rent_type;
+
+  return result;
+}
+
 export interface PropertyStats {
   bedroomCount: number;
   bathroomCount: number;
