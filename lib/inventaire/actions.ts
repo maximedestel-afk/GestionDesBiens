@@ -10,6 +10,7 @@ import {
   standardEquipmentNamesForRoom,
 } from "./catalog";
 import { decodeCsvBuffer, normalizeHeader, parseCsv } from "./csv";
+import { getCurrentProfile, getPrestataireAllowedPropertyIds, listProperties } from "./queries";
 import { tabCode } from "./tabs";
 import type {
   AttachmentEntityType,
@@ -215,6 +216,21 @@ export async function signOut() {
 /* ------------------------------------------------------------------ */
 /* Biens                                                                */
 /* ------------------------------------------------------------------ */
+
+/** Barre de recherche de biens dans l'en-tête (toutes les pages). Lecture
+ * seule : pas de requireUser (qui bloque le rôle "prestataire"). */
+export async function quickSearchProperties(
+  term: string
+): Promise<{ id: string; reference: string; name: string | null }[]> {
+  const profile = await getCurrentProfile();
+  if (!profile) return [];
+
+  const allowedPropertyIds =
+    profile.role === "prestataire" ? await getPrestataireAllowedPropertyIds(profile.id) : null;
+
+  const properties = await listProperties(term, allowedPropertyIds);
+  return properties.slice(0, 8).map((p) => ({ id: p.id, reference: p.reference, name: p.name }));
+}
 
 export async function createProperty(formData: FormData) {
   const supabase = await createClient();
