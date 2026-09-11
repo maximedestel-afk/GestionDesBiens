@@ -26,6 +26,7 @@ import type {
 import { deleteProperty } from "@/lib/inventaire/actions";
 import { getCompletenessCheck, type CompletenessCheck } from "@/lib/inventaire/completeness";
 import { PROPERTY_TABS } from "@/lib/inventaire/tabs";
+import { platformTitle } from "@/components/inventaire/PlatformLogo";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { DismissedChecksPanel } from "@/components/inventaire/DismissedChecksPanel";
 import { useUserRole } from "@/components/inventaire/UserRoleContext";
@@ -163,10 +164,19 @@ export function PropertyTabs({
       tab: "eauelec",
     }));
 
+  const platformsMissingChecks: CompletenessCheck[] = platforms
+    .filter((p) => (p.url || p.listingName) && !p.reference)
+    .map((p) => ({
+      key: `platform-reference-${p.id}`,
+      label: `Référence manquante (${platformTitle(p)})`,
+      tab: "plateformes",
+    }));
+
   const missingChecks = [
     ...missingCheckKeys.map((key) => getCompletenessCheck(key)).filter((check): check is CompletenessCheck => !!check),
     ...equipmentMissingChecks,
     ...waterElecMissingChecks,
+    ...platformsMissingChecks,
   ];
 
   const openTasksCount = tasks.filter((t) => !t.done).length;
