@@ -76,16 +76,22 @@ export function normalizeHeader(s: string): string {
 }
 
 /** Décode un fichier importé en UTF-8 (tolérant, sans planter sur un octet
- * invalide isolé — remplacé par "�"). Si une part significative du fichier
- * s'avère invalide en UTF-8, on considère qu'il est entièrement encodé en
- * Windows-1252 (courant pour les exports Excel côté francophone) et on le
- * redécode entièrement avec cet encodage plutôt que de garder un texte
- * truffé de caractères de remplacement. */
+ * invalide isolé — remplacé par "�"). Si le décodage tolérant contient au
+ * moins un octet invalide :
+ * - s'il subsiste malgré tout de "vrais" caractères non-ASCII correctement
+ *   décodés (pas seulement des "�"), le fichier est globalement en UTF-8
+ *   avec quelques octets isolés corrompus (ex. un en-tête mal ressaisi) —
+ *   on garde ce décodage tolérant plutôt que de tout casser ;
+ * - sinon (aucun caractère accentué n'a pu être décodé, uniquement des
+ *   "�"), le fichier est très probablement encodé entièrement en
+ *   Windows-1252 (courant pour les exports Excel côté francophone) — on le
+ *   redécode entièrement avec cet encodage. */
 export function decodeCsvBuffer(buffer: ArrayBuffer): string {
   const lenient = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
-  const replacementCount = (lenient.match(/�/g) ?? []).length;
-  if (lenient.length > 0 && replacementCount / lenient.length > 0.01) {
-    return new TextDecoder("windows-1252").decode(buffer);
-  }
-  return lenient;
+  if (!lenient.includes("�")) return lenient;
+
+  const hasGenuineNonAscii = /[^\x00-\x7F�]/.test(lenient);
+  if (hasGenuineNonAscii) return lenient;
+
+  return new TextDecoder("windows-1252").decode(buffer);
 }

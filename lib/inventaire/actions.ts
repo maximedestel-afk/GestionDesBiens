@@ -299,20 +299,23 @@ export async function deleteProperty(propertyId: string) {
 /* Import CSV                                                          */
 /* ------------------------------------------------------------------ */
 
+// Plusieurs libellés acceptés par colonne : les fichiers fournis par
+// l'utilisateur n'utilisent pas toujours exactement les mêmes en-têtes
+// (ex. "Ref" au lieu de "Reference").
 const IMPORT_CSV_COLUMNS = {
-  reference: "reference",
-  name: "nom",
-  address: "adresse",
-  surface: "superficie",
-  capacity: "capacite",
-  airbnb: "url airbnb",
-  booking: "url booking",
-  vrbo: "url vrbo",
-  hopper: "url hopper",
-  lastName: "nom owner",
-  firstName: "prenom owner",
-  phone: "tel owner",
-  email: "email owner",
+  reference: ["reference", "ref"],
+  name: ["nom"],
+  address: ["adresse"],
+  surface: ["superficie"],
+  capacity: ["capacite"],
+  airbnb: ["url airbnb", "airbnb"],
+  booking: ["url booking", "booking"],
+  vrbo: ["url vrbo", "vrbo"],
+  hopper: ["url hopper", "hopper"],
+  lastName: ["nom owner"],
+  firstName: ["prenom owner"],
+  phone: ["tel owner", "telephone owner"],
+  email: ["email owner"],
 } as const;
 
 export interface ImportPropertiesResult {
@@ -372,7 +375,10 @@ export async function importProperties(formData: FormData): Promise<ImportProper
 
   const header = rows[0].map(normalizeHeader);
   const idx = Object.fromEntries(
-    Object.entries(IMPORT_CSV_COLUMNS).map(([key, label]) => [key, header.indexOf(label)])
+    Object.entries(IMPORT_CSV_COLUMNS).map(([key, aliases]) => [
+      key,
+      header.findIndex((h) => (aliases as readonly string[]).includes(h)),
+    ])
   ) as Record<keyof typeof IMPORT_CSV_COLUMNS, number>;
 
   if (idx.reference === -1) throw new Error("Colonne « Reference » introuvable dans le fichier.");
