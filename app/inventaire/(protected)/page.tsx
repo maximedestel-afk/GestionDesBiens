@@ -35,7 +35,10 @@ export default async function PropertiesPage({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-[28px] font-semibold tracking-tight text-[#1d1d1f]">Biens</h1>
+        <h1 className="flex items-baseline gap-2 text-[28px] font-semibold tracking-tight text-[#1d1d1f]">
+          Biens
+          <span className="text-[15px] font-normal text-[#6e6e73]">({properties.length})</span>
+        </h1>
         <div className="flex items-center gap-2">
           <Link
             href="/inventaire/taches"
@@ -52,15 +55,23 @@ export default async function PropertiesPage({
         </div>
       </div>
 
-      <form action="/inventaire" method="get" className="mt-5">
-        <input
-          type="search"
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="Rechercher par référence ou nom…"
-          className="field-input max-w-md"
-        />
-      </form>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <form action="/inventaire" method="get" className="flex-1">
+          <input
+            type="search"
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="Rechercher par référence ou nom…"
+            className="field-input max-w-md"
+          />
+        </form>
+        <a
+          href={`/inventaire/export-references${q ? `?q=${encodeURIComponent(q)}` : ""}`}
+          className="link-quiet text-[13px]"
+        >
+          Exporter les références (CSV)
+        </a>
+      </div>
 
       <div className="mt-6 card overflow-visible">
         {properties.length === 0 ? (
