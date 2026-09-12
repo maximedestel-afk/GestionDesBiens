@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import type { Attachment } from "@/lib/inventaire/types";
 import { deleteAttachment } from "@/lib/inventaire/actions";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import { AttachmentLightbox } from "./AttachmentLightbox";
 
 function isImage(mime: string | null) {
   return !!mime && mime.startsWith("image/");
@@ -58,6 +60,9 @@ export function AttachmentGallery({
    * passer à la ligne — évite qu'une carte s'étire en hauteur avec plusieurs photos. */
   scrollable?: boolean;
 }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const imageAttachments = attachments.filter((a) => isImage(a.mimeType) && !!a.url);
+
   if (attachments.length === 0) {
     return <p className="text-[13px] text-black/35">{emptyLabel}</p>;
   }
@@ -103,6 +108,7 @@ export function AttachmentGallery({
   }
 
   return (
+    <>
     <div className={scrollable ? "flex flex-nowrap gap-3 overflow-x-auto pb-1" : "flex flex-wrap gap-3"}>
       {attachments.map((attachment) => {
         const isMedia = (isImage(attachment.mimeType) || isVideo(attachment.mimeType)) && !!attachment.url;
@@ -149,8 +155,14 @@ export function AttachmentGallery({
             key={attachment.id}
             className="group relative w-28 shrink-0 overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.02] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
           >
-            <a href={attachment.url ?? "#"} target="_blank" rel="noreferrer" className="block">
-              {isImage(attachment.mimeType) ? (
+            {isImage(attachment.mimeType) ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setLightboxIndex(imageAttachments.findIndex((img) => img.id === attachment.id))
+                }
+                className="block"
+              >
                 <Image
                   src={attachment.url as string}
                   alt={attachment.fileName}
@@ -159,7 +171,9 @@ export function AttachmentGallery({
                   unoptimized
                   className="h-28 w-28 object-cover"
                 />
-              ) : (
+              </button>
+            ) : (
+              <a href={attachment.url as string} target="_blank" rel="noreferrer" className="block">
                 <div className="relative h-28 w-28">
                   <video src={attachment.url as string} className="h-28 w-28 object-cover" muted />
                   <span className="absolute inset-0 flex items-center justify-center">
@@ -170,8 +184,8 @@ export function AttachmentGallery({
                     </span>
                   </span>
                 </div>
-              )}
-            </a>
+              </a>
+            )}
             <div className="absolute left-1.5 top-1.5">
               <a
                 href={downloadHref(attachment.url as string, attachment.fileName)}
@@ -196,5 +210,14 @@ export function AttachmentGallery({
         );
       })}
     </div>
+    {lightboxIndex !== null && imageAttachments[lightboxIndex] && (
+      <AttachmentLightbox
+        attachments={imageAttachments}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onNavigate={setLightboxIndex}
+      />
+    )}
+    </>
   );
 }
