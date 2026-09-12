@@ -8,6 +8,7 @@ import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
+import { FieldRef } from "@/components/inventaire/FieldRef";
 import { RoomRow } from "./RoomRow";
 
 const ROOM_TYPES = ["Chambre", "Cuisine", "Salon", "Salle à Manger", "WC", "SDB", "Espace Travail"] as const;
@@ -47,6 +48,7 @@ export function AgencementTab({
                       checkKey="capacity"
                       missing={missingCheckKeys.includes("capacity")}
                     />
+                    <FieldRef csvKey="capacity" />
                   </label>
                   <input
                     id="capacity"
@@ -66,6 +68,7 @@ export function AgencementTab({
                       checkKey="surface"
                       missing={missingCheckKeys.includes("surface")}
                     />
+                    <FieldRef csvKey="surface" />
                   </label>
                   <input
                     id="surface"

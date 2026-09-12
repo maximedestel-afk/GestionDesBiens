@@ -10,6 +10,7 @@ import {
   standardEquipmentNamesForRoom,
 } from "./catalog";
 import { decodeCsvBuffer, normalizeHeader, parseCsv } from "./csv";
+import { CSV_FIELDS, csvFieldAliases, type CsvFieldKey } from "./csvFields";
 import { getCurrentProfile, getPrestataireAllowedPropertyIds, listProperties } from "./queries";
 import { tabCode } from "./tabs";
 import type {
@@ -315,25 +316,6 @@ export async function deleteProperty(propertyId: string) {
 /* Import CSV                                                          */
 /* ------------------------------------------------------------------ */
 
-// Plusieurs libellés acceptés par colonne : les fichiers fournis par
-// l'utilisateur n'utilisent pas toujours exactement les mêmes en-têtes
-// (ex. "Ref" au lieu de "Reference").
-const IMPORT_CSV_COLUMNS = {
-  reference: ["reference", "ref"],
-  name: ["nom"],
-  address: ["adresse"],
-  surface: ["superficie"],
-  capacity: ["capacite"],
-  airbnb: ["url airbnb", "airbnb"],
-  booking: ["url booking", "booking"],
-  vrbo: ["url vrbo", "vrbo"],
-  hopper: ["url hopper", "hopper"],
-  lastName: ["nom owner"],
-  firstName: ["prenom owner"],
-  phone: ["tel owner", "telephone owner"],
-  email: ["email owner"],
-} as const;
-
 export interface ImportPropertiesResult {
   created: number;
   updated: number;
@@ -341,43 +323,137 @@ export interface ImportPropertiesResult {
 }
 
 /** Crée ou met à jour une ligne property_platforms pour un type de
- * plateforme donné, sans jamais écraser une URL existante par du vide.
- * `ensureRow` force la création de la ligne même sans URL (utilisé pour
- * Airbnb/Booking, toujours présentes par défaut — voir createProperty). */
-async function upsertPlatformUrl(
+ * plateforme donné à partir d'un patch qui ne contient QUE les colonnes
+ * présentes dans le fichier importé (jamais d'écrasement d'un champ dont
+ * la colonne n'a simplement pas été fournie). `ensureRow` force la
+ * création de la ligne même sans donnée (utilisé pour Airbnb/Booking,
+ * toujours présentes par défaut — voir createProperty). */
+async function upsertPlatformFields(
   supabase: SupabaseServerClient,
   propertyId: string,
   type: PlatformType,
-  url: string | null,
+  patch: Record<string, unknown>,
   existing: { id: string; platform_type: string }[],
   ensureRow: boolean,
   nextPositionRef: { value: number }
 ) {
+  const hasValues = Object.keys(patch).length > 0;
   const match = existing.find((p) => p.platform_type === type);
   if (match) {
-    if (url) {
-      const { error } = await supabase.from("property_platforms").update({ url }).eq("id", match.id);
+    if (hasValues) {
+      const { error } = await supabase.from("property_platforms").update(patch).eq("id", match.id);
       if (error) throw error;
     }
     return;
   }
-  if (!url && !ensureRow) return;
+  if (!hasValues && !ensureRow) return;
   const { error } = await supabase.from("property_platforms").insert({
     property_id: propertyId,
     platform_type: type,
     listing_name: null,
-    url,
     position: nextPositionRef.value++,
+    ...patch,
   });
   if (error) throw error;
 }
 
-/** Import en masse de biens depuis un fichier CSV (colonnes : Reference,
- * Nom, Adresse, Superficie, Capacité, Url AIRBNB, URL BOOKING, URL VRBO,
- * URL Hopper, Nom Owner, Prénom Owner, Tel Owner, Email Owner — ordre libre).
- * Un bien dont la référence existe déjà est mis à jour plutôt que dupliqué.
- * Chaque ligne est traitée indépendamment : une erreur sur une ligne
- * n'interrompt pas l'import des autres. */
+function parseEnumCell<T>(raw: string | null, map: Record<string, T>): T | null {
+  if (raw === null) return null;
+  return map[normalizeHeader(raw)] ?? null;
+}
+
+const BOOLEAN_CELL_MAP: Record<string, boolean> = {
+  oui: true,
+  yes: true,
+  true: true,
+  "1": true,
+  x: true,
+  non: false,
+  no: false,
+  false: false,
+  "0": false,
+};
+const LOCK_TYPE_CELL_MAP: Record<string, "cle" | "connectee"> = { cle: "cle", connectee: "connectee" };
+const KEY_CONTENT_TYPE_CELL_MAP: Record<string, "cle" | "cle_vigik" | "autre"> = {
+  cle: "cle",
+  "cle vigik": "cle_vigik",
+  clevigik: "cle_vigik",
+  vigik: "cle_vigik",
+  autre: "autre",
+};
+const HOT_WATER_CELL_MAP: Record<string, "individuelle" | "collective"> = {
+  individuelle: "individuelle",
+  collective: "collective",
+};
+const HEATING_CELL_MAP: Record<string, "individuelle" | "collective" | "autre"> = {
+  individuelle: "individuelle",
+  collective: "collective",
+  autre: "autre",
+};
+
+// Colonnes "texte simple" : [clé CSV, colonne SQL]. Chaque champ n'est
+// inclus dans le patch envoyé à Supabase que si sa colonne est présente
+// dans le fichier importé (voir hasColumn plus bas) — sinon une colonne
+// absente écraserait silencieusement la donnée existante avec null.
+const DETAILS_STRING_COLUMNS: [CsvFieldKey, string][] = [
+  ["floor", "floor"],
+  ["floorElevatorNotes", "floor_elevator_notes"],
+  ["accessVideoUrl", "access_video_url"],
+  ["trashRoomUrl", "trash_room_url"],
+  ["trashRoomNotes", "trash_room_notes"],
+  ["accessCodeClient", "access_code_client"],
+  ["accessCodeCleaning", "access_code_cleaning"],
+  ["accessCodeBackup", "access_code_backup"],
+  ["wifiNetwork", "wifi_network"],
+  ["wifiCode", "wifi_code"],
+  ["wifiPtoNumber", "wifi_pto_number"],
+  ["wifiPtoNotes", "wifi_pto_notes"],
+  ["wifiNotes", "wifi_notes"],
+  ["edfNotes", "edf_notes"],
+  ["edfPrm", "edf_prm"],
+  ["syndicName", "syndic_name"],
+  ["syndicPhone", "syndic_phone"],
+  ["syndicEmail", "syndic_email"],
+  ["syndicNotes", "syndic_notes"],
+  ["comment", "comment"],
+  ["lockStaticCodesNotes", "lock_static_codes_notes"],
+  ["keyContentDetail", "key_content_detail"],
+  ["keySetNote", "key_set_note"],
+];
+
+const OWNER_STRING_COLUMNS: [CsvFieldKey, string][] = [
+  ["ownerLastName", "last_name"],
+  ["ownerFirstName", "first_name"],
+  ["ownerEmail", "email"],
+  ["ownerPhone", "phone"],
+  ["ownerAddress", "address"],
+  ["ownerNotes", "notes"],
+  ["leaseNotes", "lease_notes"],
+  ["ribNotes", "rib_notes"],
+  ["rcpNotes", "rcp_notes"],
+  ["rentNotes", "rent_notes"],
+  ["otherAmountLabel", "other_amount_label"],
+];
+
+const PLATFORM_CSV_FIELDS: Record<
+  "airbnb" | "booking" | "vrbo" | "hopper",
+  { url: CsvFieldKey; reference: CsvFieldKey; listingName: CsvFieldKey; notes: CsvFieldKey }
+> = {
+  airbnb: { url: "airbnbUrl", reference: "airbnbReference", listingName: "airbnbListingName", notes: "airbnbNotes" },
+  booking: { url: "bookingUrl", reference: "bookingReference", listingName: "bookingListingName", notes: "bookingNotes" },
+  vrbo: { url: "vrboUrl", reference: "vrboReference", listingName: "vrboListingName", notes: "vrboNotes" },
+  hopper: { url: "hopperUrl", reference: "hopperReference", listingName: "hopperListingName", notes: "hopperNotes" },
+};
+
+/** Import en masse de biens depuis un fichier CSV/Excel : une ligne par
+ * bien, colonnes libres parmi celles du catalogue CSV_FIELDS (voir
+ * lib/inventaire/csvFields.ts — c'est aussi ce qui est montré au survol de
+ * chaque champ dans l'application). Seule « Reference » est obligatoire ;
+ * toute autre colonne absente du fichier n'est simplement pas touchée
+ * (une colonne présente mais vide efface le champ). Un bien dont la
+ * référence existe déjà est mis à jour plutôt que dupliqué. Chaque ligne
+ * est traitée indépendamment : une erreur sur une ligne n'interrompt pas
+ * l'import des autres. */
 export async function importProperties(formData: FormData): Promise<ImportPropertiesResult> {
   const supabase = await createClient();
   await requireAdmin(supabase);
@@ -390,16 +466,15 @@ export async function importProperties(formData: FormData): Promise<ImportProper
   if (rows.length === 0) throw new Error("Le fichier est vide.");
 
   const header = rows[0].map(normalizeHeader);
+  const csvFieldKeys = Object.keys(CSV_FIELDS) as CsvFieldKey[];
   const idx = Object.fromEntries(
-    Object.entries(IMPORT_CSV_COLUMNS).map(([key, aliases]) => [
-      key,
-      header.findIndex((h) => (aliases as readonly string[]).includes(h)),
-    ])
-  ) as Record<keyof typeof IMPORT_CSV_COLUMNS, number>;
+    csvFieldKeys.map((key) => [key, header.findIndex((h) => csvFieldAliases(key).includes(h))])
+  ) as Record<CsvFieldKey, number>;
 
   if (idx.reference === -1) throw new Error("Colonne « Reference » introuvable dans le fichier.");
 
-  const get = (row: string[], key: keyof typeof IMPORT_CSV_COLUMNS): string | null => {
+  const hasColumn = (key: CsvFieldKey): boolean => idx[key] >= 0;
+  const get = (row: string[], key: CsvFieldKey): string | null => {
     const colIndex = idx[key];
     return colIndex >= 0 ? optionalString(row[colIndex] ?? null) : null;
   };
@@ -419,14 +494,6 @@ export async function importProperties(formData: FormData): Promise<ImportProper
     try {
       const name = get(row, "name");
       const address = get(row, "address");
-
-      const surfaceRaw = get(row, "surface");
-      const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
-      if (surface !== null && !Number.isFinite(surface)) throw new Error("Superficie invalide.");
-
-      const capacityRaw = get(row, "capacity");
-      const capacity = capacityRaw ? Number.parseInt(capacityRaw, 10) : null;
-      if (capacity !== null && !Number.isInteger(capacity)) throw new Error("Capacité invalide.");
 
       const { data: existingProperty } = await supabase
         .from("properties")
@@ -457,26 +524,82 @@ export async function importProperties(formData: FormData): Promise<ImportProper
         await supabase.from("property_water_elec").insert({ property_id: propertyId });
       }
 
-      const { data: existingAgencement } = await supabase
-        .from("property_agencement")
-        .select("property_id")
-        .eq("property_id", propertyId)
-        .maybeSingle();
-      await updatePropertyDetailRow(
-        supabase,
-        "property_agencement",
-        propertyId,
-        { surface, capacity },
-        !!existingAgencement
-      );
+      // Agencement (capacité / superficie)
+      const agencementPatch: Record<string, unknown> = {};
+      if (hasColumn("surface")) {
+        const surfaceRaw = get(row, "surface");
+        const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
+        if (surface !== null && !Number.isFinite(surface)) throw new Error("Superficie invalide.");
+        agencementPatch.surface = surface;
+      }
+      if (hasColumn("capacity")) {
+        const capacityRaw = get(row, "capacity");
+        const capacity = capacityRaw ? Number.parseInt(capacityRaw, 10) : null;
+        if (capacity !== null && !Number.isInteger(capacity)) throw new Error("Capacité invalide.");
+        agencementPatch.capacity = capacity;
+      }
+      if (Object.keys(agencementPatch).length > 0) {
+        const { data: existingAgencement } = await supabase
+          .from("property_agencement")
+          .select("property_id")
+          .eq("property_id", propertyId)
+          .maybeSingle();
+        await updatePropertyDetailRow(supabase, "property_agencement", propertyId, agencementPatch, !!existingAgencement);
+      }
 
-      const ownerPatch = {
-        last_name: get(row, "lastName"),
-        first_name: get(row, "firstName"),
-        phone: get(row, "phone"),
-        email: get(row, "email"),
-      };
-      if (Object.values(ownerPatch).some((v) => v !== null)) {
+      // Détails appartement (étage, ascenseur, codes, wifi, EDF, syndic, clés…)
+      const detailsPatch: Record<string, unknown> = {};
+      for (const [csvKey, column] of DETAILS_STRING_COLUMNS) {
+        if (hasColumn(csvKey)) detailsPatch[column] = get(row, csvKey);
+      }
+      if (hasColumn("hasElevator")) detailsPatch.has_elevator = parseEnumCell(get(row, "hasElevator"), BOOLEAN_CELL_MAP);
+      if (hasColumn("lockType")) detailsPatch.lock_type = parseEnumCell(get(row, "lockType"), LOCK_TYPE_CELL_MAP);
+      if (hasColumn("keyContentType")) {
+        detailsPatch.key_content_type = parseEnumCell(get(row, "keyContentType"), KEY_CONTENT_TYPE_CELL_MAP);
+      }
+      if (Object.keys(detailsPatch).length > 0) {
+        const { data: existingDetails } = await supabase
+          .from("property_details")
+          .select("property_id")
+          .eq("property_id", propertyId)
+          .maybeSingle();
+        await updatePropertyDetailRow(supabase, "property_details", propertyId, detailsPatch, !!existingDetails);
+      }
+
+      // Eau / Électricité / Gaz
+      const waterElecPatch: Record<string, unknown> = {};
+      if (hasColumn("hotWaterProduction")) {
+        waterElecPatch.hot_water_production = parseEnumCell(get(row, "hotWaterProduction"), HOT_WATER_CELL_MAP);
+      }
+      if (hasColumn("hasGas")) waterElecPatch.has_gas = parseEnumCell(get(row, "hasGas"), BOOLEAN_CELL_MAP);
+      if (hasColumn("heatingProduction")) {
+        waterElecPatch.heating_production = parseEnumCell(get(row, "heatingProduction"), HEATING_CELL_MAP);
+      }
+      if (hasColumn("heatingProductionNotes")) waterElecPatch.heating_production_notes = get(row, "heatingProductionNotes");
+      if (Object.keys(waterElecPatch).length > 0) {
+        const { data: existingWaterElec } = await supabase
+          .from("property_water_elec")
+          .select("property_id")
+          .eq("property_id", propertyId)
+          .maybeSingle();
+        await updatePropertyDetailRow(supabase, "property_water_elec", propertyId, waterElecPatch, !!existingWaterElec);
+      }
+
+      // Propriétaire
+      const ownerPatch: Record<string, unknown> = {};
+      for (const [csvKey, column] of OWNER_STRING_COLUMNS) {
+        if (hasColumn(csvKey)) ownerPatch[column] = get(row, csvKey);
+      }
+      if (hasColumn("rentType")) {
+        const rentTypeRaw = get(row, "rentType");
+        const normalized = rentTypeRaw ? normalizeHeader(rentTypeRaw) : null;
+        ownerPatch.rent_type =
+          normalized === "fixe" ? "fixe" : normalized === "fixe variable" || normalized === "fixe+variable" ? "fixe_variable" : null;
+      }
+      if (hasColumn("rentAmount")) ownerPatch.rent_amount = optionalAmount(get(row, "rentAmount"), "Le loyer");
+      if (hasColumn("chargesAmount")) ownerPatch.charges_amount = optionalAmount(get(row, "chargesAmount"), "Les charges");
+      if (hasColumn("otherAmount")) ownerPatch.other_amount = optionalAmount(get(row, "otherAmount"), "Le montant « Autre »");
+      if (Object.keys(ownerPatch).length > 0) {
         const { data: existingOwner } = await supabase
           .from("property_owner")
           .select("property_id")
@@ -485,16 +608,26 @@ export async function importProperties(formData: FormData): Promise<ImportProper
         await updatePropertyDetailRow(supabase, "property_owner", propertyId, ownerPatch, !!existingOwner);
       }
 
+      // Plateformes
       const { data: existingPlatforms } = await supabase
         .from("property_platforms")
         .select("id, platform_type")
         .eq("property_id", propertyId);
       const positionRef = { value: existingPlatforms?.length ?? 0 };
       const platforms = existingPlatforms ?? [];
-      await upsertPlatformUrl(supabase, propertyId, "airbnb", get(row, "airbnb"), platforms, true, positionRef);
-      await upsertPlatformUrl(supabase, propertyId, "booking", get(row, "booking"), platforms, true, positionRef);
-      await upsertPlatformUrl(supabase, propertyId, "vrbo", get(row, "vrbo"), platforms, false, positionRef);
-      await upsertPlatformUrl(supabase, propertyId, "hopper", get(row, "hopper"), platforms, false, positionRef);
+
+      const platformPatch = (keys: (typeof PLATFORM_CSV_FIELDS)[keyof typeof PLATFORM_CSV_FIELDS]) => {
+        const patch: Record<string, unknown> = {};
+        if (hasColumn(keys.url)) patch.url = get(row, keys.url);
+        if (hasColumn(keys.reference)) patch.reference = get(row, keys.reference);
+        if (hasColumn(keys.listingName)) patch.listing_name = get(row, keys.listingName);
+        if (hasColumn(keys.notes)) patch.notes = get(row, keys.notes);
+        return patch;
+      };
+      await upsertPlatformFields(supabase, propertyId, "airbnb", platformPatch(PLATFORM_CSV_FIELDS.airbnb), platforms, true, positionRef);
+      await upsertPlatformFields(supabase, propertyId, "booking", platformPatch(PLATFORM_CSV_FIELDS.booking), platforms, true, positionRef);
+      await upsertPlatformFields(supabase, propertyId, "vrbo", platformPatch(PLATFORM_CSV_FIELDS.vrbo), platforms, false, positionRef);
+      await upsertPlatformFields(supabase, propertyId, "hopper", platformPatch(PLATFORM_CSV_FIELDS.hopper), platforms, false, positionRef);
 
       await loadStandardInventory(propertyId);
 

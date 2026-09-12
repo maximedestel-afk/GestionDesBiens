@@ -8,9 +8,22 @@ import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { PLATFORM_LABELS, PlatformLogo } from "@/components/inventaire/PlatformLogo";
 import { NoteField } from "@/components/inventaire/NoteField";
+import { FieldRef } from "@/components/inventaire/FieldRef";
+import type { CsvFieldKey } from "@/lib/inventaire/csvFields";
 
 const inputClass =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
+
+// "autre" n'a pas d'équivalent CSV (plusieurs lignes possibles par bien —
+// ne tient pas dans une seule colonne) : pas d'entrée pour ce type.
+const PLATFORM_CSV_KEYS: Partial<
+  Record<string, { url: CsvFieldKey; reference: CsvFieldKey; listingName: CsvFieldKey; notes: CsvFieldKey }>
+> = {
+  airbnb: { url: "airbnbUrl", reference: "airbnbReference", listingName: "airbnbListingName", notes: "airbnbNotes" },
+  booking: { url: "bookingUrl", reference: "bookingReference", listingName: "bookingListingName", notes: "bookingNotes" },
+  vrbo: { url: "vrboUrl", reference: "vrboReference", listingName: "vrboListingName", notes: "vrboNotes" },
+  hopper: { url: "hopperUrl", reference: "hopperReference", listingName: "hopperListingName", notes: "hopperNotes" },
+};
 
 export function PlatformCard({
   propertyId,
@@ -24,6 +37,7 @@ export function PlatformCard({
     platform.platformType === "autre" ? detail.trim() || "Autre" : PLATFORM_LABELS[platform.platformType];
   const isEmpty = !platform.listingName && !platform.reference && !platform.url && !platform.notes;
   const missingReference = !isEmpty && (platform.listingName || platform.url) && !platform.reference;
+  const csvKeys = PLATFORM_CSV_KEYS[platform.platformType];
 
   return (
     <div id={`missing-check-platform-reference-${platform.id}`} className="card p-5">
@@ -65,15 +79,24 @@ export function PlatformCard({
                 </div>
               )}
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Nom sur la plateforme</label>
+                <label className="flex items-center text-[12px] font-medium text-[#6e6e73]">
+                  Nom sur la plateforme
+                  {csvKeys && <FieldRef csvKey={csvKeys.listingName} />}
+                </label>
                 <input name="listingName" defaultValue={platform.listingName ?? ""} className={inputClass} />
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Référence</label>
+                <label className="flex items-center text-[12px] font-medium text-[#6e6e73]">
+                  Référence
+                  {csvKeys && <FieldRef csvKey={csvKeys.reference} />}
+                </label>
                 <input name="reference" defaultValue={platform.reference ?? ""} className={inputClass} />
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Lien de l&apos;annonce</label>
+                <label className="flex items-center text-[12px] font-medium text-[#6e6e73]">
+                  Lien de l&apos;annonce
+                  {csvKeys && <FieldRef csvKey={csvKeys.url} />}
+                </label>
                 <input
                   name="url"
                   type="url"
@@ -93,7 +116,13 @@ export function PlatformCard({
                 )}
               </div>
               <div className="sm:col-span-2">
-                <NoteField label="Note" name="notes" defaultValue={platform.notes} rows={3} />
+                <NoteField
+                  label="Note"
+                  name="notes"
+                  defaultValue={platform.notes}
+                  rows={3}
+                  labelExtra={csvKeys && <FieldRef csvKey={csvKeys.notes} />}
+                />
               </div>
             </div>
 

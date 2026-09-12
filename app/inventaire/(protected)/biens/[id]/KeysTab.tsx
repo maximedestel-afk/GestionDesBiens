@@ -9,6 +9,7 @@ import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
+import { FieldRef } from "@/components/inventaire/FieldRef";
 import { KeyCard } from "./KeyCard";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
@@ -24,8 +25,9 @@ function KeyContentField({
 
   return (
     <div className="mt-3">
-      <label className="field-label" htmlFor="keyContentType">
+      <label className="field-label flex items-center" htmlFor="keyContentType">
         Contenu du trousseau de clé
+        <FieldRef csvKey="keyContentType" />
       </label>
       <select
         id="keyContentType"
@@ -238,8 +240,9 @@ export function KeysTab({
 
             <Section title="Clé / Serrure">
               <div>
-                <label className="field-label" htmlFor="lockType">
+                <label className="field-label flex items-center" htmlFor="lockType">
                   Type de serrure
+                  <FieldRef csvKey="lockType" />
                 </label>
                 <select
                   id="lockType"
@@ -255,8 +258,9 @@ export function KeysTab({
               </div>
               {lockType === "connectee" && (
                 <div>
-                  <label className="field-label" htmlFor="lockStaticCodesNotes">
+                  <label className="field-label flex items-center" htmlFor="lockStaticCodesNotes">
                     Codes Statiques
+                    <FieldRef csvKey="lockStaticCodesNotes" />
                   </label>
                   <textarea
                     id="lockStaticCodesNotes"
@@ -286,8 +290,9 @@ export function KeysTab({
                 </div>
               </div>
               <div>
-                <label className="field-label" htmlFor="keySetNote">
+                <label className="field-label flex items-center" htmlFor="keySetNote">
                   Note (trousseau de clé)
+                  <FieldRef csvKey="keySetNote" />
                 </label>
                 <textarea
                   id="keySetNote"

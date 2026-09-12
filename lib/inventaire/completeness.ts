@@ -23,6 +23,8 @@ export const COMPLETENESS_CHECKS: CompletenessCheck[] = [
   { key: "visit_video", label: "Vidéo de visite", tab: "agencement" },
   { key: "rooms", label: "Pièces & couchages", tab: "agencement" },
   { key: "beds_missing", label: "Manque lit (pièces sans couchage)", tab: "agencement" },
+  { key: "floor", label: "Étage", tab: "details" },
+  { key: "elevator", label: "Ascenseur (avec/sans)", tab: "details" },
   { key: "wifi_info", label: "Réseau et code Wifi", tab: "details" },
   { key: "wifi_contract", label: "Contrat internet", tab: "details" },
   { key: "edf_prm", label: "Numéro PRM (EDF)", tab: "details" },
@@ -45,6 +47,8 @@ export interface PropertyCompletenessInput {
   hasKeySetPhoto: boolean;
   capacity: number | null | undefined;
   surface: number | null | undefined;
+  floor: string | null | undefined;
+  hasElevator: boolean | null | undefined;
   hasVisitVideo: boolean;
   roomsCount: number;
   bedsCount: number;
@@ -71,6 +75,8 @@ const CHECK_PREDICATES: Record<string, (input: PropertyCompletenessInput) => boo
   key_set_photo: (i) => i.hasKeySetPhoto,
   capacity: (i) => i.capacity != null,
   surface: (i) => i.surface != null,
+  floor: (i) => !!i.floor,
+  elevator: (i) => i.hasElevator != null,
   visit_video: (i) => i.hasVisitVideo,
   rooms: (i) => i.roomsCount > 0,
   beds_missing: (i) => !(i.roomsCount > 0 && i.bedsCount === 0),

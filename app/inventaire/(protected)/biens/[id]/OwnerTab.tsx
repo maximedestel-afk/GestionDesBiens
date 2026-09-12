@@ -9,7 +9,9 @@ import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { AddressAutocomplete } from "@/components/inventaire/AddressAutocomplete";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
+import { FieldRef } from "@/components/inventaire/FieldRef";
 import { NoteField } from "@/components/inventaire/NoteField";
+import type { CsvFieldKey } from "@/lib/inventaire/csvFields";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
 
@@ -23,6 +25,7 @@ function Field({
   type = "text",
   textarea = false,
   inputRef,
+  csvKey,
 }: {
   label: string;
   name: string;
@@ -30,11 +33,13 @@ function Field({
   type?: string;
   textarea?: boolean;
   inputRef?: RefObject<HTMLInputElement | null>;
+  csvKey?: CsvFieldKey;
 }) {
   return (
     <div>
-      <label className="field-label" htmlFor={name}>
+      <label className="field-label flex items-center" htmlFor={name}>
         {label}
+        {csvKey && <FieldRef csvKey={csvKey} />}
       </label>
       {textarea ? (
         <textarea id={name} name={name} defaultValue={defaultValue ?? ""} rows={2} className={FIELD_INPUT_CLASS} />
@@ -121,8 +126,9 @@ function OwnerNameField({
 
   return (
     <div className="relative">
-      <label className="field-label" htmlFor="lastName">
+      <label className="field-label flex items-center" htmlFor="lastName">
         Nom
+        <FieldRef csvKey="ownerLastName" />
       </label>
       <input
         ref={inputRef}
@@ -196,6 +202,7 @@ function RentFieldset({
           checkKey="rent_amount"
           missing={missingCheckKeys.includes("rent_amount")}
         />
+        <FieldRef csvKey="rentType" />
       </legend>
       <div className="mt-2 space-y-3">
         <div className="flex flex-wrap gap-4">
@@ -221,8 +228,9 @@ function RentFieldset({
           </label>
         </div>
         <div>
-          <label className="field-label" htmlFor="rentAmount">
+          <label className="field-label flex items-center" htmlFor="rentAmount">
             Loyer
+            <FieldRef csvKey="rentAmount" />
           </label>
           <input
             id="rentAmount"
@@ -236,8 +244,9 @@ function RentFieldset({
           />
         </div>
         <div>
-          <label className="field-label" htmlFor="chargesAmount">
+          <label className="field-label flex items-center" htmlFor="chargesAmount">
             Charges
+            <FieldRef csvKey="chargesAmount" />
           </label>
           <input
             id="chargesAmount"
@@ -252,8 +261,9 @@ function RentFieldset({
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="field-label" htmlFor="otherAmountLabel">
+            <label className="field-label flex items-center" htmlFor="otherAmountLabel">
               Autre (précisez)
+              <FieldRef csvKey="otherAmountLabel" />
             </label>
             <input
               id="otherAmountLabel"
@@ -264,8 +274,9 @@ function RentFieldset({
             />
           </div>
           <div>
-            <label className="field-label" htmlFor="otherAmount">
+            <label className="field-label flex items-center" htmlFor="otherAmount">
               Montant
+              <FieldRef csvKey="otherAmount" />
             </label>
             <input
               id="otherAmount"
@@ -279,7 +290,12 @@ function RentFieldset({
             />
           </div>
         </div>
-        <NoteField label="Note" name="rentNotes" defaultValue={owner?.rentNotes} />
+        <NoteField
+          label="Note"
+          name="rentNotes"
+          defaultValue={owner?.rentNotes}
+          labelExtra={<FieldRef csvKey="rentNotes" />}
+        />
         <div className="flex items-center justify-between rounded-[10px] bg-black/[0.03] px-3.5 py-2.5">
           <span className="text-[15px] font-semibold text-[#1d1d1f]">Total</span>
           <span className="text-[15px] font-semibold text-[#1d1d1f]">
@@ -299,6 +315,7 @@ export function DocumentField({
   kind,
   noteName,
   noteValue,
+  noteCsvKey,
   checkKey,
   missing,
 }: {
@@ -309,6 +326,7 @@ export function DocumentField({
   kind: "lease_contract" | "rib" | "rcp";
   noteName: string;
   noteValue: string | null | undefined;
+  noteCsvKey?: CsvFieldKey;
   checkKey: string;
   missing: boolean;
 }) {
@@ -325,7 +343,12 @@ export function DocumentField({
           showCamera={false}
           target={{ propertyId, entityType: "property", entityId: propertyId, kind }}
         />
-        <NoteField label="Note" name={noteName} defaultValue={noteValue} />
+        <NoteField
+          label="Note"
+          name={noteName}
+          defaultValue={noteValue}
+          labelExtra={noteCsvKey && <FieldRef csvKey={noteCsvKey} />}
+        />
       </div>
     </fieldset>
   );
@@ -387,15 +410,36 @@ export function OwnerTab({
               <div className="mt-2 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <OwnerNameField defaultValue={owner?.lastName} directory={ownersDirectory} onSelect={fillFromOwner} />
-                  <Field label="Prénom" name="firstName" defaultValue={owner?.firstName} inputRef={firstNameRef} />
+                  <Field
+                    label="Prénom"
+                    name="firstName"
+                    defaultValue={owner?.firstName}
+                    inputRef={firstNameRef}
+                    csvKey="ownerFirstName"
+                  />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label="Email" name="email" type="email" defaultValue={owner?.email} inputRef={emailRef} />
-                  <Field label="Téléphone" name="phone" type="tel" defaultValue={owner?.phone} inputRef={phoneRef} />
+                  <Field
+                    label="Email"
+                    name="email"
+                    type="email"
+                    defaultValue={owner?.email}
+                    inputRef={emailRef}
+                    csvKey="ownerEmail"
+                  />
+                  <Field
+                    label="Téléphone"
+                    name="phone"
+                    type="tel"
+                    defaultValue={owner?.phone}
+                    inputRef={phoneRef}
+                    csvKey="ownerPhone"
+                  />
                 </div>
                 <div>
-                  <label className="field-label" htmlFor="address">
+                  <label className="field-label flex items-center" htmlFor="address">
                     Adresse
+                    <FieldRef csvKey="ownerAddress" />
                   </label>
                   <AddressAutocomplete
                     id="address"
@@ -404,7 +448,12 @@ export function OwnerTab({
                     className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                   />
                 </div>
-                <NoteField label="Notes" name="notes" defaultValue={owner?.notes} />
+                <NoteField
+                  label="Notes"
+                  name="notes"
+                  defaultValue={owner?.notes}
+                  labelExtra={<FieldRef csvKey="ownerNotes" />}
+                />
               </div>
             </fieldset>
 
@@ -423,6 +472,7 @@ export function OwnerTab({
                 kind="rib"
                 noteName="ribNotes"
                 noteValue={owner?.ribNotes}
+                noteCsvKey="ribNotes"
                 checkKey="rib"
                 missing={missingCheckKeys.includes("rib")}
               />

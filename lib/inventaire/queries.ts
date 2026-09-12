@@ -479,7 +479,7 @@ export async function listPropertiesMissingChecks(
     supabase
       .from("property_details")
       .select(
-        "property_id, wifi_network, wifi_code, edf_prm, trash_room_url, trash_room_notes, wifi_pto_number, wifi_pto_notes, syndic_name, syndic_phone"
+        "property_id, floor, has_elevator, wifi_network, wifi_code, edf_prm, trash_room_url, trash_room_notes, wifi_pto_number, wifi_pto_notes, syndic_name, syndic_phone"
       )
       .in("property_id", propertyIds),
     supabase
@@ -636,6 +636,8 @@ export async function listPropertiesMissingChecks(
           hasKeySetPhoto: kinds.has("key_set_photo"),
           capacity: agencement?.capacity,
           surface: agencement?.surface,
+          floor: detail?.floor,
+          hasElevator: detail?.has_elevator,
           hasVisitVideo: kinds.has("visit_video"),
           roomsCount: roomsCountByProperty.get(propertyId) ?? 0,
           bedsCount: bedsCountByProperty.get(propertyId) ?? 0,
