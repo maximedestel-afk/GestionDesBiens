@@ -8,7 +8,9 @@ import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
+import { FieldRef } from "@/components/inventaire/FieldRef";
 import { NoteField } from "@/components/inventaire/NoteField";
+import type { CsvFieldKey } from "@/lib/inventaire/csvFields";
 
 function Field({
   label,
@@ -18,6 +20,7 @@ function Field({
   textarea = false,
   rows = 3,
   labelExtra,
+  csvKey,
 }: {
   label: string;
   name: string;
@@ -26,12 +29,14 @@ function Field({
   textarea?: boolean;
   rows?: number;
   labelExtra?: ReactNode;
+  csvKey?: CsvFieldKey;
 }) {
   return (
     <div>
       <label className="field-label flex items-center" htmlFor={name}>
         {label}
         {labelExtra}
+        {csvKey && <FieldRef csvKey={csvKey} />}
       </label>
       {textarea ? (
         <textarea
@@ -105,10 +110,20 @@ export function DetailsTab({
 
           <Section title="Appartement">
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Étage" name="floor" defaultValue={details?.floor} />
+              <Field
+                label="Étage"
+                name="floor"
+                defaultValue={details?.floor}
+                csvKey="floor"
+                labelExtra={
+                  <MissingFieldFlag propertyId={propertyId} checkKey="floor" missing={missingCheckKeys.includes("floor")} />
+                }
+              />
               <div>
-                <label className="field-label" htmlFor="hasElevator">
+                <label className="field-label flex items-center" htmlFor="hasElevator">
                   Ascenseur
+                  <MissingFieldFlag propertyId={propertyId} checkKey="elevator" missing={missingCheckKeys.includes("elevator")} />
+                  <FieldRef csvKey="hasElevator" />
                 </label>
                 <select
                   id="hasElevator"
@@ -124,7 +139,12 @@ export function DetailsTab({
                 </select>
               </div>
             </div>
-            <NoteField label="Note (étage / ascenseur)" name="floorElevatorNotes" defaultValue={details?.floorElevatorNotes} />
+            <NoteField
+              label="Note (étage / ascenseur)"
+              name="floorElevatorNotes"
+              defaultValue={details?.floorElevatorNotes}
+              labelExtra={<FieldRef csvKey="floorElevatorNotes" />}
+            />
             <div>
               <p className="text-sm font-medium text-[#1d1d1f]">
                 Vidéo / photos d&apos;accès (comment entrer dans l&apos;immeuble/appartement)
@@ -141,6 +161,7 @@ export function DetailsTab({
                   name="accessVideoUrl"
                   type="url"
                   defaultValue={details?.accessVideoUrl}
+                  csvKey="accessVideoUrl"
                 />
                 {details?.accessVideoUrl && (
                   <a
@@ -170,7 +191,13 @@ export function DetailsTab({
                   showVideoCamera
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "trash_room" }}
                 />
-                <Field label="Ou un lien (URL)" name="trashRoomUrl" type="url" defaultValue={details?.trashRoomUrl} />
+                <Field
+                  label="Ou un lien (URL)"
+                  name="trashRoomUrl"
+                  type="url"
+                  defaultValue={details?.trashRoomUrl}
+                  csvKey="trashRoomUrl"
+                />
                 {details?.trashRoomUrl && (
                   <a
                     href={details.trashRoomUrl}
@@ -181,7 +208,12 @@ export function DetailsTab({
                     Ouvrir le lien
                   </a>
                 )}
-                <NoteField label="Note" name="trashRoomNotes" defaultValue={details?.trashRoomNotes} />
+                <NoteField
+                  label="Note"
+                  name="trashRoomNotes"
+                  defaultValue={details?.trashRoomNotes}
+                  labelExtra={<FieldRef csvKey="trashRoomNotes" />}
+                />
               </div>
             </div>
             <p className="text-[13px] text-[#6e6e73]">
@@ -195,6 +227,7 @@ export function DetailsTab({
                 defaultValue={details?.accessCodeClient}
                 textarea
                 rows={6}
+                csvKey="accessCodeClient"
               />
               <Field
                 label="Code & accès — Ménage/maintenance"
@@ -202,6 +235,7 @@ export function DetailsTab({
                 defaultValue={details?.accessCodeCleaning}
                 textarea
                 rows={6}
+                csvKey="accessCodeCleaning"
               />
               <Field
                 label="Code & accès — Back up"
@@ -209,6 +243,7 @@ export function DetailsTab({
                 defaultValue={details?.accessCodeBackup}
                 textarea
                 rows={6}
+                csvKey="accessCodeBackup"
               />
             </div>
           </Section>
@@ -226,11 +261,16 @@ export function DetailsTab({
             }
           >
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Réseau" name="wifiNetwork" defaultValue={details?.wifiNetwork} />
-              <Field label="Code" name="wifiCode" defaultValue={details?.wifiCode} />
-              <Field label="Numéro PTO" name="wifiPtoNumber" defaultValue={details?.wifiPtoNumber} />
+              <Field label="Réseau" name="wifiNetwork" defaultValue={details?.wifiNetwork} csvKey="wifiNetwork" />
+              <Field label="Code" name="wifiCode" defaultValue={details?.wifiCode} csvKey="wifiCode" />
+              <Field label="Numéro PTO" name="wifiPtoNumber" defaultValue={details?.wifiPtoNumber} csvKey="wifiPtoNumber" />
             </div>
-            <NoteField label="Notes" name="wifiNotes" defaultValue={details?.wifiNotes} />
+            <NoteField
+              label="Notes"
+              name="wifiNotes"
+              defaultValue={details?.wifiNotes}
+              labelExtra={<FieldRef csvKey="wifiNotes" />}
+            />
             <div>
               <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
                 Contrat internet
@@ -264,7 +304,12 @@ export function DetailsTab({
                   accept="image/*"
                   target={{ propertyId, entityType: "property", entityId: propertyId, kind: "wifi_pto_photo" }}
                 />
-                <NoteField label="Notes (ex. emplacement)" name="wifiPtoNotes" defaultValue={details?.wifiPtoNotes} />
+                <NoteField
+                  label="Notes (ex. emplacement)"
+                  name="wifiPtoNotes"
+                  defaultValue={details?.wifiPtoNotes}
+                  labelExtra={<FieldRef csvKey="wifiPtoNotes" />}
+                />
               </div>
             </div>
           </Section>
@@ -274,6 +319,7 @@ export function DetailsTab({
               label="Numéro PRM"
               name="edfPrm"
               defaultValue={details?.edfPrm}
+              csvKey="edfPrm"
               labelExtra={
                 <MissingFieldFlag
                   propertyId={propertyId}
@@ -282,7 +328,12 @@ export function DetailsTab({
                 />
               }
             />
-            <NoteField label="Notes" name="edfNotes" defaultValue={details?.edfNotes} />
+            <NoteField
+              label="Notes"
+              name="edfNotes"
+              defaultValue={details?.edfNotes}
+              labelExtra={<FieldRef csvKey="edfNotes" />}
+            />
             <div>
               <p className="flex items-center text-sm font-medium text-[#1d1d1f]">
                 Contrat EDF
@@ -316,11 +367,16 @@ export function DetailsTab({
             }
           >
             <div className="grid gap-3 sm:grid-cols-3">
-              <Field label="Nom" name="syndicName" defaultValue={details?.syndicName} />
-              <Field label="Téléphone" name="syndicPhone" defaultValue={details?.syndicPhone} />
-              <Field label="Email" name="syndicEmail" defaultValue={details?.syndicEmail} />
+              <Field label="Nom" name="syndicName" defaultValue={details?.syndicName} csvKey="syndicName" />
+              <Field label="Téléphone" name="syndicPhone" defaultValue={details?.syndicPhone} csvKey="syndicPhone" />
+              <Field label="Email" name="syndicEmail" defaultValue={details?.syndicEmail} csvKey="syndicEmail" />
             </div>
-            <NoteField label="Notes" name="syndicNotes" defaultValue={details?.syndicNotes} />
+            <NoteField
+              label="Notes"
+              name="syndicNotes"
+              defaultValue={details?.syndicNotes}
+              labelExtra={<FieldRef csvKey="syndicNotes" />}
+            />
           </Section>
 
           <Section title="Commentaire">
@@ -330,6 +386,7 @@ export function DetailsTab({
               defaultValue={details?.comment}
               textarea
               rows={4}
+              csvKey="comment"
             />
           </Section>
           </>

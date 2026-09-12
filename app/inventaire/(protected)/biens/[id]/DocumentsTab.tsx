@@ -38,6 +38,7 @@ export function DocumentsTab({
               kind="lease_contract"
               noteName="leaseNotes"
               noteValue={owner?.leaseNotes}
+              noteCsvKey="leaseNotes"
               checkKey="lease_contract"
               missing={missingCheckKeys.includes("lease_contract")}
             />
@@ -49,6 +50,7 @@ export function DocumentsTab({
               kind="rcp"
               noteName="rcpNotes"
               noteValue={owner?.rcpNotes}
+              noteCsvKey="rcpNotes"
               checkKey="rcp"
               missing={missingCheckKeys.includes("rcp")}
             />

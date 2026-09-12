@@ -106,6 +106,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
       hasKeySetPhoto: attachments.some((a) => a.kind === "key_set_photo"),
       capacity: agencement?.capacity,
       surface: agencement?.surface,
+      floor: details?.floor,
+      hasElevator: details?.hasElevator,
       hasVisitVideo: attachments.some((a) => a.kind === "visit_video"),
       roomsCount: rooms.length,
       bedsCount: beds.length,

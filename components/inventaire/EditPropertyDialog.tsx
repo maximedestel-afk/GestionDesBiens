@@ -6,6 +6,7 @@ import { updateProperty } from "@/lib/inventaire/actions";
 import { ActionForm } from "./ActionForm";
 import { SaveStatus } from "./SaveStatus";
 import { AddressAutocomplete } from "./AddressAutocomplete";
+import { FieldRef } from "./FieldRef";
 
 export function EditPropertyDialog({ property }: { property: Property }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -31,8 +32,9 @@ export function EditPropertyDialog({ property }: { property: Property }) {
               <h2 className="text-[19px] font-semibold tracking-tight text-[#1d1d1f]">Modifier le bien</h2>
               <div className="mt-4 space-y-3">
                 <div>
-                  <label className="field-label" htmlFor="edit-reference">
+                  <label className="field-label flex items-center" htmlFor="edit-reference">
                     Référence *
+                    <FieldRef csvKey="reference" />
                   </label>
                   <input
                     id="edit-reference"
@@ -43,14 +45,16 @@ export function EditPropertyDialog({ property }: { property: Property }) {
                   />
                 </div>
                 <div>
-                  <label className="field-label" htmlFor="edit-name">
+                  <label className="field-label flex items-center" htmlFor="edit-name">
                     Nom
+                    <FieldRef csvKey="name" />
                   </label>
                   <input id="edit-name" name="name" defaultValue={property.name ?? ""} className="field-input" />
                 </div>
                 <div>
-                  <label className="field-label" htmlFor="edit-address">
+                  <label className="field-label flex items-center" htmlFor="edit-address">
                     Adresse
+                    <FieldRef csvKey="address" />
                   </label>
                   <AddressAutocomplete
                     id="edit-address"

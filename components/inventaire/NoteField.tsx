@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 const NOTE_TEXTAREA_CLASS =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
@@ -17,6 +17,7 @@ export function NoteField({
   rows = 2,
   addLabel = "+ Ajouter une note",
   className,
+  labelExtra,
 }: {
   name: string;
   label?: string;
@@ -25,6 +26,7 @@ export function NoteField({
   rows?: number;
   addLabel?: string;
   className?: string;
+  labelExtra?: ReactNode;
 }) {
   const [visible, setVisible] = useState(!!defaultValue);
 
@@ -43,8 +45,9 @@ export function NoteField({
   return (
     <div>
       {label && (
-        <label className="field-label" htmlFor={name}>
+        <label className="field-label flex items-center" htmlFor={name}>
           {label}
+          {labelExtra}
         </label>
       )}
       <textarea

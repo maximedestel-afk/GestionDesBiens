@@ -5,6 +5,7 @@ import type { Attachment, HeatingProduction, PropertyElement, PropertyWaterElec 
 import { loadStandardWaterElecElements, saveWaterElec } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
+import { FieldRef } from "@/components/inventaire/FieldRef";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
 
@@ -43,8 +44,9 @@ export function WaterElecTab({
             <>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="field-label" htmlFor="hotWaterProduction">
+                  <label className="field-label flex items-center" htmlFor="hotWaterProduction">
                     Production eau chaude
+                    <FieldRef csvKey="hotWaterProduction" />
                   </label>
                   <select
                     id="hotWaterProduction"
@@ -58,8 +60,9 @@ export function WaterElecTab({
                   </select>
                 </div>
                 <div>
-                  <label className="field-label" htmlFor="hasGas">
+                  <label className="field-label flex items-center" htmlFor="hasGas">
                     Gaz
+                    <FieldRef csvKey="hasGas" />
                   </label>
                   <select
                     id="hasGas"
@@ -73,8 +76,9 @@ export function WaterElecTab({
                   </select>
                 </div>
                 <div>
-                  <label className="field-label" htmlFor="heatingProduction">
+                  <label className="field-label flex items-center" htmlFor="heatingProduction">
                     Production Chauffage
+                    <FieldRef csvKey="heatingProduction" />
                   </label>
                   <select
                     id="heatingProduction"
@@ -91,8 +95,9 @@ export function WaterElecTab({
                 </div>
                 {heatingProduction === "autre" && (
                   <div className="sm:col-span-2">
-                    <label className="field-label" htmlFor="heatingProductionNotes">
+                    <label className="field-label flex items-center" htmlFor="heatingProductionNotes">
                       Production Chauffage — précisez
+                      <FieldRef csvKey="heatingProductionNotes" />
                     </label>
                     <textarea
                       id="heatingProductionNotes"
