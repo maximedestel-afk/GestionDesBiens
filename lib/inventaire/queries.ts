@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { platformTitle } from "@/components/inventaire/PlatformLogo";
 import { computeMissingChecks, type CompletenessCheck } from "./completeness";
+import { getBulkField, platformTypeFromFieldId } from "./bulkFields";
 import {
   serializeActivityLogEntry,
   serializeAgencement,
@@ -761,4 +762,71 @@ export async function listChecklistDismissals(propertyId: string): Promise<strin
     .eq("property_id", propertyId);
   if (error) throw error;
   return (data ?? []).map((d) => d.check_key);
+}
+
+/** Page "Compléter en masse" : table (bien) → champ. */
+const BULK_FIELD_SOURCE: Record<string, { table: string; column: string }> = {
+  rent_amount: { table: "property_owner", column: "rent_amount" },
+  rent_type: { table: "property_owner", column: "rent_type" },
+  capacity: { table: "property_agencement", column: "capacity" },
+  surface: { table: "property_agencement", column: "surface" },
+  edf_prm: { table: "property_details", column: "edf_prm" },
+  wifi_network: { table: "property_details", column: "wifi_network" },
+  wifi_code: { table: "property_details", column: "wifi_code" },
+  syndic_name: { table: "property_details", column: "syndic_name" },
+  syndic_phone: { table: "property_details", column: "syndic_phone" },
+};
+
+export interface BulkFieldRow {
+  propertyId: string;
+  propertyReference: string;
+  propertyName: string | null;
+  value: string;
+}
+
+/** Toutes les fiches avec la valeur actuelle d'un seul champ, pour la page
+ * "Compléter en masse" (édition rapide bien par bien sur une seule colonne). */
+export async function listPropertiesForBulkField(fieldId: string): Promise<BulkFieldRow[]> {
+  if (!getBulkField(fieldId)) throw new Error("Champ inconnu.");
+
+  const supabase = await createClient();
+  const { data: properties, error } = await supabase
+    .from("properties")
+    .select("id, reference, name")
+    .order("reference", { ascending: true });
+  if (error) throw error;
+
+  const rows = properties ?? [];
+  if (rows.length === 0) return [];
+  const propertyIds = rows.map((p) => p.id);
+  const valueByPropertyId = new Map<string, string>();
+
+  const platformType = platformTypeFromFieldId(fieldId);
+  if (platformType) {
+    const { data: platforms } = await supabase
+      .from("property_platforms")
+      .select("property_id, reference")
+      .eq("platform_type", platformType)
+      .in("property_id", propertyIds);
+    for (const platform of platforms ?? []) {
+      if (platform.reference) valueByPropertyId.set(platform.property_id, platform.reference);
+    }
+  } else {
+    const source = BULK_FIELD_SOURCE[fieldId];
+    if (!source) throw new Error("Champ inconnu.");
+    const { data: sourceRows } = await supabase.from(source.table).select("*").in("property_id", propertyIds);
+    for (const row of (sourceRows ?? []) as unknown as Record<string, unknown>[]) {
+      const value = row[source.column];
+      if (value !== null && value !== undefined && value !== "") {
+        valueByPropertyId.set(row.property_id as string, String(value));
+      }
+    }
+  }
+
+  return rows.map((p) => ({
+    propertyId: p.id,
+    propertyReference: p.reference,
+    propertyName: p.name,
+    value: valueByPropertyId.get(p.id) ?? "",
+  }));
 }

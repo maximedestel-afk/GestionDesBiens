@@ -1139,6 +1139,58 @@ export async function updatePropertyPlatform(propertyId: string, platformId: str
   revalidateProperty(propertyId);
 }
 
+// Utilisée par la page "Compléter en masse" : ne patch QUE la référence
+// (contrairement à updatePropertyPlatform qui, via platformPatchFromForm,
+// écrase aussi listingName/url/notes — inadapté ici où le formulaire ne
+// porte qu'un seul champ). Crée la ligne de plateforme si elle n'existe pas
+// encore pour ce bien (cas des biens dont l'onglet Plateformes n'a jamais
+// été ouvert).
+export async function bulkUpdatePlatformReference(propertyId: string, platformType: PlatformType, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const reference = optionalString(formData.get("reference"));
+
+  const { data: existing } = await supabase
+    .from("property_platforms")
+    .select("id")
+    .eq("property_id", propertyId)
+    .eq("platform_type", platformType)
+    .maybeSingle();
+
+  let platformId = existing?.id as string | undefined;
+  if (!platformId) {
+    const { data: maxPos } = await supabase
+      .from("property_platforms")
+      .select("position")
+      .eq("property_id", propertyId)
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const { data: created, error: insertError } = await supabase
+      .from("property_platforms")
+      .insert({ property_id: propertyId, platform_type: platformType, listing_name: null, position: (maxPos?.position ?? -1) + 1 })
+      .select("id")
+      .single();
+    if (insertError) throw insertError;
+    platformId = created.id;
+  }
+
+  const { error } = await supabase.from("property_platforms").update({ reference }).eq("id", platformId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_platform",
+    entityId: platformId,
+    action: "update",
+    summary: "Référence plateforme mise à jour (édition groupée)",
+  });
+
+  revalidateProperty(propertyId);
+}
+
 export async function deletePropertyPlatform(propertyId: string, platformId: string) {
   const supabase = await createClient();
   await requireAdmin(supabase);
