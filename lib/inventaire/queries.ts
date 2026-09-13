@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { platformTitle } from "@/components/inventaire/PlatformLogo";
 import { computeMissingChecks, type CompletenessCheck } from "./completeness";
-import { getBulkField, platformTypeFromFieldId } from "./bulkFields";
+import { getBulkField, parsePlatformFieldId } from "./bulkFields";
 import {
   serializeActivityLogEntry,
   serializeAgencement,
@@ -766,17 +766,63 @@ export async function listChecklistDismissals(propertyId: string): Promise<strin
   return (data ?? []).map((d) => d.check_key);
 }
 
-/** Page "Compléter en masse" : table (bien) → champ. */
+/** Page "Compléter en masse" : table (bien) → champ. Par convention l'id du
+ * champ (voir BULK_FIELDS) est déjà le nom de la colonne SQL. */
 const BULK_FIELD_SOURCE: Record<string, { table: string; column: string }> = {
+  // Propriétaire
+  owner_last_name: { table: "property_owner", column: "last_name" },
+  owner_first_name: { table: "property_owner", column: "first_name" },
+  owner_email: { table: "property_owner", column: "email" },
+  owner_phone: { table: "property_owner", column: "phone" },
+  owner_address: { table: "property_owner", column: "address" },
+  owner_notes: { table: "property_owner", column: "notes" },
+  lease_notes: { table: "property_owner", column: "lease_notes" },
+  rib_notes: { table: "property_owner", column: "rib_notes" },
+  rcp_notes: { table: "property_owner", column: "rcp_notes" },
   rent_amount: { table: "property_owner", column: "rent_amount" },
+  charges_amount: { table: "property_owner", column: "charges_amount" },
+  other_amount_label: { table: "property_owner", column: "other_amount_label" },
+  other_amount: { table: "property_owner", column: "other_amount" },
+  rent_notes: { table: "property_owner", column: "rent_notes" },
   rent_type: { table: "property_owner", column: "rent_type" },
+
+  // Agencement
   capacity: { table: "property_agencement", column: "capacity" },
   surface: { table: "property_agencement", column: "surface" },
-  edf_prm: { table: "property_details", column: "edf_prm" },
+
+  // Détails
+  floor: { table: "property_details", column: "floor" },
+  has_elevator: { table: "property_details", column: "has_elevator" },
+  floor_elevator_notes: { table: "property_details", column: "floor_elevator_notes" },
+  access_video_url: { table: "property_details", column: "access_video_url" },
+  trash_room_url: { table: "property_details", column: "trash_room_url" },
+  trash_room_notes: { table: "property_details", column: "trash_room_notes" },
+  access_code_client: { table: "property_details", column: "access_code_client" },
+  access_code_cleaning: { table: "property_details", column: "access_code_cleaning" },
+  access_code_backup: { table: "property_details", column: "access_code_backup" },
+  lock_type: { table: "property_details", column: "lock_type" },
+  lock_static_codes_notes: { table: "property_details", column: "lock_static_codes_notes" },
+  key_content_type: { table: "property_details", column: "key_content_type" },
+  key_content_detail: { table: "property_details", column: "key_content_detail" },
+  key_set_note: { table: "property_details", column: "key_set_note" },
   wifi_network: { table: "property_details", column: "wifi_network" },
   wifi_code: { table: "property_details", column: "wifi_code" },
+  wifi_pto_number: { table: "property_details", column: "wifi_pto_number" },
+  wifi_pto_notes: { table: "property_details", column: "wifi_pto_notes" },
+  wifi_notes: { table: "property_details", column: "wifi_notes" },
+  edf_prm: { table: "property_details", column: "edf_prm" },
+  edf_notes: { table: "property_details", column: "edf_notes" },
   syndic_name: { table: "property_details", column: "syndic_name" },
   syndic_phone: { table: "property_details", column: "syndic_phone" },
+  syndic_email: { table: "property_details", column: "syndic_email" },
+  syndic_notes: { table: "property_details", column: "syndic_notes" },
+  comment: { table: "property_details", column: "comment" },
+
+  // Eau / Électricité / Gaz
+  hot_water_production: { table: "property_water_elec", column: "hot_water_production" },
+  has_gas: { table: "property_water_elec", column: "has_gas" },
+  heating_production: { table: "property_water_elec", column: "heating_production" },
+  heating_production_notes: { table: "property_water_elec", column: "heating_production_notes" },
 };
 
 export interface BulkFieldRow {
@@ -803,15 +849,16 @@ export async function listPropertiesForBulkField(fieldId: string): Promise<BulkF
   const propertyIds = rows.map((p) => p.id);
   const valueByPropertyId = new Map<string, string>();
 
-  const platformType = platformTypeFromFieldId(fieldId);
-  if (platformType) {
+  const platformField = parsePlatformFieldId(fieldId);
+  if (platformField) {
     const { data: platforms } = await supabase
       .from("property_platforms")
-      .select("property_id, reference")
-      .eq("platform_type", platformType)
+      .select("property_id, reference, url, listing_name, notes")
+      .eq("platform_type", platformField.platformType)
       .in("property_id", propertyIds);
-    for (const platform of platforms ?? []) {
-      if (platform.reference) valueByPropertyId.set(platform.property_id, platform.reference);
+    for (const platform of (platforms ?? []) as unknown as Record<string, unknown>[]) {
+      const value = platform[platformField.column];
+      if (value) valueByPropertyId.set(platform.property_id as string, String(value));
     }
   } else {
     const source = BULK_FIELD_SOURCE[fieldId];

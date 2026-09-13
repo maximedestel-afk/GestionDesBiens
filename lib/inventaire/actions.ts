@@ -879,22 +879,13 @@ const PROPERTY_WATER_ELEC_LABELS: Record<string, string> = {
   heating_production_notes: "Production chauffage › Note",
 };
 
+// Ne patch que les champs présents dans le FormData soumis (même logique
+// que savePropertyDetails/savePropertyOwner/saveAgencement) : nécessaire
+// depuis que ce formulaire peut être soumis avec un seul champ à la fois
+// (page "Compléter en masse"), pour ne pas écraser les 3 autres avec null.
 export async function saveWaterElec(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
-
-  const hotWaterProductionRaw = optionalString(formData.get("hotWaterProduction"));
-  const hotWaterProduction =
-    hotWaterProductionRaw === "individuelle" || hotWaterProductionRaw === "collective"
-      ? (hotWaterProductionRaw as HotWaterProduction)
-      : null;
-  const hasGas = formData.has("hasGas") ? formData.get("hasGas") === "true" : null;
-  const heatingProductionRaw = optionalString(formData.get("heatingProduction"));
-  const heatingProduction =
-    heatingProductionRaw === "individuelle" || heatingProductionRaw === "collective" || heatingProductionRaw === "autre"
-      ? (heatingProductionRaw as HeatingProduction)
-      : null;
-  const heatingProductionNotes = optionalString(formData.get("heatingProductionNotes"));
 
   const { data: existing } = await supabase
     .from("property_water_elec")
@@ -902,13 +893,24 @@ export async function saveWaterElec(propertyId: string, formData: FormData) {
     .eq("property_id", propertyId)
     .maybeSingle();
 
-  const patch = {
-    property_id: propertyId,
-    hot_water_production: hotWaterProduction,
-    has_gas: hasGas,
-    heating_production: heatingProduction,
-    heating_production_notes: heatingProductionNotes,
-  };
+  const patch: Record<string, unknown> = { property_id: propertyId };
+  if (formData.has("hotWaterProduction")) {
+    const raw = optionalString(formData.get("hotWaterProduction"));
+    patch.hot_water_production = raw === "individuelle" || raw === "collective" ? (raw as HotWaterProduction) : null;
+  }
+  if (formData.has("hasGas")) {
+    const raw = optionalString(formData.get("hasGas"));
+    patch.has_gas = raw === null ? null : raw === "true";
+  }
+  if (formData.has("heatingProduction")) {
+    const raw = optionalString(formData.get("heatingProduction"));
+    patch.heating_production =
+      raw === "individuelle" || raw === "collective" || raw === "autre" ? (raw as HeatingProduction) : null;
+  }
+  if (formData.has("heatingProductionNotes")) {
+    patch.heating_production_notes = optionalString(formData.get("heatingProductionNotes"));
+  }
+
   await updatePropertyDetailRow(supabase, "property_water_elec", propertyId, patch, !!existing);
 
   await logSectionChanges(supabase, {
@@ -1274,17 +1276,22 @@ export async function updatePropertyPlatform(propertyId: string, platformId: str
   revalidateProperty(propertyId);
 }
 
-// Utilisée par la page "Compléter en masse" : ne patch QUE la référence
-// (contrairement à updatePropertyPlatform qui, via platformPatchFromForm,
-// écrase aussi listingName/url/notes — inadapté ici où le formulaire ne
-// porte qu'un seul champ). Crée la ligne de plateforme si elle n'existe pas
-// encore pour ce bien (cas des biens dont l'onglet Plateformes n'a jamais
-// été ouvert).
-export async function bulkUpdatePlatformReference(propertyId: string, platformType: PlatformType, formData: FormData) {
+// Utilisée par la page "Compléter en masse" : ne patch QUE la colonne
+// demandée (contrairement à updatePropertyPlatform qui, via
+// platformPatchFromForm, écrase aussi les 3 autres champs — inadapté ici où
+// le formulaire ne porte qu'un seul champ). Crée la ligne de plateforme si
+// elle n'existe pas encore pour ce bien (cas des biens dont l'onglet
+// Plateformes n'a jamais été ouvert).
+export async function bulkUpdatePlatformField(
+  propertyId: string,
+  platformType: PlatformType,
+  column: "reference" | "url" | "listing_name" | "notes",
+  formData: FormData
+) {
   const supabase = await createClient();
   await requireUser(supabase);
 
-  const reference = optionalString(formData.get("reference"));
+  const value = optionalString(formData.get("value"));
 
   const { data: existing } = await supabase
     .from("property_platforms")
@@ -1305,22 +1312,28 @@ export async function bulkUpdatePlatformReference(propertyId: string, platformTy
 
     const { data: created, error: insertError } = await supabase
       .from("property_platforms")
-      .insert({ property_id: propertyId, platform_type: platformType, listing_name: null, position: (maxPos?.position ?? -1) + 1 })
+      .insert({
+        property_id: propertyId,
+        platform_type: platformType,
+        listing_name: null,
+        position: (maxPos?.position ?? -1) + 1,
+        [column]: value,
+      })
       .select("id")
       .single();
     if (insertError) throw insertError;
     platformId = created.id;
+  } else {
+    const { error } = await supabase.from("property_platforms").update({ [column]: value }).eq("id", platformId);
+    if (error) throw error;
   }
-
-  const { error } = await supabase.from("property_platforms").update({ reference }).eq("id", platformId);
-  if (error) throw error;
 
   await logActivity(supabase, {
     propertyId,
     entityType: "property_platform",
     entityId: platformId,
     action: "update",
-    summary: "Référence plateforme mise à jour (édition groupée)",
+    summary: "Plateforme mise à jour (édition groupée)",
   });
 
   revalidateProperty(propertyId);

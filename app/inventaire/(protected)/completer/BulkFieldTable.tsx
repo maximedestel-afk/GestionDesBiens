@@ -3,10 +3,16 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { BulkFieldDef } from "@/lib/inventaire/bulkFields";
-import { platformTypeFromFieldId } from "@/lib/inventaire/bulkFields";
+import { parsePlatformFieldId } from "@/lib/inventaire/bulkFields";
 import type { BulkFieldRow } from "@/lib/inventaire/queries";
 import type { PlatformType } from "@/lib/inventaire/types";
-import { savePropertyOwner, saveAgencement, savePropertyDetails, bulkUpdatePlatformReference } from "@/lib/inventaire/actions";
+import {
+  savePropertyOwner,
+  saveAgencement,
+  savePropertyDetails,
+  saveWaterElec,
+  bulkUpdatePlatformField,
+} from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 
@@ -14,13 +20,14 @@ const inputClass =
   "w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
 
 function actionFor(field: BulkFieldDef) {
-  const platformType = platformTypeFromFieldId(field.id);
-  if (platformType) {
+  const platformField = parsePlatformFieldId(field.id);
+  if (platformField) {
     return (propertyId: string, formData: FormData) =>
-      bulkUpdatePlatformReference(propertyId, platformType as PlatformType, formData);
+      bulkUpdatePlatformField(propertyId, platformField.platformType as PlatformType, platformField.column, formData);
   }
   if (field.group === "Propriétaire") return savePropertyOwner;
   if (field.group === "Agencement") return saveAgencement;
+  if (field.group === "Eau/Élec") return saveWaterElec;
   return savePropertyDetails;
 }
 
