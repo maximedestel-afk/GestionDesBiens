@@ -60,7 +60,7 @@ export interface PropertyOwner {
   leaseNotes: string | null;
   ribNotes: string | null;
   rcpNotes: string | null;
-  rentType: "fixe" | "fixe_variable" | null;
+  rentType: "fixe" | "variable" | "fixe_variable" | null;
   rentNotes: string | null;
   rentAmount: number | null;
   chargesAmount: number | null;

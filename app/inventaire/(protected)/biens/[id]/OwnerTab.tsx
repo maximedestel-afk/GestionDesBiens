@@ -220,6 +220,16 @@ function RentFieldset({
             <input
               type="radio"
               name="rentType"
+              value="variable"
+              defaultChecked={owner?.rentType === "variable"}
+              className="h-4 w-4 accent-[#0071e3]"
+            />
+            Variable
+          </label>
+          <label className="flex items-center gap-2 text-[15px] text-[#1d1d1f]">
+            <input
+              type="radio"
+              name="rentType"
               value="fixe_variable"
               defaultChecked={owner?.rentType === "fixe_variable"}
               className="h-4 w-4 accent-[#0071e3]"
