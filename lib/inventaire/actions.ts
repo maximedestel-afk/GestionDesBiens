@@ -374,6 +374,12 @@ const BOOLEAN_CELL_MAP: Record<string, boolean> = {
   "0": false,
 };
 const LOCK_TYPE_CELL_MAP: Record<string, "cle" | "connectee"> = { cle: "cle", connectee: "connectee" };
+const RENT_TYPE_CELL_MAP: Record<string, "fixe" | "variable" | "fixe_variable"> = {
+  fixe: "fixe",
+  variable: "variable",
+  "fixe variable": "fixe_variable",
+  "fixe+variable": "fixe_variable",
+};
 const KEY_CONTENT_TYPE_CELL_MAP: Record<string, "cle" | "cle_vigik" | "autre"> = {
   cle: "cle",
   "cle vigik": "cle_vigik",
@@ -590,12 +596,7 @@ export async function importProperties(formData: FormData): Promise<ImportProper
       for (const [csvKey, column] of OWNER_STRING_COLUMNS) {
         if (hasColumn(csvKey)) ownerPatch[column] = get(row, csvKey);
       }
-      if (hasColumn("rentType")) {
-        const rentTypeRaw = get(row, "rentType");
-        const normalized = rentTypeRaw ? normalizeHeader(rentTypeRaw) : null;
-        ownerPatch.rent_type =
-          normalized === "fixe" ? "fixe" : normalized === "fixe variable" || normalized === "fixe+variable" ? "fixe_variable" : null;
-      }
+      if (hasColumn("rentType")) ownerPatch.rent_type = parseEnumCell(get(row, "rentType"), RENT_TYPE_CELL_MAP);
       if (hasColumn("rentAmount")) ownerPatch.rent_amount = optionalAmount(get(row, "rentAmount"), "Le loyer");
       if (hasColumn("chargesAmount")) ownerPatch.charges_amount = optionalAmount(get(row, "chargesAmount"), "Les charges");
       if (hasColumn("otherAmount")) ownerPatch.other_amount = optionalAmount(get(row, "otherAmount"), "Le montant « Autre »");
@@ -782,7 +783,8 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
   }
   if (formData.has("rentType")) {
     const rentTypeRaw = optionalString(formData.get("rentType"));
-    patch.rent_type = rentTypeRaw === "fixe" || rentTypeRaw === "fixe_variable" ? rentTypeRaw : null;
+    patch.rent_type =
+      rentTypeRaw === "fixe" || rentTypeRaw === "variable" || rentTypeRaw === "fixe_variable" ? rentTypeRaw : null;
     labels.rent_type = "Type de loyer";
   }
   if (formData.has("rentAmount")) {

@@ -15,7 +15,7 @@ export const COMPLETENESS_CHECKS: CompletenessCheck[] = [
   { key: "lease_contract", label: "Bail", tab: "documents" },
   { key: "rib", label: "RIB", tab: "proprietaire" },
   { key: "rent_amount", label: "Loyer (montant)", tab: "proprietaire" },
-  { key: "rent_type", label: "Loyer (modèle Fixe / Fixe + Variable)", tab: "proprietaire" },
+  { key: "rent_type", label: "Loyer (modèle Fixe / Variable / Fixe + Variable)", tab: "proprietaire" },
   { key: "rcp", label: "RCP", tab: "documents" },
   { key: "key_set_photo", label: "Photo du trousseau", tab: "cles" },
   { key: "capacity", label: "Nombre de personnes maximum", tab: "agencement" },

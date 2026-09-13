@@ -33,7 +33,7 @@ export default async function PropertiesPage({
     listPropertiesOpenTasksCount(propertyIds),
     listPropertiesRentTypes(propertyIds),
   ]);
-  const RENT_TYPE_LABELS = { fixe: "Fixe", fixe_variable: "Fixe + Variable" } as const;
+  const RENT_TYPE_LABELS = { fixe: "Fixe", variable: "Variable", fixe_variable: "Fixe + Variable" } as const;
   const totalOpenTasks = Object.values(openTasksCounts).reduce((sum, count) => sum + count, 0);
 
   return (

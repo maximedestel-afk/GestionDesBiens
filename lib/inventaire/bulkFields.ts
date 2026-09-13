@@ -38,6 +38,7 @@ export const BULK_FIELDS: BulkFieldDef[] = [
     inputType: "select",
     options: [
       { value: "fixe", label: "Fixe" },
+      { value: "variable", label: "Variable" },
       { value: "fixe_variable", label: "Fixe + Variable" },
     ],
   },
