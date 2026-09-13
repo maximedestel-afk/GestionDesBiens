@@ -15,7 +15,7 @@ const STANDARD_EQUIPMENT_BY_ROOM_TYPE = {
   ],
   salon: ["Box internet/Wifi", "Climatisation", "Téléviseur", "Radiateurs", "Ventilateur"],
   chambre: ["Radiateurs", "Climatisation", "Ventilateur"],
-  "salle de bain": ["Radiateurs"],
+  "salle de bain": ["Radiateurs", "Douche/Mitigeur"],
 } as const;
 
 export type RoomType = keyof typeof STANDARD_EQUIPMENT_BY_ROOM_TYPE;
