@@ -57,6 +57,7 @@ export const CSV_FIELDS = {
   syndicName: { header: "Nom Syndic" },
   syndicPhone: { header: "Téléphone Syndic" },
   syndicEmail: { header: "Email Syndic" },
+  syndicLotNumber: { header: "Numéro de Lot" },
   syndicNotes: { header: "Notes Syndic" },
 
   // Détails — Divers

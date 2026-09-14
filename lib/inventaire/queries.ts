@@ -832,6 +832,7 @@ const BULK_FIELD_SOURCE: Record<string, { table: string; column: string }> = {
   syndic_name: { table: "property_details", column: "syndic_name" },
   syndic_phone: { table: "property_details", column: "syndic_phone" },
   syndic_email: { table: "property_details", column: "syndic_email" },
+  syndic_lot_number: { table: "property_details", column: "syndic_lot_number" },
   syndic_notes: { table: "property_details", column: "syndic_notes" },
   comment: { table: "property_details", column: "comment" },
 

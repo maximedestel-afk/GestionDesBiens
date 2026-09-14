@@ -90,6 +90,7 @@ export async function GET(
     { field: "Syndic", value: details?.syndicName ?? "" },
     { field: "Téléphone syndic", value: details?.syndicPhone ?? "" },
     { field: "Email syndic", value: details?.syndicEmail ?? "" },
+    { field: "Numéro de lot", value: details?.syndicLotNumber ?? "" },
     { field: "Capacité d'accueil", value: agencement?.capacity ?? "" },
     { field: "Superficie (m²)", value: agencement?.surface ?? "" },
     {

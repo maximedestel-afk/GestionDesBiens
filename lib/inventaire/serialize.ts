@@ -55,6 +55,7 @@ export function serializePropertyDetails(row: any): PropertyDetails {
     syndicName: row.syndic_name,
     syndicPhone: row.syndic_phone,
     syndicEmail: row.syndic_email,
+    syndicLotNumber: row.syndic_lot_number,
     syndicNotes: row.syndic_notes,
     comment: row.comment,
     lockType: row.lock_type,

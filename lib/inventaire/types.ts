@@ -40,6 +40,7 @@ export interface PropertyDetails {
   syndicName: string | null;
   syndicPhone: string | null;
   syndicEmail: string | null;
+  syndicLotNumber: string | null;
   syndicNotes: string | null;
   comment: string | null;
   lockType: "cle" | "connectee" | null;

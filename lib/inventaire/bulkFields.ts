@@ -144,6 +144,7 @@ export const BULK_FIELDS: BulkFieldDef[] = [
   { id: "syndic_name", label: "Nom du syndic", group: "Détails", formKey: "syndicName", inputType: "text" },
   { id: "syndic_phone", label: "Téléphone syndic", group: "Détails", formKey: "syndicPhone", inputType: "text" },
   { id: "syndic_email", label: "Email syndic", group: "Détails", formKey: "syndicEmail", inputType: "text" },
+  { id: "syndic_lot_number", label: "Numéro de lot", group: "Détails", formKey: "syndicLotNumber", inputType: "text" },
   { id: "syndic_notes", label: "Notes syndic", group: "Détails", formKey: "syndicNotes", inputType: "text" },
 
   // Détails — Divers
