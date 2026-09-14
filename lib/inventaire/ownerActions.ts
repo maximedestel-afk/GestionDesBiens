@@ -95,6 +95,68 @@ export async function listOwnerProperties(email: string): Promise<OwnerPropertyO
   }));
 }
 
+// Champs "coordonnées propriétaire" (identité + société) susceptibles
+// d'être communs à tous les biens d'un même propriétaire — PAS les champs
+// propres au bien (syndic, superficie, eau/élec...).
+const OWNER_SHARED_FIELDS = [
+  "last_name",
+  "first_name",
+  "phone",
+  "address",
+  "birth_date",
+  "birth_place",
+  "nationality",
+  "passport_number",
+  "is_company",
+  "company_name",
+  "company_legal_form",
+  "company_capital",
+  "company_address",
+  "company_siren",
+  "company_rcs_city",
+  "company_represented_by",
+  "company_role",
+] as const;
+
+function isEmptyValue(value: unknown): boolean {
+  return value === null || value === undefined || value === "";
+}
+
+/** Complète les champs vides de `ownerRow` (coordonnées propriétaire +
+ * société uniquement) avec les valeurs déjà renseignées sur un autre bien
+ * du même propriétaire (identifié par email) — jamais l'inverse : un champ
+ * déjà rempli sur ce bien n'est pas écrasé. */
+export async function withOwnerFallback(
+  admin: ReturnType<typeof createAdminClient>,
+  email: string,
+  propertyId: string,
+  ownerRow: Record<string, unknown> | null
+): Promise<Record<string, unknown> | null> {
+  const merged: Record<string, unknown> = { property_id: propertyId, email, ...ownerRow };
+  const missingFields = OWNER_SHARED_FIELDS.filter((f) => isEmptyValue(merged[f]));
+  if (missingFields.length === 0) return ownerRow ? merged : ownerRow;
+
+  const { data: otherRows, error } = await admin
+    .from("property_owner")
+    .select("*")
+    .ilike("email", email)
+    .neq("property_id", propertyId)
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  if (!otherRows || otherRows.length === 0) return ownerRow;
+
+  for (const field of missingFields) {
+    for (const row of otherRows as unknown as Record<string, unknown>[]) {
+      if (!isEmptyValue(row[field])) {
+        merged[field] = row[field];
+        break;
+      }
+    }
+  }
+
+  return merged;
+}
+
 /** Enregistre le formulaire self-service propriétaire (identité, société,
  * production eau chaude/chauffage, coordonnées syndic + numéro de lot).
  * N'écrit que si l'email de la session correspond bien à l'email déjà
