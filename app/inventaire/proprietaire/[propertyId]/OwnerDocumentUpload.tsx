@@ -3,36 +3,42 @@
 import { useState, useTransition, type RefObject } from "react";
 import Image from "next/image";
 import { unstable_rethrow } from "next/navigation";
-import { ownerDeleteRib, type OwnerRibFile } from "@/lib/inventaire/ownerActions";
+import type { OwnerDocumentFile } from "@/lib/inventaire/ownerActions";
 
 function isImage(mimeType: string | null) {
   return !!mimeType && mimeType.startsWith("image/");
 }
 
-/** Liste des RIB déjà envoyés (avec suppression immédiate) + champ pour en
- * joindre un nouveau. Le nouveau fichier n'est envoyé qu'à la validation du
- * formulaire principal (bouton "Enregistrer mes informations") — ce n'est
- * pas un envoi séparé. */
-export function OwnerRibUpload({
+/** Liste des documents (RIB, RCP…) déjà envoyés pour ce bien (avec
+ * suppression immédiate) + champ pour en joindre un nouveau. Le nouveau
+ * fichier n'est envoyé qu'à la validation du formulaire principal (bouton
+ * "Enregistrer mes informations") — ce n'est pas un envoi séparé. */
+export function OwnerDocumentUpload({
   propertyId,
+  label,
+  fieldName,
   existingFiles,
   fileInputRef,
+  deleteAction,
 }: {
   propertyId: string;
-  existingFiles: OwnerRibFile[];
+  label: string;
+  fieldName: string;
+  existingFiles: OwnerDocumentFile[];
   fileInputRef: RefObject<HTMLInputElement | null>;
+  deleteAction: (propertyId: string, attachmentId: string) => Promise<void>;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  function handleDelete(file: OwnerRibFile) {
+  function handleDelete(file: OwnerDocumentFile) {
     if (!window.confirm(`Supprimer « ${file.fileName} » ?`)) return;
     setError(null);
     setPendingId(file.id);
     startTransition(async () => {
       try {
-        await ownerDeleteRib(propertyId, file.id);
+        await deleteAction(propertyId, file.id);
       } catch (e) {
         unstable_rethrow(e);
         setError(e instanceof Error ? e.message : "Une erreur est survenue.");
@@ -44,7 +50,7 @@ export function OwnerRibUpload({
 
   return (
     <div>
-      <label className="field-label">RIB</label>
+      <label className="field-label">{label}</label>
       {existingFiles.length > 0 && (
         <ul className="mt-1 space-y-2">
           {existingFiles.map((f) => (
@@ -84,7 +90,7 @@ export function OwnerRibUpload({
       <input
         ref={fileInputRef}
         type="file"
-        name="ribFile"
+        name={fieldName}
         accept=".pdf,.jpg,.jpeg,.png"
         className="mt-2 block w-full cursor-pointer text-[13px] text-[#6e6e73] file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#0071e3] file:px-4 file:py-2 file:text-[13px] file:font-medium file:text-white file:transition hover:file:bg-[#0077ed]"
       />

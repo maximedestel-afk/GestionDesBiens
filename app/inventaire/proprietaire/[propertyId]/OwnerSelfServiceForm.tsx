@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import type { PropertyAgencement, PropertyDetails, PropertyOwner, PropertyWaterElec } from "@/lib/inventaire/types";
-import { saveOwnerSelfService, type OwnerRibFile } from "@/lib/inventaire/ownerActions";
+import { saveOwnerSelfService, ownerDeleteRib, ownerDeleteRcp, type OwnerDocumentFile } from "@/lib/inventaire/ownerActions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
-import { OwnerRibUpload } from "./OwnerRibUpload";
+import { OwnerDocumentUpload } from "./OwnerDocumentUpload";
 
 function Field({
   label,
@@ -43,15 +43,18 @@ export function OwnerSelfServiceForm({
   waterElec,
   agencement,
   ribFiles,
+  rcpFiles,
 }: {
   propertyId: string;
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
   waterElec: PropertyWaterElec | null;
   agencement: PropertyAgencement | null;
-  ribFiles: OwnerRibFile[];
+  ribFiles: OwnerDocumentFile[];
+  rcpFiles: OwnerDocumentFile[];
 }) {
   const ribFileInputRef = useRef<HTMLInputElement>(null);
+  const rcpFileInputRef = useRef<HTMLInputElement>(null);
   const [isCompany, setIsCompany] = useState(
     !!owner?.isCompany ||
       !!(
@@ -73,6 +76,7 @@ export function OwnerSelfServiceForm({
       resetOnSuccess={false}
       onSuccess={() => {
         if (ribFileInputRef.current) ribFileInputRef.current.value = "";
+        if (rcpFileInputRef.current) rcpFileInputRef.current.value = "";
       }}
     >
       {({ pending, error, success }) => (
@@ -133,7 +137,25 @@ export function OwnerSelfServiceForm({
           </Section>
 
           <Section title="RIB">
-            <OwnerRibUpload propertyId={propertyId} existingFiles={ribFiles} fileInputRef={ribFileInputRef} />
+            <OwnerDocumentUpload
+              propertyId={propertyId}
+              label="RIB"
+              fieldName="ribFile"
+              existingFiles={ribFiles}
+              fileInputRef={ribFileInputRef}
+              deleteAction={ownerDeleteRib}
+            />
+          </Section>
+
+          <Section title="RCP">
+            <OwnerDocumentUpload
+              propertyId={propertyId}
+              label="RCP"
+              fieldName="rcpFile"
+              existingFiles={rcpFiles}
+              fileInputRef={rcpFileInputRef}
+              deleteAction={ownerDeleteRcp}
+            />
           </Section>
 
           <Section title="Le bien">
