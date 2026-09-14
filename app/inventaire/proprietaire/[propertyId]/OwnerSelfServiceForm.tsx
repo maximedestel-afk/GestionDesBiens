@@ -97,10 +97,6 @@ export function OwnerSelfServiceForm({
             </div>
           </Section>
 
-          <Section title="RIB">
-            <OwnerRibUpload propertyId={propertyId} existingFiles={ribFiles} fileInputRef={ribFileInputRef} />
-          </Section>
-
           <Section title="Si vous êtes une société">
             <label className="flex items-center gap-2 text-[15px] text-[#1d1d1f]">
               <input
@@ -134,6 +130,10 @@ export function OwnerSelfServiceForm({
                 </div>
               </div>
             )}
+          </Section>
+
+          <Section title="RIB">
+            <OwnerRibUpload propertyId={propertyId} existingFiles={ribFiles} fileInputRef={ribFileInputRef} />
           </Section>
 
           <Section title="Le bien">
