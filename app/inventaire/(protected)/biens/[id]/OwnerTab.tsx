@@ -26,6 +26,7 @@ function Field({
   textarea = false,
   inputRef,
   csvKey,
+  placeholder,
 }: {
   label: string;
   name: string;
@@ -34,6 +35,7 @@ function Field({
   textarea?: boolean;
   inputRef?: RefObject<HTMLInputElement | null>;
   csvKey?: CsvFieldKey;
+  placeholder?: string;
 }) {
   return (
     <div>
@@ -42,7 +44,14 @@ function Field({
         {csvKey && <FieldRef csvKey={csvKey} />}
       </label>
       {textarea ? (
-        <textarea id={name} name={name} defaultValue={defaultValue ?? ""} rows={2} className={FIELD_INPUT_CLASS} />
+        <textarea
+          id={name}
+          name={name}
+          defaultValue={defaultValue ?? ""}
+          placeholder={placeholder}
+          rows={2}
+          className={FIELD_INPUT_CLASS}
+        />
       ) : (
         <input
           ref={inputRef}
@@ -50,6 +59,7 @@ function Field({
           name={name}
           type={type}
           defaultValue={defaultValue ?? ""}
+          placeholder={placeholder}
           className={FIELD_INPUT_CLASS}
         />
       )}
@@ -317,6 +327,96 @@ function RentFieldset({
   );
 }
 
+/** Coordonnées de la société quand le propriétaire est une personne
+ * morale (SCI, SARL...) plutôt qu'une personne physique. La case à cocher
+ * ne fait que montrer/masquer les champs ; un input caché "isCompany"
+ * (toujours présent, contrairement à une checkbox non cochée qui
+ * disparaîtrait du FormData) porte la vraie valeur envoyée au serveur. */
+function CompanyFieldset({ owner }: { owner: PropertyOwner | null }) {
+  // Le champ isCompany contrôle l'affichage, mais on part aussi visible si
+  // un champ société a déjà une valeur (ex. rempli via "Compléter en
+  // masse" sans passer par cette case à cocher) pour ne jamais masquer une
+  // donnée déjà renseignée.
+  const hasCompanyData = !!(
+    owner?.companyName ||
+    owner?.companyLegalForm ||
+    owner?.companyCapital ||
+    owner?.companyAddress ||
+    owner?.companySiren ||
+    owner?.companyRcsCity ||
+    owner?.companyRepresentedBy ||
+    owner?.companyRole
+  );
+  const [isCompany, setIsCompany] = useState(!!owner?.isCompany || hasCompanyData);
+
+  return (
+    <fieldset className="card p-5">
+      <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Si société</legend>
+      <label className="mt-1 flex items-center gap-2 text-[15px] text-[#1d1d1f]">
+        <input
+          type="checkbox"
+          checked={isCompany}
+          onChange={(e) => setIsCompany(e.target.checked)}
+          className="h-4 w-4 accent-[#0071e3]"
+        />
+        Le propriétaire est une société
+      </label>
+      <input type="hidden" name="isCompany" value={isCompany ? "true" : "false"} />
+
+      {isCompany && (
+        <div className="mt-3 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Nom société" name="companyName" defaultValue={owner?.companyName} csvKey="ownerCompanyName" />
+            <Field
+              label="Forme société"
+              name="companyLegalForm"
+              defaultValue={owner?.companyLegalForm}
+              csvKey="ownerCompanyLegalForm"
+              placeholder="Ex. SCI, SARL, SAS…"
+            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field
+              label="Capital société"
+              name="companyCapital"
+              defaultValue={owner?.companyCapital}
+              csvKey="ownerCompanyCapital"
+            />
+            <Field
+              label="SIREN société"
+              name="companySiren"
+              defaultValue={owner?.companySiren}
+              csvKey="ownerCompanySiren"
+            />
+          </div>
+          <Field
+            label="Adresse société"
+            name="companyAddress"
+            defaultValue={owner?.companyAddress}
+            csvKey="ownerCompanyAddress"
+          />
+          <Field label="Ville RCS" name="companyRcsCity" defaultValue={owner?.companyRcsCity} csvKey="ownerCompanyRcsCity" />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field
+              label="Représenté par"
+              name="companyRepresentedBy"
+              defaultValue={owner?.companyRepresentedBy}
+              csvKey="ownerCompanyRepresentedBy"
+            />
+            <Field
+              label="Qualité"
+              name="companyRole"
+              defaultValue={owner?.companyRole}
+              csvKey="ownerCompanyRole"
+              placeholder="Ex. gérant"
+            />
+          </div>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
 export function DocumentField({
   propertyId,
   title,
@@ -458,6 +558,34 @@ export function OwnerTab({
                     className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
                   />
                 </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field
+                    label="Date de naissance"
+                    name="birthDate"
+                    defaultValue={owner?.birthDate}
+                    csvKey="ownerBirthDate"
+                  />
+                  <Field
+                    label="Lieu de naissance"
+                    name="birthPlace"
+                    defaultValue={owner?.birthPlace}
+                    csvKey="ownerBirthPlace"
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field
+                    label="Nationalité"
+                    name="nationality"
+                    defaultValue={owner?.nationality}
+                    csvKey="ownerNationality"
+                  />
+                  <Field
+                    label="Numéro de passeport"
+                    name="passportNumber"
+                    defaultValue={owner?.passportNumber}
+                    csvKey="ownerPassportNumber"
+                  />
+                </div>
                 <NoteField
                   label="Notes"
                   name="notes"
@@ -468,6 +596,8 @@ export function OwnerTab({
             </fieldset>
 
             <RentFieldset propertyId={propertyId} owner={owner} missingCheckKeys={missingCheckKeys} />
+
+            <CompanyFieldset owner={owner} />
 
             <fieldset className="card space-y-3 p-5">
               <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Documents</legend>

@@ -433,6 +433,18 @@ const OWNER_STRING_COLUMNS: [CsvFieldKey, string][] = [
   ["ownerEmail", "email"],
   ["ownerPhone", "phone"],
   ["ownerAddress", "address"],
+  ["ownerBirthDate", "birth_date"],
+  ["ownerBirthPlace", "birth_place"],
+  ["ownerNationality", "nationality"],
+  ["ownerPassportNumber", "passport_number"],
+  ["ownerCompanyName", "company_name"],
+  ["ownerCompanyLegalForm", "company_legal_form"],
+  ["ownerCompanyCapital", "company_capital"],
+  ["ownerCompanyAddress", "company_address"],
+  ["ownerCompanySiren", "company_siren"],
+  ["ownerCompanyRcsCity", "company_rcs_city"],
+  ["ownerCompanyRepresentedBy", "company_represented_by"],
+  ["ownerCompanyRole", "company_role"],
   ["ownerNotes", "notes"],
   ["leaseNotes", "lease_notes"],
   ["ribNotes", "rib_notes"],
@@ -596,6 +608,7 @@ export async function importProperties(formData: FormData): Promise<ImportProper
       for (const [csvKey, column] of OWNER_STRING_COLUMNS) {
         if (hasColumn(csvKey)) ownerPatch[column] = get(row, csvKey);
       }
+      if (hasColumn("ownerIsCompany")) ownerPatch.is_company = parseEnumCell(get(row, "ownerIsCompany"), BOOLEAN_CELL_MAP);
       if (hasColumn("rentType")) ownerPatch.rent_type = parseEnumCell(get(row, "rentType"), RENT_TYPE_CELL_MAP);
       if (hasColumn("rentAmount")) ownerPatch.rent_amount = optionalAmount(get(row, "rentAmount"), "Le loyer");
       if (hasColumn("chargesAmount")) ownerPatch.charges_amount = optionalAmount(get(row, "chargesAmount"), "Les charges");
@@ -745,6 +758,18 @@ const PROPERTY_OWNER_STRING_FIELDS: [string, string, string][] = [
   ["email", "email", "Email"],
   ["phone", "phone", "Téléphone"],
   ["address", "address", "Adresse"],
+  ["birthDate", "birth_date", "Date de naissance"],
+  ["birthPlace", "birth_place", "Lieu de naissance"],
+  ["nationality", "nationality", "Nationalité"],
+  ["passportNumber", "passport_number", "Numéro de passeport"],
+  ["companyName", "company_name", "Nom société"],
+  ["companyLegalForm", "company_legal_form", "Forme société"],
+  ["companyCapital", "company_capital", "Capital société"],
+  ["companyAddress", "company_address", "Adresse société"],
+  ["companySiren", "company_siren", "SIREN société"],
+  ["companyRcsCity", "company_rcs_city", "Ville RCS"],
+  ["companyRepresentedBy", "company_represented_by", "Représenté par"],
+  ["companyRole", "company_role", "Qualité"],
   ["notes", "notes", "Notes"],
   ["leaseNotes", "lease_notes", "Note Bail"],
   ["ribNotes", "rib_notes", "Note RIB"],
@@ -780,6 +805,10 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
       patch[columnKey] = optionalString(formData.get(formKey));
       labels[columnKey] = label;
     }
+  }
+  if (formData.has("isCompany")) {
+    patch.is_company = formData.get("isCompany") === "true";
+    labels.is_company = "Société";
   }
   if (formData.has("rentType")) {
     const rentTypeRaw = optionalString(formData.get("rentType"));
