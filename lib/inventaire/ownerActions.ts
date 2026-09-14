@@ -10,6 +10,36 @@ function optionalString(value: FormDataEntryValue | null): string | null {
   return str ? str : null;
 }
 
+function sanitizeFileName(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[^\w.\-]/g, "_")
+    .slice(-120);
+}
+
+/** Vérifie que la session en cours a le droit d'agir sur ce bien (l'email
+ * de session doit correspondre à l'email déjà enregistré sur la fiche
+ * Propriétaire) et renvoie cet email. Centralise la vérification faite par
+ * chaque action d'écriture self-service. */
+async function assertOwnerAccess(
+  admin: ReturnType<typeof createAdminClient>,
+  propertyId: string
+): Promise<string> {
+  const sessionEmail = await getOwnerSessionEmail();
+  if (!sessionEmail) throw new Error("Votre session a expiré, merci de vous reconnecter.");
+
+  const { data: existingOwner, error } = await admin
+    .from("property_owner")
+    .select("email")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!existingOwner || (existingOwner.email ?? "").toLowerCase() !== sessionEmail) {
+    throw new Error("Accès non autorisé pour ce bien.");
+  }
+  return sessionEmail;
+}
+
 /** Identifie le propriétaire par l'email déjà enregistré sur au moins une
  * fiche bien (pas de compte à créer) et ouvre une session self-service. */
 export async function ownerLogin(formData: FormData): Promise<void> {
@@ -37,6 +67,7 @@ export interface OwnerPropertyOption {
   propertyId: string;
   reference: string;
   name: string | null;
+  address: string | null;
 }
 
 /** Tous les biens dont la fiche Propriétaire porte cet email (un même
@@ -51,12 +82,17 @@ export async function listOwnerProperties(email: string): Promise<OwnerPropertyO
 
   const { data: properties, error: propertiesError } = await admin
     .from("properties")
-    .select("id, reference, name")
+    .select("id, reference, name, address")
     .in("id", propertyIds)
     .order("reference", { ascending: true });
   if (propertiesError) throw propertiesError;
 
-  return (properties ?? []).map((p) => ({ propertyId: p.id, reference: p.reference, name: p.name }));
+  return (properties ?? []).map((p) => ({
+    propertyId: p.id,
+    reference: p.reference,
+    name: p.name,
+    address: p.address,
+  }));
 }
 
 /** Enregistre le formulaire self-service propriétaire (identité, société,
@@ -65,19 +101,8 @@ export async function listOwnerProperties(email: string): Promise<OwnerPropertyO
  * enregistré sur ce bien — empêche un propriétaire de modifier un bien qui
  * n'est pas le sien en changeant juste l'identifiant dans l'URL. */
 export async function saveOwnerSelfService(propertyId: string, formData: FormData): Promise<void> {
-  const sessionEmail = await getOwnerSessionEmail();
-  if (!sessionEmail) throw new Error("Votre session a expiré, merci de vous reconnecter.");
-
   const admin = createAdminClient();
-  const { data: existingOwner, error: ownerFetchError } = await admin
-    .from("property_owner")
-    .select("email")
-    .eq("property_id", propertyId)
-    .maybeSingle();
-  if (ownerFetchError) throw ownerFetchError;
-  if (!existingOwner || (existingOwner.email ?? "").toLowerCase() !== sessionEmail) {
-    throw new Error("Accès non autorisé pour ce bien.");
-  }
+  const sessionEmail = await assertOwnerAccess(admin, propertyId);
 
   const ownerPatch = {
     property_id: propertyId,
@@ -118,8 +143,17 @@ export async function saveOwnerSelfService(propertyId: string, formData: FormDat
     .upsert(waterElecPatch, { onConflict: "property_id" });
   if (waterElecError) throw waterElecError;
 
+  const surfaceRaw = optionalString(formData.get("surface"));
+  const surface = surfaceRaw ? Number.parseFloat(surfaceRaw.replace(",", ".")) : null;
+  if (surface !== null && !Number.isFinite(surface)) throw new Error("Superficie invalide.");
+  const { error: agencementError } = await admin
+    .from("property_agencement")
+    .upsert({ property_id: propertyId, surface }, { onConflict: "property_id" });
+  if (agencementError) throw agencementError;
+
   const detailsPatch = {
     property_id: propertyId,
+    comment: optionalString(formData.get("comment")),
     syndic_name: optionalString(formData.get("syndicName")),
     syndic_phone: optionalString(formData.get("syndicPhone")),
     syndic_email: optionalString(formData.get("syndicEmail")),
@@ -136,6 +170,68 @@ export async function saveOwnerSelfService(propertyId: string, formData: FormDat
     entity_type: "property_owner",
     action: "update",
     summary: "Informations mises à jour par le propriétaire",
+    actor_id: null,
+    actor_email: sessionEmail,
+  });
+
+  revalidatePath(`/inventaire/proprietaire/${propertyId}`);
+}
+
+export interface OwnerRibFile {
+  id: string;
+  fileName: string;
+}
+
+/** RIB déjà envoyés pour ce bien (visible uniquement pour info — pas de
+ * suppression côté propriétaire, ça reste au staff). */
+export async function listOwnerRibAttachments(propertyId: string): Promise<OwnerRibFile[]> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("attachments")
+    .select("id, file_name")
+    .eq("property_id", propertyId)
+    .eq("entity_type", "property")
+    .eq("kind", "rib")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((a) => ({ id: a.id, fileName: a.file_name }));
+}
+
+/** Ajoute un RIB (utile quand le propriétaire est une société). Le fichier
+ * est envoyé directement via le client à clé de service, le propriétaire
+ * n'ayant pas de session Supabase Auth pour uploader lui-même. */
+export async function ownerUploadRib(propertyId: string, formData: FormData): Promise<void> {
+  const admin = createAdminClient();
+  const sessionEmail = await assertOwnerAccess(admin, propertyId);
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Choisissez un fichier.");
+
+  const path = `${propertyId}/property/${propertyId}/rib/${Date.now()}-${sanitizeFileName(file.name)}`;
+  const { error: uploadError } = await admin.storage.from("property-files").upload(path, file, {
+    contentType: file.type || undefined,
+    upsert: false,
+  });
+  if (uploadError) throw new Error(`Échec de l'envoi : ${uploadError.message}`);
+
+  const { error: insertError } = await admin.from("attachments").insert({
+    property_id: propertyId,
+    entity_type: "property",
+    entity_id: propertyId,
+    kind: "rib",
+    file_path: path,
+    file_name: file.name,
+    mime_type: file.type || null,
+    size_bytes: file.size,
+  });
+  if (insertError) throw insertError;
+
+  await admin.from("activity_log").insert({
+    property_id: propertyId,
+    entity_type: "property",
+    entity_id: propertyId,
+    action: "create",
+    summary: `RIB « ${file.name} » ajouté par le propriétaire`,
     actor_id: null,
     actor_email: sessionEmail,
   });

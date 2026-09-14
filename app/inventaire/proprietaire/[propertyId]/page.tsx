@@ -1,7 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOwnerSessionEmail } from "@/lib/inventaire/ownerAuth";
-import { serializePropertyDetails, serializePropertyOwner, serializeWaterElec } from "@/lib/inventaire/serialize";
+import { listOwnerProperties, listOwnerRibAttachments } from "@/lib/inventaire/ownerActions";
+import {
+  serializeAgencement,
+  serializePropertyDetails,
+  serializePropertyOwner,
+  serializeWaterElec,
+} from "@/lib/inventaire/serialize";
+import { PropertySwitcher } from "../PropertySwitcher";
 import { OwnerSelfServiceForm } from "./OwnerSelfServiceForm";
 
 export default async function OwnerPropertyPage({ params }: { params: Promise<{ propertyId: string }> }) {
@@ -13,7 +20,7 @@ export default async function OwnerPropertyPage({ params }: { params: Promise<{ 
 
   const { data: propertyRow } = await admin
     .from("properties")
-    .select("id, reference, name")
+    .select("id, reference, name, address")
     .eq("id", propertyId)
     .maybeSingle();
   if (!propertyRow) notFound();
@@ -27,10 +34,14 @@ export default async function OwnerPropertyPage({ params }: { params: Promise<{ 
     redirect("/inventaire/proprietaire");
   }
 
-  const [{ data: detailsRow }, { data: waterElecRow }] = await Promise.all([
-    admin.from("property_details").select("*").eq("property_id", propertyId).maybeSingle(),
-    admin.from("property_water_elec").select("*").eq("property_id", propertyId).maybeSingle(),
-  ]);
+  const [{ data: detailsRow }, { data: waterElecRow }, { data: agencementRow }, properties, ribFiles] =
+    await Promise.all([
+      admin.from("property_details").select("*").eq("property_id", propertyId).maybeSingle(),
+      admin.from("property_water_elec").select("*").eq("property_id", propertyId).maybeSingle(),
+      admin.from("property_agencement").select("*").eq("property_id", propertyId).maybeSingle(),
+      listOwnerProperties(email),
+      listOwnerRibAttachments(propertyId),
+    ]);
 
   return (
     <div className="mx-auto max-w-[640px] px-4 py-10">
@@ -38,15 +49,20 @@ export default async function OwnerPropertyPage({ params }: { params: Promise<{ 
         {propertyRow.reference}
         {propertyRow.name && <span className="ml-2 text-[17px] font-normal text-[#6e6e73]">{propertyRow.name}</span>}
       </h1>
+      {propertyRow.address && <p className="mt-1 text-[15px] text-[#6e6e73]">{propertyRow.address}</p>}
       <p className="mt-1.5 text-[15px] text-[#6e6e73]">
         Vérifiez et complétez vos informations ci-dessous, puis enregistrez.
       </p>
+
+      <PropertySwitcher properties={properties} currentPropertyId={propertyId} />
 
       <OwnerSelfServiceForm
         propertyId={propertyId}
         owner={serializePropertyOwner(ownerRow)}
         details={detailsRow ? serializePropertyDetails(detailsRow) : null}
         waterElec={waterElecRow ? serializeWaterElec(waterElecRow) : null}
+        agencement={agencementRow ? serializeAgencement(agencementRow) : null}
+        ribFiles={ribFiles}
       />
     </div>
   );

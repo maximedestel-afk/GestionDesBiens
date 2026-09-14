@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { PropertyDetails, PropertyOwner, PropertyWaterElec } from "@/lib/inventaire/types";
-import { saveOwnerSelfService } from "@/lib/inventaire/ownerActions";
+import type { PropertyAgencement, PropertyDetails, PropertyOwner, PropertyWaterElec } from "@/lib/inventaire/types";
+import { saveOwnerSelfService, type OwnerRibFile } from "@/lib/inventaire/ownerActions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
+import { OwnerRibUpload } from "./OwnerRibUpload";
 
 function Field({
   label,
@@ -40,11 +41,15 @@ export function OwnerSelfServiceForm({
   owner,
   details,
   waterElec,
+  agencement,
+  ribFiles,
 }: {
   propertyId: string;
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
   waterElec: PropertyWaterElec | null;
+  agencement: PropertyAgencement | null;
+  ribFiles: OwnerRibFile[];
 }) {
   const [isCompany, setIsCompany] = useState(
     !!owner?.isCompany ||
@@ -68,7 +73,7 @@ export function OwnerSelfServiceForm({
     >
       {({ pending, error, success }) => (
         <>
-          <Section title="Vos coordonnées">
+          <Section title="Coordonnées du propriétaire">
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Nom" name="lastName" defaultValue={owner?.lastName} />
               <Field label="Prénom" name="firstName" defaultValue={owner?.firstName} />
@@ -119,8 +124,18 @@ export function OwnerSelfServiceForm({
                   />
                   <Field label="Qualité (ex. gérant)" name="companyRole" defaultValue={owner?.companyRole} />
                 </div>
+                <OwnerRibUpload propertyId={propertyId} existingFiles={ribFiles} />
               </div>
             )}
+          </Section>
+
+          <Section title="Le bien">
+            <Field label="Superficie (m²)" name="surface" type="number" defaultValue={agencement?.surface?.toString()} />
+            <Field
+              label="Commentaire (nom du voisin, du gardien, etc.)"
+              name="comment"
+              defaultValue={details?.comment}
+            />
           </Section>
 
           <Section title="Eau chaude et chauffage">
