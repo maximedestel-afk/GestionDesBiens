@@ -91,6 +91,10 @@ export interface OwnerDirectoryEntry {
   email: string | null;
   phone: string | null;
   address: string | null;
+  birthDate: string | null;
+  birthPlace: string | null;
+  nationality: string | null;
+  passportNumber: string | null;
 }
 
 export interface PropertyAgencement {
