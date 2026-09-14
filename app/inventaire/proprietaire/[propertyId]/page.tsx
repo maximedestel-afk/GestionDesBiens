@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOwnerSessionEmail } from "@/lib/inventaire/ownerAuth";
-import { listOwnerProperties, listOwnerRibAttachments } from "@/lib/inventaire/ownerActions";
+import { listOwnerProperties, listOwnerRibAttachments, withOwnerFallback } from "@/lib/inventaire/ownerActions";
 import {
   serializeAgencement,
   serializePropertyDetails,
@@ -34,13 +34,14 @@ export default async function OwnerPropertyPage({ params }: { params: Promise<{ 
     redirect("/inventaire/proprietaire");
   }
 
-  const [{ data: detailsRow }, { data: waterElecRow }, { data: agencementRow }, properties, ribFiles] =
+  const [{ data: detailsRow }, { data: waterElecRow }, { data: agencementRow }, properties, ribFiles, ownerWithFallback] =
     await Promise.all([
       admin.from("property_details").select("*").eq("property_id", propertyId).maybeSingle(),
       admin.from("property_water_elec").select("*").eq("property_id", propertyId).maybeSingle(),
       admin.from("property_agencement").select("*").eq("property_id", propertyId).maybeSingle(),
       listOwnerProperties(email),
       listOwnerRibAttachments(propertyId),
+      withOwnerFallback(admin, email, propertyId, ownerRow),
     ]);
 
   return (
@@ -58,7 +59,7 @@ export default async function OwnerPropertyPage({ params }: { params: Promise<{ 
 
       <OwnerSelfServiceForm
         propertyId={propertyId}
-        owner={serializePropertyOwner(ownerRow)}
+        owner={serializePropertyOwner(ownerWithFallback ?? ownerRow)}
         details={detailsRow ? serializePropertyDetails(detailsRow) : null}
         waterElec={waterElecRow ? serializeWaterElec(waterElecRow) : null}
         agencement={agencementRow ? serializeAgencement(agencementRow) : null}
