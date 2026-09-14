@@ -595,9 +595,9 @@ export function OwnerTab({
               </div>
             </fieldset>
 
-            <RentFieldset propertyId={propertyId} owner={owner} missingCheckKeys={missingCheckKeys} />
-
             <CompanyFieldset owner={owner} />
+
+            <RentFieldset propertyId={propertyId} owner={owner} missingCheckKeys={missingCheckKeys} />
 
             <fieldset className="card space-y-3 p-5">
               <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Documents</legend>
