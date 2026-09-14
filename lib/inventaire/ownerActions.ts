@@ -229,7 +229,12 @@ export async function saveOwnerSelfService(propertyId: string, formData: FormDat
 
   const ribFile = formData.get("ribFile");
   if (ribFile instanceof File && ribFile.size > 0) {
-    await uploadOwnerRib(admin, propertyId, sessionEmail, ribFile);
+    await uploadOwnerDocument(admin, propertyId, sessionEmail, ribFile, "rib", "RIB");
+  }
+
+  const rcpFile = formData.get("rcpFile");
+  if (rcpFile instanceof File && rcpFile.size > 0) {
+    await uploadOwnerDocument(admin, propertyId, sessionEmail, rcpFile, "rcp", "RCP");
   }
 
   await admin.from("activity_log").insert({
@@ -244,26 +249,25 @@ export async function saveOwnerSelfService(propertyId: string, formData: FormDat
   revalidatePath(`/inventaire/proprietaire/${propertyId}`);
 }
 
-const RIB_SIGNED_URL_TTL_SECONDS = 60 * 60; // 1h, largement suffisant pour une session de consultation
+const DOCUMENT_SIGNED_URL_TTL_SECONDS = 60 * 60; // 1h, largement suffisant pour une session de consultation
 
-export interface OwnerRibFile {
+export interface OwnerDocumentFile {
   id: string;
   fileName: string;
   mimeType: string | null;
   url: string | null;
 }
 
-/** RIB déjà envoyés pour ce bien : nom, type et URL signée (pour l'aperçu
- * image et l'ouverture du fichier), avec suppression possible côté
- * propriétaire via `ownerDeleteRib`. */
-export async function listOwnerRibAttachments(propertyId: string): Promise<OwnerRibFile[]> {
+/** Documents (RIB, RCP…) déjà envoyés pour ce bien et ce type : nom, type et
+ * URL signée (pour l'aperçu image et l'ouverture du fichier). */
+async function listOwnerDocuments(propertyId: string, kind: "rib" | "rcp"): Promise<OwnerDocumentFile[]> {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("attachments")
     .select("id, file_name, file_path, mime_type")
     .eq("property_id", propertyId)
     .eq("entity_type", "property")
-    .eq("kind", "rib")
+    .eq("kind", kind)
     .order("created_at", { ascending: false });
   if (error) throw error;
 
@@ -274,7 +278,7 @@ export async function listOwnerRibAttachments(propertyId: string): Promise<Owner
     .from("property-files")
     .createSignedUrls(
       rows.map((row) => row.file_path),
-      RIB_SIGNED_URL_TTL_SECONDS
+      DOCUMENT_SIGNED_URL_TTL_SECONDS
     );
 
   return rows.map((a, i) => ({
@@ -285,27 +289,37 @@ export async function listOwnerRibAttachments(propertyId: string): Promise<Owner
   }));
 }
 
-/** Envoie un RIB vers le stockage et l'enregistre en pièce jointe. Utilisé
- * par `saveOwnerSelfService` — le fichier n'est envoyé qu'au moment où le
- * propriétaire valide le formulaire (pas d'envoi séparé). */
-async function uploadOwnerRib(
+export async function listOwnerRibAttachments(propertyId: string): Promise<OwnerDocumentFile[]> {
+  return listOwnerDocuments(propertyId, "rib");
+}
+
+export async function listOwnerRcpAttachments(propertyId: string): Promise<OwnerDocumentFile[]> {
+  return listOwnerDocuments(propertyId, "rcp");
+}
+
+/** Envoie un document (RIB, RCP…) vers le stockage et l'enregistre en pièce
+ * jointe. Utilisé par `saveOwnerSelfService` — le fichier n'est envoyé qu'au
+ * moment où le propriétaire valide le formulaire (pas d'envoi séparé). */
+async function uploadOwnerDocument(
   admin: ReturnType<typeof createAdminClient>,
   propertyId: string,
   sessionEmail: string,
-  file: File
+  file: File,
+  kind: "rib" | "rcp",
+  label: string
 ): Promise<void> {
-  const path = `${propertyId}/property/${propertyId}/rib/${Date.now()}-${sanitizeFileName(file.name)}`;
+  const path = `${propertyId}/property/${propertyId}/${kind}/${Date.now()}-${sanitizeFileName(file.name)}`;
   const { error: uploadError } = await admin.storage.from("property-files").upload(path, file, {
     contentType: file.type || undefined,
     upsert: false,
   });
-  if (uploadError) throw new Error(`Échec de l'envoi du RIB : ${uploadError.message}`);
+  if (uploadError) throw new Error(`Échec de l'envoi du ${label} : ${uploadError.message}`);
 
   const { error: insertError } = await admin.from("attachments").insert({
     property_id: propertyId,
     entity_type: "property",
     entity_id: propertyId,
-    kind: "rib",
+    kind,
     file_path: path,
     file_name: file.name,
     mime_type: file.type || null,
@@ -318,17 +332,23 @@ async function uploadOwnerRib(
     entity_type: "property",
     entity_id: propertyId,
     action: "create",
-    summary: `RIB « ${file.name} » ajouté par le propriétaire`,
+    summary: `${label} « ${file.name} » ajouté par le propriétaire`,
     actor_id: null,
     actor_email: sessionEmail,
   });
 }
 
-/** Supprime un RIB déjà envoyé (le propriétaire peut retirer un fichier
- * ajouté par erreur). Restreint au bien courant et au type "rib" uniquement,
- * pour qu'un propriétaire ne puisse pas supprimer une pièce jointe d'un
- * autre bien ou d'un autre type en changeant juste l'identifiant. */
-export async function ownerDeleteRib(propertyId: string, attachmentId: string): Promise<void> {
+/** Supprime un document (RIB, RCP…) déjà envoyé (le propriétaire peut
+ * retirer un fichier ajouté par erreur). Restreint au bien courant et au
+ * type demandé uniquement, pour qu'un propriétaire ne puisse pas supprimer
+ * une pièce jointe d'un autre bien ou d'un autre type en changeant juste
+ * l'identifiant. */
+async function ownerDeleteDocument(
+  propertyId: string,
+  attachmentId: string,
+  kind: "rib" | "rcp",
+  label: string
+): Promise<void> {
   const admin = createAdminClient();
   const sessionEmail = await assertOwnerAccess(admin, propertyId);
 
@@ -337,10 +357,10 @@ export async function ownerDeleteRib(propertyId: string, attachmentId: string): 
     .select("file_path, file_name")
     .eq("id", attachmentId)
     .eq("property_id", propertyId)
-    .eq("kind", "rib")
+    .eq("kind", kind)
     .maybeSingle();
   if (fetchError) throw fetchError;
-  if (!attachment) throw new Error("RIB introuvable.");
+  if (!attachment) throw new Error(`${label} introuvable.`);
 
   await admin.storage.from("property-files").remove([attachment.file_path]);
 
@@ -352,10 +372,18 @@ export async function ownerDeleteRib(propertyId: string, attachmentId: string): 
     entity_type: "property",
     entity_id: propertyId,
     action: "delete",
-    summary: `RIB « ${attachment.file_name} » supprimé par le propriétaire`,
+    summary: `${label} « ${attachment.file_name} » supprimé par le propriétaire`,
     actor_id: null,
     actor_email: sessionEmail,
   });
 
   revalidatePath(`/inventaire/proprietaire/${propertyId}`);
+}
+
+export async function ownerDeleteRib(propertyId: string, attachmentId: string): Promise<void> {
+  return ownerDeleteDocument(propertyId, attachmentId, "rib", "RIB");
+}
+
+export async function ownerDeleteRcp(propertyId: string, attachmentId: string): Promise<void> {
+  return ownerDeleteDocument(propertyId, attachmentId, "rcp", "RCP");
 }
