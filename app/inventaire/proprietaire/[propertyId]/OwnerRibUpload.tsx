@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useTransition, type RefObject } from "react";
+import Image from "next/image";
 import { unstable_rethrow } from "next/navigation";
 import { ownerDeleteRib, type OwnerRibFile } from "@/lib/inventaire/ownerActions";
+
+function isImage(mimeType: string | null) {
+  return !!mimeType && mimeType.startsWith("image/");
+}
 
 /** Liste des RIB déjà envoyés (avec suppression immédiate) + champ pour en
  * joindre un nouveau. Le nouveau fichier n'est envoyé qu'à la validation du
@@ -41,10 +46,29 @@ export function OwnerRibUpload({
     <div>
       <label className="field-label">RIB</label>
       {existingFiles.length > 0 && (
-        <ul className="mt-1 space-y-1">
+        <ul className="mt-1 space-y-2">
           {existingFiles.map((f) => (
             <li key={f.id} className="flex items-center justify-between gap-2 text-[13px] text-[#6e6e73]">
-              <span className="min-w-0 truncate">📄 {f.fileName}</span>
+              <a
+                href={f.url ?? "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-w-0 items-center gap-2 hover:underline"
+              >
+                {isImage(f.mimeType) && f.url ? (
+                  <Image
+                    src={f.url}
+                    alt={f.fileName}
+                    width={36}
+                    height={36}
+                    unoptimized
+                    className="h-9 w-9 shrink-0 rounded-md object-cover"
+                  />
+                ) : (
+                  <span className="shrink-0">📄</span>
+                )}
+                <span className="min-w-0 truncate">{f.fileName}</span>
+              </a>
               <button
                 type="button"
                 onClick={() => handleDelete(f)}
