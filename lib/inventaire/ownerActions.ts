@@ -244,24 +244,45 @@ export async function saveOwnerSelfService(propertyId: string, formData: FormDat
   revalidatePath(`/inventaire/proprietaire/${propertyId}`);
 }
 
+const RIB_SIGNED_URL_TTL_SECONDS = 60 * 60; // 1h, largement suffisant pour une session de consultation
+
 export interface OwnerRibFile {
   id: string;
   fileName: string;
+  mimeType: string | null;
+  url: string | null;
 }
 
-/** RIB déjà envoyés pour ce bien (visible uniquement pour info — pas de
- * suppression côté propriétaire, ça reste au staff). */
+/** RIB déjà envoyés pour ce bien : nom, type et URL signée (pour l'aperçu
+ * image et l'ouverture du fichier), avec suppression possible côté
+ * propriétaire via `ownerDeleteRib`. */
 export async function listOwnerRibAttachments(propertyId: string): Promise<OwnerRibFile[]> {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("attachments")
-    .select("id, file_name")
+    .select("id, file_name, file_path, mime_type")
     .eq("property_id", propertyId)
     .eq("entity_type", "property")
     .eq("kind", "rib")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((a) => ({ id: a.id, fileName: a.file_name }));
+
+  const rows = data ?? [];
+  if (rows.length === 0) return [];
+
+  const { data: signedUrls } = await admin.storage
+    .from("property-files")
+    .createSignedUrls(
+      rows.map((row) => row.file_path),
+      RIB_SIGNED_URL_TTL_SECONDS
+    );
+
+  return rows.map((a, i) => ({
+    id: a.id,
+    fileName: a.file_name,
+    mimeType: a.mime_type,
+    url: signedUrls?.[i]?.signedUrl ?? null,
+  }));
 }
 
 /** Envoie un RIB vers le stockage et l'enregistre en pièce jointe. Utilisé
