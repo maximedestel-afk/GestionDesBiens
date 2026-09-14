@@ -147,17 +147,6 @@ export function OwnerSelfServiceForm({
             />
           </Section>
 
-          <Section title="RCP">
-            <OwnerDocumentUpload
-              propertyId={propertyId}
-              label="RCP"
-              fieldName="rcpFile"
-              existingFiles={rcpFiles}
-              fileInputRef={rcpFileInputRef}
-              deleteAction={ownerDeleteRcp}
-            />
-          </Section>
-
           <Section title="Le bien">
             <Field label="Superficie (m²)" name="surface" type="number" defaultValue={agencement?.surface?.toString()} />
             <Field
@@ -233,6 +222,17 @@ export function OwnerSelfServiceForm({
               <Field label="Numéro de Lot" name="syndicLotNumber" defaultValue={details?.syndicLotNumber} />
             </div>
             <Field label="Notes syndic" name="syndicNotes" defaultValue={details?.syndicNotes} />
+          </Section>
+
+          <Section title="RCP">
+            <OwnerDocumentUpload
+              propertyId={propertyId}
+              label="RCP"
+              fieldName="rcpFile"
+              existingFiles={rcpFiles}
+              fileInputRef={rcpFileInputRef}
+              deleteAction={ownerDeleteRcp}
+            />
           </Section>
 
           {error && <p className="text-[14px] text-red-600">{error}</p>}
