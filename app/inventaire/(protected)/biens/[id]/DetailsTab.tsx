@@ -370,6 +370,12 @@ export function DetailsTab({
               <Field label="Nom" name="syndicName" defaultValue={details?.syndicName} csvKey="syndicName" />
               <Field label="Téléphone" name="syndicPhone" defaultValue={details?.syndicPhone} csvKey="syndicPhone" />
               <Field label="Email" name="syndicEmail" defaultValue={details?.syndicEmail} csvKey="syndicEmail" />
+              <Field
+                label="Numéro de Lot"
+                name="syndicLotNumber"
+                defaultValue={details?.syndicLotNumber}
+                csvKey="syndicLotNumber"
+              />
             </div>
             <NoteField
               label="Notes"
