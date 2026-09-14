@@ -4,6 +4,9 @@ import { supabaseAnonKey, supabaseUrl } from "./env";
 
 const PROTECTED_PREFIX = "/inventaire";
 const LOGIN_PATH = "/inventaire/login";
+// Espace self-service propriétaire : accès par email (pas par compte
+// Supabase Auth), donc exclu de la protection "staff connecté" ci-dessous.
+const OWNER_PREFIX = "/inventaire/proprietaire";
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -30,7 +33,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isProtected = pathname.startsWith(PROTECTED_PREFIX) && pathname !== LOGIN_PATH;
+  const isProtected =
+    pathname.startsWith(PROTECTED_PREFIX) && pathname !== LOGIN_PATH && !pathname.startsWith(OWNER_PREFIX);
 
   if (!user && isProtected) {
     const redirectUrl = new URL(LOGIN_PATH, request.url);

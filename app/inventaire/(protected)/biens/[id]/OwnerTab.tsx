@@ -10,6 +10,7 @@ import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { AddressAutocomplete } from "@/components/inventaire/AddressAutocomplete";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { FieldRef } from "@/components/inventaire/FieldRef";
+import { OwnerPortalLinkButton } from "@/components/inventaire/OwnerPortalLinkButton";
 import { NoteField } from "@/components/inventaire/NoteField";
 import type { CsvFieldKey } from "@/lib/inventaire/csvFields";
 import { ElementCard } from "./ElementCard";
@@ -521,6 +522,9 @@ export function OwnerTab({
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <OwnerPortalLinkButton />
+      </div>
       <ActionForm className="space-y-4" autoSave action={(formData) => savePropertyOwner(propertyId, formData)}>
         {({ pending, error, success }) => (
           <>
