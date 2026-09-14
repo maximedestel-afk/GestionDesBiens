@@ -52,8 +52,11 @@ export default async function OwnerHomePage() {
               href={`/inventaire/proprietaire/${p.propertyId}`}
               className="flex flex-col px-4 py-3 hover:bg-black/[0.02]"
             >
-              <span className="text-[15px] font-medium text-[#1d1d1f]">{p.reference}</span>
-              {p.name && <span className="text-[13px] text-[#6e6e73]">{p.name}</span>}
+              <span className="text-[15px] font-medium text-[#1d1d1f]">
+                {p.reference}
+                {p.name && <span className="font-normal text-[#6e6e73]"> — {p.name}</span>}
+              </span>
+              {p.address && <span className="text-[13px] text-[#6e6e73]">{p.address}</span>}
             </Link>
           </li>
         ))}
