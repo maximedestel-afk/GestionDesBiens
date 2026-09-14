@@ -227,6 +227,11 @@ export async function saveOwnerSelfService(propertyId: string, formData: FormDat
     .upsert(detailsPatch, { onConflict: "property_id" });
   if (detailsError) throw detailsError;
 
+  const ribFile = formData.get("ribFile");
+  if (ribFile instanceof File && ribFile.size > 0) {
+    await uploadOwnerRib(admin, propertyId, sessionEmail, ribFile);
+  }
+
   await admin.from("activity_log").insert({
     property_id: propertyId,
     entity_type: "property_owner",
@@ -259,22 +264,21 @@ export async function listOwnerRibAttachments(propertyId: string): Promise<Owner
   return (data ?? []).map((a) => ({ id: a.id, fileName: a.file_name }));
 }
 
-/** Ajoute un RIB (utile quand le propriétaire est une société). Le fichier
- * est envoyé directement via le client à clé de service, le propriétaire
- * n'ayant pas de session Supabase Auth pour uploader lui-même. */
-export async function ownerUploadRib(propertyId: string, formData: FormData): Promise<void> {
-  const admin = createAdminClient();
-  const sessionEmail = await assertOwnerAccess(admin, propertyId);
-
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) throw new Error("Choisissez un fichier.");
-
+/** Envoie un RIB vers le stockage et l'enregistre en pièce jointe. Utilisé
+ * par `saveOwnerSelfService` — le fichier n'est envoyé qu'au moment où le
+ * propriétaire valide le formulaire (pas d'envoi séparé). */
+async function uploadOwnerRib(
+  admin: ReturnType<typeof createAdminClient>,
+  propertyId: string,
+  sessionEmail: string,
+  file: File
+): Promise<void> {
   const path = `${propertyId}/property/${propertyId}/rib/${Date.now()}-${sanitizeFileName(file.name)}`;
   const { error: uploadError } = await admin.storage.from("property-files").upload(path, file, {
     contentType: file.type || undefined,
     upsert: false,
   });
-  if (uploadError) throw new Error(`Échec de l'envoi : ${uploadError.message}`);
+  if (uploadError) throw new Error(`Échec de l'envoi du RIB : ${uploadError.message}`);
 
   const { error: insertError } = await admin.from("attachments").insert({
     property_id: propertyId,
@@ -294,6 +298,40 @@ export async function ownerUploadRib(propertyId: string, formData: FormData): Pr
     entity_id: propertyId,
     action: "create",
     summary: `RIB « ${file.name} » ajouté par le propriétaire`,
+    actor_id: null,
+    actor_email: sessionEmail,
+  });
+}
+
+/** Supprime un RIB déjà envoyé (le propriétaire peut retirer un fichier
+ * ajouté par erreur). Restreint au bien courant et au type "rib" uniquement,
+ * pour qu'un propriétaire ne puisse pas supprimer une pièce jointe d'un
+ * autre bien ou d'un autre type en changeant juste l'identifiant. */
+export async function ownerDeleteRib(propertyId: string, attachmentId: string): Promise<void> {
+  const admin = createAdminClient();
+  const sessionEmail = await assertOwnerAccess(admin, propertyId);
+
+  const { data: attachment, error: fetchError } = await admin
+    .from("attachments")
+    .select("file_path, file_name")
+    .eq("id", attachmentId)
+    .eq("property_id", propertyId)
+    .eq("kind", "rib")
+    .maybeSingle();
+  if (fetchError) throw fetchError;
+  if (!attachment) throw new Error("RIB introuvable.");
+
+  await admin.storage.from("property-files").remove([attachment.file_path]);
+
+  const { error: deleteError } = await admin.from("attachments").delete().eq("id", attachmentId);
+  if (deleteError) throw deleteError;
+
+  await admin.from("activity_log").insert({
+    property_id: propertyId,
+    entity_type: "property",
+    entity_id: propertyId,
+    action: "delete",
+    summary: `RIB « ${attachment.file_name} » supprimé par le propriétaire`,
     actor_id: null,
     actor_email: sessionEmail,
   });
