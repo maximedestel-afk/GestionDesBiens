@@ -77,6 +77,10 @@ interface DedupedOwner {
   email: string | null;
   phone: string | null;
   address: string | null;
+  birthDate: string | null;
+  birthPlace: string | null;
+  nationality: string | null;
+  passportNumber: string | null;
   references: string[];
 }
 
@@ -96,6 +100,10 @@ function dedupeOwners(directory: OwnerDirectoryEntry[]): DedupedOwner[] {
       email: entry.email,
       phone: entry.phone,
       address: entry.address,
+      birthDate: entry.birthDate,
+      birthPlace: entry.birthPlace,
+      nationality: entry.nationality,
+      passportNumber: entry.passportNumber,
       references: entry.propertyReference ? [entry.propertyReference] : [],
     });
   }
@@ -493,14 +501,22 @@ export function OwnerTab({
       ref.current.value = value ?? "";
       ref.current.dispatchEvent(new Event("input", { bubbles: true }));
     };
+    const setValueById = (id: string, value: string | null) => {
+      const input = document.getElementById(id) as HTMLInputElement | null;
+      if (!input) return;
+      input.value = value ?? "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    };
     setValue(firstNameRef, selected.firstName);
     setValue(emailRef, selected.email);
     setValue(phoneRef, selected.phone);
-    const addressInput = document.getElementById("address") as HTMLInputElement | null;
-    if (addressInput) {
-      addressInput.value = selected.address ?? "";
-      addressInput.dispatchEvent(new Event("input", { bubbles: true }));
-    }
+    // Ces informations d'identité sont propres à la personne, pas au bien :
+    // toujours les mêmes d'une fiche à l'autre pour le même propriétaire.
+    setValueById("address", selected.address);
+    setValueById("birthDate", selected.birthDate);
+    setValueById("birthPlace", selected.birthPlace);
+    setValueById("nationality", selected.nationality);
+    setValueById("passportNumber", selected.passportNumber);
   }
 
   return (
