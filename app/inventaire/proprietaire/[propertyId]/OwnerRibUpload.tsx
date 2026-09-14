@@ -62,7 +62,7 @@ export function OwnerRibUpload({
         type="file"
         name="ribFile"
         accept=".pdf,.jpg,.jpeg,.png"
-        className="mt-2 text-[13px]"
+        className="mt-2 block w-full cursor-pointer text-[13px] text-[#6e6e73] file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-[#0071e3] file:px-4 file:py-2 file:text-[13px] file:font-medium file:text-white file:transition hover:file:bg-[#0077ed]"
       />
       <p className="mt-1 text-[12px] text-[#6e6e73]">
         Le fichier est envoyé en cliquant sur « Enregistrer mes informations » ci-dessous.
