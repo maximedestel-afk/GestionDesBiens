@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PropertyAgencement, PropertyDetails, PropertyOwner, PropertyWaterElec } from "@/lib/inventaire/types";
 import { saveOwnerSelfService, type OwnerRibFile } from "@/lib/inventaire/ownerActions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
@@ -51,6 +51,7 @@ export function OwnerSelfServiceForm({
   agencement: PropertyAgencement | null;
   ribFiles: OwnerRibFile[];
 }) {
+  const ribFileInputRef = useRef<HTMLInputElement>(null);
   const [isCompany, setIsCompany] = useState(
     !!owner?.isCompany ||
       !!(
@@ -70,6 +71,9 @@ export function OwnerSelfServiceForm({
       className="mt-6 space-y-5"
       action={(formData) => saveOwnerSelfService(propertyId, formData)}
       resetOnSuccess={false}
+      onSuccess={() => {
+        if (ribFileInputRef.current) ribFileInputRef.current.value = "";
+      }}
     >
       {({ pending, error, success }) => (
         <>
@@ -94,7 +98,7 @@ export function OwnerSelfServiceForm({
           </Section>
 
           <Section title="RIB">
-            <OwnerRibUpload propertyId={propertyId} existingFiles={ribFiles} />
+            <OwnerRibUpload propertyId={propertyId} existingFiles={ribFiles} fileInputRef={ribFileInputRef} />
           </Section>
 
           <Section title="Si vous êtes une société">
