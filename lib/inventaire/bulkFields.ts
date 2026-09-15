@@ -66,6 +66,8 @@ export const BULK_FIELDS: BulkFieldDef[] = [
   { id: "company_role", label: "Qualité (ex. gérant)", group: "Propriétaire", formKey: "companyRole", inputType: "text" },
   { id: "owner_notes", label: "Notes propriétaire", group: "Propriétaire", formKey: "notes", inputType: "text" },
   { id: "lease_start_date", label: "Date de début du bail", group: "Propriétaire", formKey: "leaseStartDate", inputType: "text" },
+  { id: "lease_tenant_company", label: "Société locataire", group: "Propriétaire", formKey: "leaseTenantCompany", inputType: "text" },
+  { id: "lease_tenant_director", label: "Directeur locataire", group: "Propriétaire", formKey: "leaseTenantDirector", inputType: "text" },
   { id: "lease_notes", label: "Note Bail", group: "Propriétaire", formKey: "leaseNotes", inputType: "text" },
   { id: "rib_notes", label: "Note RIB", group: "Propriétaire", formKey: "ribNotes", inputType: "text" },
   { id: "rcp_notes", label: "Note RCP", group: "Propriétaire", formKey: "rcpNotes", inputType: "text" },

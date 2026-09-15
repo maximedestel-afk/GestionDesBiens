@@ -42,13 +42,27 @@ export function DocumentsTab({
               checkKey="lease_contract"
               missing={missingCheckKeys.includes("lease_contract")}
               extraFields={
-                <Field
-                  label="Date de début du bail"
-                  name="leaseStartDate"
-                  type="date"
-                  defaultValue={owner?.leaseStartDate}
-                  csvKey="leaseStartDate"
-                />
+                <>
+                  <Field
+                    label="Date de début du bail"
+                    name="leaseStartDate"
+                    type="date"
+                    defaultValue={owner?.leaseStartDate}
+                    csvKey="leaseStartDate"
+                  />
+                  <Field
+                    label="Société locataire"
+                    name="leaseTenantCompany"
+                    defaultValue={owner?.leaseTenantCompany}
+                    csvKey="leaseTenantCompany"
+                  />
+                  <Field
+                    label="Directeur locataire"
+                    name="leaseTenantDirector"
+                    defaultValue={owner?.leaseTenantDirector}
+                    csvKey="leaseTenantDirector"
+                  />
+                </>
               }
             />
             <DocumentField
