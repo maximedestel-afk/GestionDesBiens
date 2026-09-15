@@ -149,6 +149,75 @@ export async function getPropertyOwner(propertyId: string): Promise<PropertyOwne
   return data ? serializePropertyOwner(data) : null;
 }
 
+// Champs "coordonnées propriétaire" (identité + société) susceptibles
+// d'être communs à tous les biens d'un même propriétaire — PAS les champs
+// propres au bien (loyer, syndic, etc.). Même liste que côté portail
+// propriétaire (lib/inventaire/ownerActions.ts).
+const STAFF_OWNER_SHARED_FIELDS = [
+  "lastName",
+  "firstName",
+  "phone",
+  "address",
+  "birthDate",
+  "birthPlace",
+  "nationality",
+  "passportNumber",
+  "isCompany",
+  "companyName",
+  "companyLegalForm",
+  "companyCapital",
+  "companyAddress",
+  "companySiren",
+  "companyRcsCity",
+  "companyRepresentedBy",
+  "companyRole",
+] as const;
+
+function isEmptyOwnerValue(value: unknown): boolean {
+  return value === null || value === undefined || value === "";
+}
+
+/** Complète les champs vides de `owner` (coordonnées propriétaire + société
+ * uniquement) avec les valeurs déjà renseignées sur un autre bien du même
+ * propriétaire — identifié par email si connu, sinon par nom+prénom — sans
+ * jamais écraser un champ déjà rempli sur ce bien. Utilisé uniquement pour
+ * l'affichage de l'onglet Propriétaire (pas pour l'export ni la génération
+ * du bail, qui doivent refléter ce qui est réellement enregistré sur CE
+ * bien). */
+export async function withStaffOwnerFallback(
+  propertyId: string,
+  owner: PropertyOwner | null
+): Promise<PropertyOwner | null> {
+  if (!owner) return owner;
+  const merged = owner as unknown as Record<string, unknown>;
+  const missingFields = STAFF_OWNER_SHARED_FIELDS.filter((f) => isEmptyOwnerValue(merged[f]));
+  if (missingFields.length === 0) return owner;
+
+  const email = owner.email?.trim();
+  const lastName = owner.lastName?.trim();
+  const firstName = owner.firstName?.trim();
+  if (!email && !(lastName && firstName)) return owner;
+
+  const supabase = await createClient();
+  let query = supabase.from("property_owner").select("*").neq("property_id", propertyId);
+  query = email ? query.ilike("email", email) : query.ilike("last_name", lastName!).ilike("first_name", firstName!);
+  const { data: otherRows, error } = await query.order("updated_at", { ascending: false });
+  if (error) throw error;
+  if (!otherRows || otherRows.length === 0) return owner;
+
+  const otherOwners = otherRows.map((row) => serializePropertyOwner(row)) as unknown as Record<string, unknown>[];
+  const result: Record<string, unknown> = { ...merged };
+  for (const field of missingFields) {
+    for (const candidate of otherOwners) {
+      if (!isEmptyOwnerValue(candidate[field])) {
+        result[field] = candidate[field];
+        break;
+      }
+    }
+  }
+  return result as unknown as PropertyOwner;
+}
+
 /** Pour le "réutiliser un propriétaire existant" (onglet Propriétaire) :
  * tous les propriétaires déjà renseignés sur d'autres biens. */
 export async function listOwnersDirectory(excludePropertyId: string): Promise<OwnerDirectoryEntry[]> {
