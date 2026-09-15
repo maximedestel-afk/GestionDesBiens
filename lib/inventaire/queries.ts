@@ -793,6 +793,7 @@ const BULK_FIELD_SOURCE: Record<string, { table: string; column: string }> = {
   company_represented_by: { table: "property_owner", column: "company_represented_by" },
   company_role: { table: "property_owner", column: "company_role" },
   owner_notes: { table: "property_owner", column: "notes" },
+  lease_start_date: { table: "property_owner", column: "lease_start_date" },
   lease_notes: { table: "property_owner", column: "lease_notes" },
   rib_notes: { table: "property_owner", column: "rib_notes" },
   rcp_notes: { table: "property_owner", column: "rcp_notes" },
