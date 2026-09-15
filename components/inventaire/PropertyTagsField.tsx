@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 /** Champ "Tags" sous forme de puces retirables + saisie libre (Entrée ou
  * virgule pour valider). L'input caché qui porte la valeur envoyée au
@@ -11,11 +11,27 @@ import { useEffect, useRef, useState } from "react";
  * l'état à jour. On déclenche l'événement "input" (pour que l'auto-save de
  * ActionForm le détecte) dans un effect, une fois le DOM effectivement à
  * jour. */
-export function PropertyTagsField({ defaultTags }: { defaultTags: string[] }) {
+export function PropertyTagsField({
+  defaultTags,
+  existingTags,
+}: {
+  defaultTags: string[];
+  /** Tags déjà utilisés sur d'autres biens, proposés en suggestion à la saisie. */
+  existingTags: string[];
+}) {
   const [tags, setTags] = useState<string[]>(defaultTags);
   const [draft, setDraft] = useState("");
+  const [focused, setFocused] = useState(false);
   const hiddenRef = useRef<HTMLInputElement>(null);
   const isFirstRender = useRef(true);
+
+  const suggestions = useMemo(() => {
+    const draftLower = draft.trim().toLowerCase();
+    return existingTags
+      .filter((t) => !tags.some((existing) => existing.toLowerCase() === t.toLowerCase()))
+      .filter((t) => !draftLower || t.toLowerCase().includes(draftLower))
+      .slice(0, 6);
+  }, [existingTags, tags, draft]);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -37,7 +53,7 @@ export function PropertyTagsField({ defaultTags }: { defaultTags: string[] }) {
   }
 
   return (
-    <div>
+    <div className="relative">
       <label className="field-label">Tags</label>
       <input ref={hiddenRef} type="hidden" name="tags" value={tags.join(",")} readOnly />
       <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-[10px] border border-black/10 bg-white px-2.5 py-2 focus-within:border-[#0071e3] focus-within:ring-[3px] focus-within:ring-[#0071e3]/15">
@@ -68,11 +84,33 @@ export function PropertyTagsField({ defaultTags }: { defaultTags: string[] }) {
               removeTag(tags[tags.length - 1]);
             }
           }}
-          onBlur={() => addTag(draft)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => {
+            addTag(draft);
+            setFocused(false);
+          }}
           placeholder={tags.length === 0 ? "Ajouter un tag…" : ""}
           className="min-w-[100px] flex-1 border-none bg-transparent text-[15px] text-[#1d1d1f] outline-none placeholder:text-black/30"
         />
       </div>
+      {focused && suggestions.length > 0 && (
+        <ul className="absolute left-0 top-full z-10 mt-1 w-full overflow-hidden rounded-[10px] border border-black/10 bg-white py-1 shadow-lg">
+          {suggestions.map((s) => (
+            <li key={s}>
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  addTag(s);
+                }}
+                className="block w-full truncate px-3 py-1.5 text-left text-[13px] text-[#1d1d1f] hover:bg-black/[0.05]"
+              >
+                {s}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

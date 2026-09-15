@@ -9,7 +9,13 @@ import { AddressAutocomplete } from "./AddressAutocomplete";
 import { FieldRef } from "./FieldRef";
 import { PropertyTagsField } from "./PropertyTagsField";
 
-export function EditPropertyDialog({ property }: { property: Property }) {
+export function EditPropertyDialog({
+  property,
+  existingTags,
+}: {
+  property: Property;
+  existingTags: string[];
+}) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   return (
@@ -64,7 +70,7 @@ export function EditPropertyDialog({ property }: { property: Property }) {
                     className="field-input"
                   />
                 </div>
-                <PropertyTagsField defaultTags={property.tags} />
+                <PropertyTagsField defaultTags={property.tags} existingTags={existingTags} />
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <SaveStatus pending={pending} error={error} success={success} />
