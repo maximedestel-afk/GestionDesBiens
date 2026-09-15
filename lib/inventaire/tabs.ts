@@ -15,17 +15,18 @@ export const PROPERTY_TABS = [
   { key: "historique", code: "LOG", label: "LOG" },
   { key: "taches", code: "TA", label: "TA - Tâches" },
   { key: "documents", code: "DOC", label: "DOC - Docs" },
+  { key: "bail", code: "BL", label: "BL - Bail" },
   { key: "proprietaire", code: "OW", label: "OW - Owner" },
   { key: "manquant", code: "MIS", label: "MIS - Manquant" },
 ] as const;
 
 export type PropertyTabKey = (typeof PROPERTY_TABS)[number]["key"];
 
-// Les onglets Propriétaire et Documents restent toujours réservés aux
+// Les onglets Propriétaire, Documents et Bail restent toujours réservés aux
 // administrateurs : on ne les propose pas dans le choix des onglets d'un
 // prestataire.
 export const PRESTATAIRE_SELECTABLE_TABS = PROPERTY_TABS.filter(
-  (t) => t.key !== "proprietaire" && t.key !== "documents"
+  (t) => t.key !== "proprietaire" && t.key !== "documents" && t.key !== "bail"
 );
 
 const CODE_BY_KEY: Record<string, string> = Object.fromEntries(PROPERTY_TABS.map((t) => [t.key, t.code]));

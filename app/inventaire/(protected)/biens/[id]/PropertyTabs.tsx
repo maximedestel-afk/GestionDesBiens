@@ -41,6 +41,7 @@ import { InventoryTab } from "./InventoryTab";
 import { NotesTab } from "./NotesTab";
 import { PhotosTab } from "./PhotosTab";
 import { DocumentsTab } from "./DocumentsTab";
+import { BailTab } from "./BailTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 import { TasksTab } from "./TasksTab";
 import { MissingDataTab } from "./MissingDataTab";
@@ -111,7 +112,7 @@ export function PropertyTabs({
   const isPrestataire = role === "prestataire";
   const allowedTabsSet = new Set(allowedTabs);
   const visibleTabs = TABS.filter((tab) => {
-    if (tab.key === "proprietaire" || tab.key === "documents") return isAdmin;
+    if (tab.key === "proprietaire" || tab.key === "documents" || tab.key === "bail") return isAdmin;
     if (isPrestataire) return allowedTabsSet.has(tab.key);
     return true;
   });
@@ -347,10 +348,17 @@ export function PropertyTabs({
           <DocumentsTab
             propertyId={property.id}
             owner={owner}
-            leaseAttachments={propertyAttachments.filter((a) => a.kind === "lease_contract")}
             rcpAttachments={propertyAttachments.filter((a) => a.kind === "rcp")}
             documents={documents}
             attachments={elementAttachments}
+            missingCheckKeys={missingCheckKeys}
+          />
+        )}
+        {activeTab === "bail" && isAdmin && (
+          <BailTab
+            propertyId={property.id}
+            owner={owner}
+            leaseAttachments={propertyAttachments.filter((a) => a.kind === "lease_contract")}
             missingCheckKeys={missingCheckKeys}
           />
         )}
