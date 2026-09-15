@@ -156,7 +156,9 @@ export async function listOwnersDirectory(excludePropertyId: string): Promise<Ow
   const [{ data: owners, error: ownersError }, { data: properties, error: propertiesError }] = await Promise.all([
     supabase
       .from("property_owner")
-      .select("property_id, last_name, first_name, email, phone, address, birth_date, birth_place, nationality, passport_number")
+      .select(
+        "property_id, last_name, first_name, email, phone, address, birth_date, birth_place, nationality, passport_number, is_company, company_name, company_legal_form, company_capital, company_address, company_siren, company_rcs_city, company_represented_by, company_role"
+      )
       .neq("property_id", excludePropertyId),
     supabase.from("properties").select("id, reference"),
   ]);
@@ -179,6 +181,15 @@ export async function listOwnersDirectory(excludePropertyId: string): Promise<Ow
       birthPlace: o.birth_place,
       nationality: o.nationality,
       passportNumber: o.passport_number,
+      isCompany: o.is_company,
+      companyName: o.company_name,
+      companyLegalForm: o.company_legal_form,
+      companyCapital: o.company_capital,
+      companyAddress: o.company_address,
+      companySiren: o.company_siren,
+      companyRcsCity: o.company_rcs_city,
+      companyRepresentedBy: o.company_represented_by,
+      companyRole: o.company_role,
     }))
     .sort((a, b) =>
       `${a.lastName ?? ""} ${a.firstName ?? ""}`.localeCompare(`${b.lastName ?? ""} ${b.firstName ?? ""}`)

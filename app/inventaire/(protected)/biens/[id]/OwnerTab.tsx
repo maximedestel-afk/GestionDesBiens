@@ -82,6 +82,15 @@ interface DedupedOwner {
   birthPlace: string | null;
   nationality: string | null;
   passportNumber: string | null;
+  isCompany: boolean | null;
+  companyName: string | null;
+  companyLegalForm: string | null;
+  companyCapital: string | null;
+  companyAddress: string | null;
+  companySiren: string | null;
+  companyRcsCity: string | null;
+  companyRepresentedBy: string | null;
+  companyRole: string | null;
   references: string[];
 }
 
@@ -105,6 +114,15 @@ function dedupeOwners(directory: OwnerDirectoryEntry[]): DedupedOwner[] {
       birthPlace: entry.birthPlace,
       nationality: entry.nationality,
       passportNumber: entry.passportNumber,
+      isCompany: entry.isCompany,
+      companyName: entry.companyName,
+      companyLegalForm: entry.companyLegalForm,
+      companyCapital: entry.companyCapital,
+      companyAddress: entry.companyAddress,
+      companySiren: entry.companySiren,
+      companyRcsCity: entry.companyRcsCity,
+      companyRepresentedBy: entry.companyRepresentedBy,
+      companyRole: entry.companyRole,
       references: entry.propertyReference ? [entry.propertyReference] : [],
     });
   }
@@ -340,24 +358,19 @@ function RentFieldset({
  * morale (SCI, SARL...) plutôt qu'une personne physique. La case à cocher
  * ne fait que montrer/masquer les champs ; un input caché "isCompany"
  * (toujours présent, contrairement à une checkbox non cochée qui
- * disparaîtrait du FormData) porte la vraie valeur envoyée au serveur. */
-function CompanyFieldset({ owner }: { owner: PropertyOwner | null }) {
-  // Le champ isCompany contrôle l'affichage, mais on part aussi visible si
-  // un champ société a déjà une valeur (ex. rempli via "Compléter en
-  // masse" sans passer par cette case à cocher) pour ne jamais masquer une
-  // donnée déjà renseignée.
-  const hasCompanyData = !!(
-    owner?.companyName ||
-    owner?.companyLegalForm ||
-    owner?.companyCapital ||
-    owner?.companyAddress ||
-    owner?.companySiren ||
-    owner?.companyRcsCity ||
-    owner?.companyRepresentedBy ||
-    owner?.companyRole
-  );
-  const [isCompany, setIsCompany] = useState(!!owner?.isCompany || hasCompanyData);
-
+ * disparaîtrait du FormData) porte la vraie valeur envoyée au serveur.
+ * `isCompany`/`setIsCompany` remontés au parent (OwnerTab) pour que
+ * "Réutiliser un propriétaire existant" puisse cocher la case et afficher
+ * les champs société avant de les remplir. */
+function CompanyFieldset({
+  owner,
+  isCompany,
+  setIsCompany,
+}: {
+  owner: PropertyOwner | null;
+  isCompany: boolean;
+  setIsCompany: (value: boolean) => void;
+}) {
   return (
     <fieldset className="card p-5">
       <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Si société</legend>
@@ -501,6 +514,21 @@ export function OwnerTab({
   const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
 
+  // Remonté ici (plutôt que local à CompanyFieldset) pour que "Réutiliser un
+  // propriétaire existant" puisse cocher la case et afficher les champs
+  // société avant de les remplir via fillFromOwner.
+  const hasCompanyData = !!(
+    owner?.companyName ||
+    owner?.companyLegalForm ||
+    owner?.companyCapital ||
+    owner?.companyAddress ||
+    owner?.companySiren ||
+    owner?.companyRcsCity ||
+    owner?.companyRepresentedBy ||
+    owner?.companyRole
+  );
+  const [isCompany, setIsCompany] = useState(!!owner?.isCompany || hasCompanyData);
+
   function fillFromOwner(selected: DedupedOwner) {
     const setValue = (ref: RefObject<HTMLInputElement | null>, value: string | null) => {
       if (!ref.current) return;
@@ -523,6 +551,30 @@ export function OwnerTab({
     setValueById("birthPlace", selected.birthPlace);
     setValueById("nationality", selected.nationality);
     setValueById("passportNumber", selected.passportNumber);
+
+    const selectedHasCompanyData = !!(
+      selected.companyName ||
+      selected.companyLegalForm ||
+      selected.companyCapital ||
+      selected.companyAddress ||
+      selected.companySiren ||
+      selected.companyRcsCity ||
+      selected.companyRepresentedBy ||
+      selected.companyRole
+    );
+    setIsCompany(!!selected.isCompany || selectedHasCompanyData);
+    // Les champs société ne sont montés dans le DOM que si la case est
+    // cochée : on laisse React re-rendre avant de les remplir.
+    setTimeout(() => {
+      setValueById("companyName", selected.companyName);
+      setValueById("companyLegalForm", selected.companyLegalForm);
+      setValueById("companyCapital", selected.companyCapital);
+      setValueById("companyAddress", selected.companyAddress);
+      setValueById("companySiren", selected.companySiren);
+      setValueById("companyRcsCity", selected.companyRcsCity);
+      setValueById("companyRepresentedBy", selected.companyRepresentedBy);
+      setValueById("companyRole", selected.companyRole);
+    }, 0);
   }
 
   return (
@@ -620,7 +672,7 @@ export function OwnerTab({
               </div>
             </fieldset>
 
-            <CompanyFieldset owner={owner} />
+            <CompanyFieldset owner={owner} isCompany={isCompany} setIsCompany={setIsCompany} />
 
             <RentFieldset propertyId={propertyId} owner={owner} missingCheckKeys={missingCheckKeys} />
 
