@@ -45,6 +45,7 @@ export function DocumentsTab({
                 <Field
                   label="Date de début du bail"
                   name="leaseStartDate"
+                  type="date"
                   defaultValue={owner?.leaseStartDate}
                   csvKey="leaseStartDate"
                 />
