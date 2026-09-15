@@ -272,6 +272,11 @@ export async function createProperty(formData: FormData) {
   redirect(`/inventaire/biens/${data.id}`);
 }
 
+function parseTags(raw: FormDataEntryValue | null): string[] {
+  const tagsRaw = optionalString(raw);
+  return tagsRaw ? Array.from(new Set(tagsRaw.split(",").map((t) => t.trim()).filter(Boolean))) : [];
+}
+
 export async function updateProperty(propertyId: string, formData: FormData) {
   const supabase = await createClient();
   await requireUser(supabase);
@@ -279,10 +284,7 @@ export async function updateProperty(propertyId: string, formData: FormData) {
   const reference = requireNonEmpty(formData.get("reference"), "La référence");
   const name = optionalString(formData.get("name"));
   const address = optionalString(formData.get("address"));
-  const tagsRaw = optionalString(formData.get("tags"));
-  const tags = tagsRaw
-    ? Array.from(new Set(tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)))
-    : [];
+  const tags = parseTags(formData.get("tags"));
 
   const { error } = await supabase
     .from("properties")
@@ -303,6 +305,30 @@ export async function updateProperty(propertyId: string, formData: FormData) {
 
   revalidatePath("/inventaire");
   revalidateProperty(propertyId);
+}
+
+// Action dédiée (plutôt que réutiliser updateProperty) car appelée depuis la
+// liste des biens — un formulaire séparé de celui de la fiche bien, qui ne
+// porte que le champ tags : passer par updateProperty écraserait référence/
+// nom/adresse avec des valeurs absentes du formulaire.
+export async function updatePropertyTags(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const tags = parseTags(formData.get("tags"));
+
+  const { error } = await supabase.from("properties").update({ tags }).eq("id", propertyId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property",
+    entityId: propertyId,
+    action: "update",
+    summary: "Tags mis à jour",
+  });
+
+  revalidatePath("/inventaire");
 }
 
 export async function deleteProperty(propertyId: string) {
