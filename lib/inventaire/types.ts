@@ -99,6 +99,15 @@ export interface OwnerDirectoryEntry {
   birthPlace: string | null;
   nationality: string | null;
   passportNumber: string | null;
+  isCompany: boolean | null;
+  companyName: string | null;
+  companyLegalForm: string | null;
+  companyCapital: string | null;
+  companyAddress: string | null;
+  companySiren: string | null;
+  companyRcsCity: string | null;
+  companyRepresentedBy: string | null;
+  companyRole: string | null;
 }
 
 export interface PropertyAgencement {
