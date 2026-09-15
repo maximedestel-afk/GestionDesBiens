@@ -279,10 +279,14 @@ export async function updateProperty(propertyId: string, formData: FormData) {
   const reference = requireNonEmpty(formData.get("reference"), "La référence");
   const name = optionalString(formData.get("name"));
   const address = optionalString(formData.get("address"));
+  const tagsRaw = optionalString(formData.get("tags"));
+  const tags = tagsRaw
+    ? Array.from(new Set(tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)))
+    : [];
 
   const { error } = await supabase
     .from("properties")
-    .update({ reference, name, address })
+    .update({ reference, name, address, tags })
     .eq("id", propertyId);
   if (error) {
     if (error.code === "23505") throw new Error("Cette référence existe déjà.");

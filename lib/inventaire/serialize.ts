@@ -27,6 +27,7 @@ export function serializeProperty(row: any): Property {
     reference: row.reference,
     name: row.name,
     address: row.address,
+    tags: row.tags ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

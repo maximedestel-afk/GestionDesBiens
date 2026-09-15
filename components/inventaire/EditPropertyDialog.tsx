@@ -7,6 +7,7 @@ import { ActionForm } from "./ActionForm";
 import { SaveStatus } from "./SaveStatus";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import { FieldRef } from "./FieldRef";
+import { PropertyTagsField } from "./PropertyTagsField";
 
 export function EditPropertyDialog({ property }: { property: Property }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -63,6 +64,7 @@ export function EditPropertyDialog({ property }: { property: Property }) {
                     className="field-input"
                   />
                 </div>
+                <PropertyTagsField defaultTags={property.tags} />
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <SaveStatus pending={pending} error={error} success={success} />
