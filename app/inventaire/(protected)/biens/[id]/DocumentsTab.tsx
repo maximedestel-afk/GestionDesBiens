@@ -6,7 +6,7 @@ import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
-import { DocumentField } from "./OwnerTab";
+import { DocumentField, Field } from "./OwnerTab";
 
 export function DocumentsTab({
   propertyId,
@@ -41,6 +41,14 @@ export function DocumentsTab({
               noteCsvKey="leaseNotes"
               checkKey="lease_contract"
               missing={missingCheckKeys.includes("lease_contract")}
+              extraFields={
+                <Field
+                  label="Date de début du bail"
+                  name="leaseStartDate"
+                  defaultValue={owner?.leaseStartDate}
+                  csvKey="leaseStartDate"
+                />
+              }
             />
             <DocumentField
               propertyId={propertyId}

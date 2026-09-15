@@ -89,6 +89,7 @@ export const CSV_FIELDS = {
   ownerCompanyRepresentedBy: { header: "Représenté par" },
   ownerCompanyRole: { header: "Qualité représentant" },
   ownerNotes: { header: "Notes Owner" },
+  leaseStartDate: { header: "Date début Bail" },
   leaseNotes: { header: "Note Bail" },
   ribNotes: { header: "Note RIB" },
   rcpNotes: { header: "Note RCP" },

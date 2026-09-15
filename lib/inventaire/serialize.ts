@@ -88,6 +88,7 @@ export function serializePropertyOwner(row: any): PropertyOwner {
     companyRepresentedBy: row.company_represented_by,
     companyRole: row.company_role,
     notes: row.notes,
+    leaseStartDate: row.lease_start_date,
     leaseNotes: row.lease_notes,
     ribNotes: row.rib_notes,
     rcpNotes: row.rcp_notes,

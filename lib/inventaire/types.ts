@@ -71,6 +71,7 @@ export interface PropertyOwner {
   companyRepresentedBy: string | null;
   companyRole: string | null;
   notes: string | null;
+  leaseStartDate: string | null;
   leaseNotes: string | null;
   ribNotes: string | null;
   rcpNotes: string | null;

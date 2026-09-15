@@ -19,7 +19,7 @@ import { AddElementForm } from "./AddElementForm";
 const FIELD_INPUT_CLASS =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
 
-function Field({
+export function Field({
   label,
   name,
   defaultValue,
@@ -437,6 +437,7 @@ export function DocumentField({
   noteCsvKey,
   checkKey,
   missing,
+  extraFields,
 }: {
   propertyId: string;
   title: string;
@@ -448,6 +449,9 @@ export function DocumentField({
   noteCsvKey?: CsvFieldKey;
   checkKey: string;
   missing: boolean;
+  /** Champs additionnels propres à ce type de document (ex. date de début
+   * du bail), affichés avant les pièces jointes. */
+  extraFields?: React.ReactNode;
 }) {
   return (
     <fieldset className="rounded-2xl border border-black/[0.06] p-4">
@@ -456,6 +460,7 @@ export function DocumentField({
         <MissingFieldFlag propertyId={propertyId} checkKey={checkKey} missing={missing} />
       </legend>
       <div className="mt-2 space-y-2">
+        {extraFields}
         <AttachmentGallery propertyId={propertyId} attachments={attachments} emptyLabel={emptyLabel} variant="list" />
         <FileUploadButtons
           accept=".pdf,.doc,.docx,image/*"
