@@ -9,6 +9,7 @@ import {
   getPropertyOwner,
   getPropertyWaterElec,
   listActivityLog,
+  listAllTags,
   listAttachmentsForProperty,
   listChecklistDismissals,
   listEquipment,
@@ -61,6 +62,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     tasks,
     profiles,
     ownersDirectory,
+    allTags,
   ] = await Promise.all([
     getCurrentProfile(),
     getPropertyOwner(id),
@@ -86,6 +88,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listTasks(id),
     listProfiles(),
     listOwnersDirectory(id),
+    listAllTags(),
   ]);
   // Préremplit l'affichage avec les coordonnées déjà renseignées sur un
   // autre bien du même propriétaire (identifié par email ou nom+prénom) —
@@ -174,7 +177,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
                 </a>
               ))}
           </div>
-          {profile?.role !== "prestataire" && <EditPropertyDialog property={property} />}
+          {profile?.role !== "prestataire" && <EditPropertyDialog property={property} existingTags={allTags} />}
         </div>
         {property.address && <p className="text-[14px] text-[#6e6e73]">{property.address}</p>}
         <PropertyStatsBar bedroomCount={bedroomCount} bathroomCount={bathroomCount} capacity={agencement?.capacity ?? null} />

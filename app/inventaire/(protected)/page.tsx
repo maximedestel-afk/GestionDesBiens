@@ -140,6 +140,7 @@ export default async function PropertiesPage({
                     <PropertyRowTagsEditor
                       propertyId={property.id}
                       initialTags={property.tags}
+                      existingTags={allTags}
                       readOnly={isPrestataire}
                     />
                   </div>

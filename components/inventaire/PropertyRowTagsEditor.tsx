@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { updatePropertyTags } from "@/lib/inventaire/actions";
 
 /** Tags d'un bien, affichés et modifiables directement sur une ligne de la
@@ -10,10 +10,13 @@ import { updatePropertyTags } from "@/lib/inventaire/actions";
 export function PropertyRowTagsEditor({
   propertyId,
   initialTags,
+  existingTags,
   readOnly = false,
 }: {
   propertyId: string;
   initialTags: string[];
+  /** Tags déjà utilisés sur d'autres biens, proposés en suggestion à la saisie. */
+  existingTags: string[];
   /** Rôle "prestataire" (lecture seule) : n'affiche que les tags existants, sans contrôles d'ajout/suppression. */
   readOnly?: boolean;
 }) {
@@ -27,6 +30,14 @@ export function PropertyRowTagsEditor({
   useEffect(() => {
     if (adding) inputRef.current?.focus();
   }, [adding]);
+
+  const suggestions = useMemo(() => {
+    const draftLower = draft.trim().toLowerCase();
+    return existingTags
+      .filter((t) => !tags.some((existing) => existing.toLowerCase() === t.toLowerCase()))
+      .filter((t) => !draftLower || t.toLowerCase().includes(draftLower))
+      .slice(0, 6);
+  }, [existingTags, tags, draft]);
 
   function save(previous: string[], next: string[]) {
     setError(false);
@@ -47,13 +58,13 @@ export function PropertyRowTagsEditor({
     });
   }
 
-  function commitDraft() {
-    const value = draft.trim();
+  function addTag(value: string) {
+    const trimmed = value.trim();
     setDraft("");
     setAdding(false);
-    if (!value) return;
-    if (tags.some((t) => t.toLowerCase() === value.toLowerCase())) return;
-    save(tags, [...tags, value]);
+    if (!trimmed) return;
+    if (tags.some((t) => t.toLowerCase() === trimmed.toLowerCase())) return;
+    save(tags, [...tags, trimmed]);
   }
 
   function removeTag(tag: string) {
@@ -61,7 +72,7 @@ export function PropertyRowTagsEditor({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="relative flex flex-wrap items-center gap-1.5">
       {tags.map((tag) => (
         <span
           key={tag}
@@ -81,23 +92,43 @@ export function PropertyRowTagsEditor({
         </span>
       ))}
       {!readOnly && (adding ? (
-        <input
-          ref={inputRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === ",") {
-              e.preventDefault();
-              commitDraft();
-            } else if (e.key === "Escape") {
-              setDraft("");
-              setAdding(false);
-            }
-          }}
-          onBlur={commitDraft}
-          placeholder="Nouveau tag…"
-          className="w-28 rounded-full border border-black/10 bg-white px-2.5 py-1 text-[13px] text-[#1d1d1f] outline-none focus:border-[#0071e3]"
-        />
+        <div className="relative">
+          <input
+            ref={inputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === ",") {
+                e.preventDefault();
+                addTag(draft);
+              } else if (e.key === "Escape") {
+                setDraft("");
+                setAdding(false);
+              }
+            }}
+            onBlur={() => addTag(draft)}
+            placeholder="Nouveau tag…"
+            className="w-28 rounded-full border border-black/10 bg-white px-2.5 py-1 text-[13px] text-[#1d1d1f] outline-none focus:border-[#0071e3]"
+          />
+          {suggestions.length > 0 && (
+            <ul className="absolute left-0 top-[calc(100%+4px)] z-10 w-40 overflow-hidden rounded-[10px] border border-black/10 bg-white py-1 shadow-lg">
+              {suggestions.map((s) => (
+                <li key={s}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      addTag(s);
+                    }}
+                    className="block w-full truncate px-3 py-1.5 text-left text-[13px] text-[#1d1d1f] hover:bg-black/[0.05]"
+                  >
+                    {s}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       ) : (
         <button
           type="button"
