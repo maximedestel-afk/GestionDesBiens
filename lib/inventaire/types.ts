@@ -14,6 +14,7 @@ export interface Property {
   reference: string;
   name: string | null;
   address: string | null;
+  tags: string[];
   createdAt: string;
   updatedAt: string;
 }

@@ -62,7 +62,8 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 export async function listProperties(
   search?: string,
   /** Rôle "prestataire" uniquement : restreint la liste à ces biens. */
-  allowedPropertyIds?: string[] | null
+  allowedPropertyIds?: string[] | null,
+  tag?: string
 ): Promise<Property[]> {
   if (allowedPropertyIds && allowedPropertyIds.length === 0) return [];
 
@@ -71,6 +72,10 @@ export async function listProperties(
 
   if (allowedPropertyIds && allowedPropertyIds.length > 0) {
     query = query.in("id", allowedPropertyIds);
+  }
+
+  if (tag) {
+    query = query.contains("tags", [tag]);
   }
 
   const term = search?.trim();
@@ -93,6 +98,28 @@ export async function listProperties(
   const { data, error } = await query;
   if (error) throw error;
   return (data ?? []).map(serializeProperty);
+}
+
+/** Tags distincts déjà utilisés (tous biens confondus, hors recherche
+ * texte) — sert à afficher les filtres disponibles sur la liste des biens,
+ * indépendamment du filtre tag actuellement actif. */
+export async function listAllTags(allowedPropertyIds?: string[] | null): Promise<string[]> {
+  if (allowedPropertyIds && allowedPropertyIds.length === 0) return [];
+
+  const supabase = await createClient();
+  let query = supabase.from("properties").select("tags");
+  if (allowedPropertyIds && allowedPropertyIds.length > 0) {
+    query = query.in("id", allowedPropertyIds);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const tagSet = new Set<string>();
+  for (const row of data ?? []) {
+    for (const t of row.tags ?? []) tagSet.add(t);
+  }
+  return Array.from(tagSet).sort((a, b) => a.localeCompare(b, "fr"));
 }
 
 export async function getPrestataireAllowedPropertyIds(profileId: string): Promise<string[]> {

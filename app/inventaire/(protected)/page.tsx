@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   getCurrentProfile,
   getPrestataireAllowedPropertyIds,
+  listAllTags,
   listProperties,
   listPropertiesMissingChecks,
   listPropertiesOpenTasksCount,
@@ -18,20 +19,21 @@ import { PlatformLogo, platformTitle } from "@/components/inventaire/PlatformLog
 export default async function PropertiesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; tag?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, tag } = await searchParams;
   const profile = await getCurrentProfile();
   const isPrestataire = profile?.role === "prestataire";
   const allowedPropertyIds = isPrestataire ? await getPrestataireAllowedPropertyIds(profile!.id) : null;
-  const properties = await listProperties(q, allowedPropertyIds);
+  const properties = await listProperties(q, allowedPropertyIds, tag);
   const propertyIds = properties.map((p) => p.id);
-  const [missingChecks, stats, platforms, openTasksCounts, rentTypes] = await Promise.all([
+  const [missingChecks, stats, platforms, openTasksCounts, rentTypes, allTags] = await Promise.all([
     listPropertiesMissingChecks(propertyIds),
     listPropertiesStats(propertyIds),
     listPropertiesPlatforms(propertyIds),
     listPropertiesOpenTasksCount(propertyIds),
     listPropertiesRentTypes(propertyIds),
+    listAllTags(allowedPropertyIds),
   ]);
   const RENT_TYPE_LABELS = { fixe: "Fixe", variable: "Variable", fixe_variable: "Fixe + Variable" } as const;
   const totalOpenTasks = Object.values(openTasksCounts).reduce((sum, count) => sum + count, 0);
@@ -71,6 +73,31 @@ export default async function PropertiesPage({
         </a>
       </div>
 
+      {allTags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {allTags.map((t) => {
+            const isActive = tag === t;
+            const params = new URLSearchParams();
+            if (q) params.set("q", q);
+            if (!isActive) params.set("tag", t);
+            const href = params.toString() ? `/inventaire?${params.toString()}` : "/inventaire";
+            return (
+              <Link
+                key={t}
+                href={href}
+                className={`rounded-full px-3 py-1 text-[13px] font-medium transition ${
+                  isActive
+                    ? "bg-[#1d1d1f] text-white"
+                    : "bg-black/[0.05] text-[#6e6e73] hover:bg-black/[0.08]"
+                }`}
+              >
+                {t}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
       <div className="mt-6 card overflow-visible">
         {properties.length === 0 ? (
           <p className="p-8 text-center text-[15px] text-[#6e6e73]">Aucun bien trouvé.</p>
@@ -102,6 +129,14 @@ export default async function PropertiesPage({
                         {RENT_TYPE_LABELS[rentTypes[property.id] as keyof typeof RENT_TYPE_LABELS]}
                       </span>
                     )}
+                    {property.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="inline-block rounded-full bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700"
+                      >
+                        {t}
+                      </span>
+                    ))}
                   </div>
                 </Link>
                 <div className="flex shrink-0 items-center gap-3">
