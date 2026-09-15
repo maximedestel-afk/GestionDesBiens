@@ -6,12 +6,11 @@ import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { ElementCard } from "./ElementCard";
 import { AddElementForm } from "./AddElementForm";
-import { DocumentField, Field } from "./OwnerTab";
+import { DocumentField } from "./OwnerTab";
 
 export function DocumentsTab({
   propertyId,
   owner,
-  leaseAttachments,
   rcpAttachments,
   documents,
   attachments,
@@ -19,7 +18,6 @@ export function DocumentsTab({
 }: {
   propertyId: string;
   owner: PropertyOwner | null;
-  leaseAttachments: Attachment[];
   rcpAttachments: Attachment[];
   documents: PropertyElement[];
   attachments: Attachment[];
@@ -30,41 +28,6 @@ export function DocumentsTab({
       <ActionForm className="space-y-4" autoSave action={(formData) => savePropertyOwner(propertyId, formData)}>
         {({ pending, error, success }) => (
           <>
-            <DocumentField
-              propertyId={propertyId}
-              title="Bail"
-              attachments={leaseAttachments}
-              emptyLabel="Aucun bail joint"
-              kind="lease_contract"
-              noteName="leaseNotes"
-              noteValue={owner?.leaseNotes}
-              noteCsvKey="leaseNotes"
-              checkKey="lease_contract"
-              missing={missingCheckKeys.includes("lease_contract")}
-              extraFields={
-                <>
-                  <Field
-                    label="Date de début du bail"
-                    name="leaseStartDate"
-                    type="date"
-                    defaultValue={owner?.leaseStartDate}
-                    csvKey="leaseStartDate"
-                  />
-                  <Field
-                    label="Société locataire"
-                    name="leaseTenantCompany"
-                    defaultValue={owner?.leaseTenantCompany}
-                    csvKey="leaseTenantCompany"
-                  />
-                  <Field
-                    label="Directeur locataire"
-                    name="leaseTenantDirector"
-                    defaultValue={owner?.leaseTenantDirector}
-                    csvKey="leaseTenantDirector"
-                  />
-                </>
-              }
-            />
             <DocumentField
               propertyId={propertyId}
               title="RCP"
