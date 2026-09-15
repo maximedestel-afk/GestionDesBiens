@@ -22,6 +22,7 @@ import {
   listRoomBeds,
   listRooms,
   listTasks,
+  withStaffOwnerFallback,
 } from "@/lib/inventaire/queries";
 import { computeMissingChecks, getCompletenessCheck } from "@/lib/inventaire/completeness";
 import { PropertyTabs } from "./PropertyTabs";
@@ -37,7 +38,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
 
   const [
     profile,
-    owner,
+    ownerRow,
     details,
     keys,
     platforms,
@@ -86,6 +87,10 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listProfiles(),
     listOwnersDirectory(id),
   ]);
+  // Préremplit l'affichage avec les coordonnées déjà renseignées sur un
+  // autre bien du même propriétaire (identifié par email ou nom+prénom) —
+  // jamais l'inverse : un champ déjà rempli sur ce bien n'est pas écrasé.
+  const owner = await withStaffOwnerFallback(id, ownerRow);
   const isAdmin = profile?.role === "admin";
 
   if (profile?.role === "prestataire") {
