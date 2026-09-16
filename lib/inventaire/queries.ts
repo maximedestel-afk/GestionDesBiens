@@ -928,6 +928,8 @@ const BULK_FIELD_SOURCE: Record<string, { table: string; column: string }> = {
   company_role: { table: "property_owner", column: "company_role" },
   owner_notes: { table: "property_owner", column: "notes" },
   lease_start_date: { table: "property_owner", column: "lease_start_date" },
+  lease_initial_term: { table: "property_owner", column: "lease_initial_term" },
+  lease_renewal_term: { table: "property_owner", column: "lease_renewal_term" },
   lease_tenant_company: { table: "property_owner", column: "lease_tenant_company" },
   lease_tenant_director: { table: "property_owner", column: "lease_tenant_director" },
   lease_tenant_notes: { table: "property_owner", column: "lease_tenant_notes" },

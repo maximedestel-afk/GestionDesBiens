@@ -85,6 +85,8 @@ function buildFieldMap(input: {
     clés_appart: formatKeys(details),
     // Durée / loyer
     startdate_agreement: formatDateFr(owner?.leaseStartDate ?? null),
+    initialterm_agreement: owner?.leaseInitialTerm ?? "",
+    termrenew_agreement: owner?.leaseRenewalTerm ?? "",
     loyerchiffre_agreement: rent ? String(rent) : "",
     loyerlettre_agreement: rent ? numberToFrenchWords(rent).toUpperCase() : "",
     chargeschiffre_agreement: charges ? String(charges) : "",

@@ -90,6 +90,8 @@ export const CSV_FIELDS = {
   ownerCompanyRole: { header: "Qualité représentant" },
   ownerNotes: { header: "Notes Owner" },
   leaseStartDate: { header: "Date début Bail" },
+  leaseInitialTerm: { header: "Durée initiale Bail" },
+  leaseRenewalTerm: { header: "Durée tacite reconduction" },
   leaseTenantCompany: { header: "Société Locataire" },
   leaseTenantDirector: { header: "Directeur Locataire" },
   leaseTenantNotes: { header: "Notes Locataire" },
