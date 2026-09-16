@@ -10,6 +10,61 @@ function escapeXml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+const RUN_RE = /<w:r>(?:<w:rPr>([\s\S]*?)<\/w:rPr>)?<w:t(\s[^>]*)?>([\s\S]*?)<\/w:t><\/w:r>/g;
+
+/** Word (et Google Docs) coupe souvent une balise tapée d'un bloc, ex.
+ * "[nom_bailleur]", en plusieurs `<w:r>` internes de même mise en forme —
+ * invisible à l'oeil dans le document, mais invisible aussi à une simple
+ * recherche de "[nom_bailleur]" dans le XML brut (le correcteur
+ * orthographique/grammatical ou des signets insérés automatiquement en
+ * sont la cause la plus fréquente). On supprime ces marqueurs muets puis on
+ * fusionne les `<w:r>` consécutifs de même mise en forme avant de chercher
+ * les balises, pour que "tapé normalement dans Word" suffise à ce qu'une
+ * balise soit reconnue. */
+function normalizeRuns(xml: string): string {
+  const out = xml
+    .replace(/<w:proofErr[^>]*\/>/g, "")
+    .replace(/<w:bookmarkStart[^>]*\/>/g, "")
+    .replace(/<w:bookmarkEnd[^>]*\/>/g, "");
+
+  let result = "";
+  let lastIndex = 0;
+  let pending: { rPr: string; attrs: string; text: string } | null = null;
+
+  function flush() {
+    if (!pending) return;
+    result += `<w:r>${pending.rPr ? `<w:rPr>${pending.rPr}</w:rPr>` : ""}<w:t${pending.attrs}>${pending.text}</w:t></w:r>`;
+    pending = null;
+  }
+
+  RUN_RE.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = RUN_RE.exec(out))) {
+    const [full, rPr = "", attrs = "", text] = match;
+    const gapText = out.slice(lastIndex, match.index);
+    // Un blanc pur entre deux `<w:r>` (retour à la ligne d'un export, etc.)
+    // n'a aucun effet visuel dans Word : on l'ignore plutôt que de le
+    // laisser casser la fusion de deux runs qui, sinon, se suivraient.
+    if (gapText.trim().length > 0) {
+      flush();
+      result += gapText;
+    }
+    if (pending && pending.rPr === rPr) {
+      pending.text += text;
+      if (attrs.includes("xml:space") && !pending.attrs.includes("xml:space")) {
+        pending.attrs = attrs;
+      }
+    } else {
+      flush();
+      pending = { rPr, attrs, text };
+    }
+    lastIndex = match.index + full.length;
+  }
+  flush();
+  result += out.slice(lastIndex);
+  return result;
+}
+
 function formatDateFr(isoDate: string | null): string {
   if (!isoDate) return "";
   const [year, month, day] = isoDate.split("-");
@@ -116,7 +171,7 @@ export function generateLeaseDocx(input: {
   const documentXmlFile = zip.file("word/document.xml");
   if (!documentXmlFile) throw new Error("Modèle de bail invalide : word/document.xml introuvable.");
 
-  let xml = documentXmlFile.asText();
+  let xml = normalizeRuns(documentXmlFile.asText());
   const fields = buildFieldMap(input);
   for (const [key, value] of Object.entries(fields)) {
     xml = xml.split(`[${key}]`).join(escapeXml(value));
@@ -124,4 +179,35 @@ export function generateLeaseDocx(input: {
 
   zip.file("word/document.xml", xml);
   return zip.generate({ type: "nodebuffer", compression: "DEFLATE" });
+}
+
+const EMPTY_FIELD_MAP_INPUT: Parameters<typeof buildFieldMap>[0] = {
+  property: { id: "", reference: "", name: null, address: null, tags: [], createdAt: "", updatedAt: "" },
+  owner: null,
+  details: null,
+  agencement: null,
+  waterElec: null,
+};
+
+/** Balises que le système sait remplir automatiquement (voir buildFieldMap) — dérivé directement de buildFieldMap pour ne jamais désynchroniser cette liste. */
+export function listSupportedLeaseTags(): string[] {
+  return Object.keys(buildFieldMap(EMPTY_FIELD_MAP_INPUT));
+}
+
+/** Pour la page "Bail type" : quelles balises du système sont effectivement
+ * détectables dans ce modèle (après normalisation des runs Word), pour que
+ * l'admin voie tout de suite ce qui sera rempli — et ce qui ne le sera pas,
+ * ex. une balise scindée par Word en plusieurs morceaux invisibles. */
+export function analyzeLeaseTemplateTags(templateBuffer: Buffer): { found: string[]; missing: string[] } {
+  const zip = new PizZip(templateBuffer);
+  const documentXmlFile = zip.file("word/document.xml");
+  if (!documentXmlFile) throw new Error("Modèle de bail invalide : word/document.xml introuvable.");
+
+  const xml = normalizeRuns(documentXmlFile.asText());
+  const found: string[] = [];
+  const missing: string[] = [];
+  for (const tag of listSupportedLeaseTags()) {
+    (xml.includes(`[${tag}]`) ? found : missing).push(tag);
+  }
+  return { found, missing };
 }
