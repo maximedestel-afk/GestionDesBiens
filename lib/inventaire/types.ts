@@ -75,6 +75,7 @@ export interface PropertyOwner {
   leaseStartDate: string | null;
   leaseInitialTerm: string | null;
   leaseRenewalTerm: string | null;
+  leaseRentFreePeriod: string | null;
   leaseTenantCompany: string | null;
   leaseTenantDirector: string | null;
   leaseTenantNotes: string | null;
