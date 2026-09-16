@@ -3,7 +3,7 @@ import path from "node:path";
 import PizZip from "pizzip";
 import { numberToFrenchWords } from "./leaseNumberToWords";
 import { CSV_FIELDS, type CsvFieldKey } from "./csvFields";
-import type { Property, PropertyAgencement, PropertyDetails, PropertyOwner, PropertyWaterElec } from "./types";
+import type { Property, PropertyAgencement, PropertyDetails, PropertyOwner, PropertyWaterElec, Room } from "./types";
 
 const TEMPLATE_PATH = path.join(process.cwd(), "lib/inventaire/assets/bail-template.docx");
 
@@ -137,19 +137,28 @@ function formatAmountFr(value: number | null): string {
   return `${value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€`;
 }
 
+function countMainRooms(rooms: Room[]): number {
+  return rooms.filter((r) => r.name.startsWith("Chambre") || r.name.startsWith("Salon")).length;
+}
+
+function listRoomNames(rooms: Room[]): string {
+  return rooms.map((r) => r.name).join(", ");
+}
+
 /** Balises du modèle de bail (voir `assets/bail-template.docx`) déjà
  * remplissables avec les données du système. Les balises absentes de cet
- * objet (ex. [enddate_agreement], [nbrepieces_appart]) ne sont pas suivies
- * dans le système : elles restent visibles telles quelles dans le document
- * généré, à compléter ou retirer manuellement avant signature. */
+ * objet (ex. [enddate_agreement]) ne sont pas suivies dans le système :
+ * elles restent visibles telles quelles dans le document généré, à
+ * compléter ou retirer manuellement avant signature. */
 function buildFieldMap(input: {
   property: Property;
   owner: PropertyOwner | null;
   details: PropertyDetails | null;
   agencement: PropertyAgencement | null;
   waterElec: PropertyWaterElec | null;
+  rooms: Room[];
 }): Record<string, string> {
-  const { property, owner, details, agencement, waterElec } = input;
+  const { property, owner, details, agencement, waterElec, rooms } = input;
   const rent = owner?.rentAmount ?? 0;
   const charges = owner?.chargesAmount ?? 0;
   const total = rent + charges;
@@ -179,6 +188,8 @@ function buildFieldMap(input: {
     address_appart: property.address ?? "",
     superficie_appart: agencement?.surface != null ? String(agencement.surface) : "",
     numerolot_appart: details?.syndicLotNumber ?? "",
+    nbrepieces_appart: rooms.length ? String(countMainRooms(rooms)) : "",
+    designation_appart: listRoomNames(rooms),
     productioneau_appart: formatProduction(waterElec?.hotWaterProduction ?? null),
     productionchauffage_appart: formatProduction(waterElec?.heatingProduction ?? null),
     detailsyndic_appart: formatSyndic(details),
@@ -187,14 +198,15 @@ function buildFieldMap(input: {
     startdate_agreement: formatDateFr(owner?.leaseStartDate ?? null),
     initialterm_agreement: owner?.leaseInitialTerm ?? "",
     termrenew_agreement: owner?.leaseRenewalTerm ?? "",
-    loyerchiffre_agreement: rent ? String(rent) : "",
-    loyerlettre_agreement: rent ? numberToFrenchWords(rent).toUpperCase() : "",
-    chargeschiffre_agreement: charges ? String(charges) : "",
-    chargeslettre_agreement: charges ? numberToFrenchWords(charges).toUpperCase() : "",
-    totalchiffre_agreement: total ? String(total) : "",
-    totallettre_agreement: total ? numberToFrenchWords(total).toUpperCase() : "",
+    loyerchiffre_agreement: rent ? formatAmountFr(rent) : "",
+    loyerlettre_agreement: rent ? `${numberToFrenchWords(rent).toUpperCase()} EUROS` : "",
+    chargeschiffre_agreement: charges ? formatAmountFr(charges) : "",
+    chargeslettre_agreement: charges ? `${numberToFrenchWords(charges).toUpperCase()} EUROS` : "",
+    totalchiffre_agreement: total ? formatAmountFr(total) : "",
+    totallettre_agreement: total ? `${numberToFrenchWords(total).toUpperCase()} EUROS` : "",
     autrelabel_agreement: owner?.otherAmountLabel ?? "",
-    autremontant_agreement: owner?.otherAmount != null ? String(owner.otherAmount) : "",
+    autrechiffre_agreement: owner?.otherAmount ? formatAmountFr(owner.otherAmount) : "",
+    autrelettre_agreement: owner?.otherAmount ? `${numberToFrenchWords(owner.otherAmount).toUpperCase()} EUROS` : "",
   };
 }
 
@@ -351,6 +363,7 @@ export function generateLeaseDocx(input: {
   details: PropertyDetails | null;
   agencement: PropertyAgencement | null;
   waterElec: PropertyWaterElec | null;
+  rooms: Room[];
   /** Modèle personnalisé envoyé par un admin (voir "Bail type" dans le menu) ; à défaut, le modèle par défaut fourni avec l'application. */
   templateBuffer?: Buffer;
 }): Buffer {
