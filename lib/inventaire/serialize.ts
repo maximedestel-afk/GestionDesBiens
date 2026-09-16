@@ -96,6 +96,8 @@ export function serializePropertyOwner(row: any): PropertyOwner {
     leaseTenantCompany: row.lease_tenant_company,
     leaseTenantDirector: row.lease_tenant_director,
     leaseTenantNotes: row.lease_tenant_notes,
+    leaseSpecialClause1: row.lease_special_clause_1,
+    leaseSpecialClause2: row.lease_special_clause_2,
     leaseNotes: row.lease_notes,
     ribNotes: row.rib_notes,
     rcpNotes: row.rcp_notes,

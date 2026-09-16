@@ -96,6 +96,8 @@ export const CSV_FIELDS = {
   leaseTenantCompany: { header: "Société Locataire" },
   leaseTenantDirector: { header: "Directeur Locataire" },
   leaseTenantNotes: { header: "Notes Locataire" },
+  leaseSpecialClause1: { header: "Clause Particulière 1" },
+  leaseSpecialClause2: { header: "Clause Particulière 2" },
   leaseNotes: { header: "Note Bail" },
   ribNotes: { header: "Note RIB" },
   rcpNotes: { header: "Note RCP" },
