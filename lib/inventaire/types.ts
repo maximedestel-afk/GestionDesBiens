@@ -73,6 +73,8 @@ export interface PropertyOwner {
   companyRole: string | null;
   notes: string | null;
   leaseStartDate: string | null;
+  leaseInitialTerm: string | null;
+  leaseRenewalTerm: string | null;
   leaseTenantCompany: string | null;
   leaseTenantDirector: string | null;
   leaseTenantNotes: string | null;

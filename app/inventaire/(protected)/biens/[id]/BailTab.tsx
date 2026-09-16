@@ -56,6 +56,20 @@ export function BailTab({
                     csvKey="leaseStartDate"
                   />
                   <Field
+                    label="Durée initiale du bail"
+                    name="leaseInitialTerm"
+                    defaultValue={owner?.leaseInitialTerm}
+                    csvKey="leaseInitialTerm"
+                    placeholder="ex. 3 ans"
+                  />
+                  <Field
+                    label="Durée tacite reconduction"
+                    name="leaseRenewalTerm"
+                    defaultValue={owner?.leaseRenewalTerm}
+                    csvKey="leaseRenewalTerm"
+                    placeholder="ex. 1 an"
+                  />
+                  <Field
                     label="Société locataire"
                     name="leaseTenantCompany"
                     defaultValue={owner?.leaseTenantCompany}
