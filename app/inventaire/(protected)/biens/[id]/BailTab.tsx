@@ -95,6 +95,20 @@ export function BailTab({
                     defaultValue={owner?.leaseTenantNotes}
                     csvKey="leaseTenantNotes"
                   />
+                  <Field
+                    label="Clause particulière 1"
+                    name="leaseSpecialClause1"
+                    textarea
+                    defaultValue={owner?.leaseSpecialClause1}
+                    csvKey="leaseSpecialClause1"
+                  />
+                  <Field
+                    label="Clause particulière 2"
+                    name="leaseSpecialClause2"
+                    textarea
+                    defaultValue={owner?.leaseSpecialClause2}
+                    csvKey="leaseSpecialClause2"
+                  />
                 </>
               }
             />
