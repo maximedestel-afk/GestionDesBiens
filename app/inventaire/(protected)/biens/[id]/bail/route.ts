@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
+  getLeaseTemplateInfo,
   getProperty,
   getPropertyAgencement,
   getPropertyDetails,
@@ -25,14 +26,26 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Bien introuvable." }, { status: 404 });
   }
 
-  const [owner, details, agencement, waterElec] = await Promise.all([
+  const [owner, details, agencement, waterElec, templateInfo] = await Promise.all([
     getPropertyOwner(id),
     getPropertyDetails(id),
     getPropertyAgencement(id),
     getPropertyWaterElec(id),
+    getLeaseTemplateInfo(),
   ]);
 
-  const buffer = generateLeaseDocx({ property, owner, details, agencement, waterElec });
+  let templateBuffer: Buffer | undefined;
+  if (templateInfo.filePath) {
+    const { data: templateBlob, error: downloadError } = await supabase.storage
+      .from("property-files")
+      .download(templateInfo.filePath);
+    if (downloadError || !templateBlob) {
+      return NextResponse.json({ error: "Impossible de récupérer le modèle de bail personnalisé." }, { status: 500 });
+    }
+    templateBuffer = Buffer.from(await templateBlob.arrayBuffer());
+  }
+
+  const buffer = generateLeaseDocx({ property, owner, details, agencement, waterElec, templateBuffer });
   const fileName = `bail-${property.reference}.docx`;
 
   return new NextResponse(new Uint8Array(buffer), {

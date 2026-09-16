@@ -105,8 +105,10 @@ export function generateLeaseDocx(input: {
   details: PropertyDetails | null;
   agencement: PropertyAgencement | null;
   waterElec: PropertyWaterElec | null;
+  /** Modèle personnalisé envoyé par un admin (voir "Bail type" dans le menu) ; à défaut, le modèle par défaut fourni avec l'application. */
+  templateBuffer?: Buffer;
 }): Buffer {
-  const templateBuffer = fs.readFileSync(TEMPLATE_PATH);
+  const templateBuffer = input.templateBuffer ?? fs.readFileSync(TEMPLATE_PATH);
   const zip = new PizZip(templateBuffer);
   const documentXmlFile = zip.file("word/document.xml");
   if (!documentXmlFile) throw new Error("Modèle de bail invalide : word/document.xml introuvable.");

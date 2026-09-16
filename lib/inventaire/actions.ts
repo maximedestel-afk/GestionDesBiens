@@ -2307,6 +2307,29 @@ export async function saveAppNotes(formData: FormData) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Modèle de bail (admin)                                              */
+/* ------------------------------------------------------------------ */
+
+// Le fichier lui-même est envoyé au bucket de stockage côté client (comme
+// pour les autres pièces jointes) ; cette action ne fait qu'enregistrer les
+// métadonnées, pour savoir quel modèle est actuellement utilisé et par qui
+// il a été déposé.
+export async function recordLeaseTemplateUpload(input: { filePath: string; originalFilename: string }) {
+  const supabase = await createClient();
+  const user = await requireAdmin(supabase);
+
+  const { error } = await supabase.from("lease_template").upsert({
+    id: "main",
+    file_path: input.filePath,
+    original_filename: input.originalFilename,
+    uploaded_by_email: user.email ?? null,
+  });
+  if (error) throw error;
+
+  revalidatePath("/inventaire/bail-type");
+}
+
+/* ------------------------------------------------------------------ */
 /* Liste des biens — indicateur "données manquantes"                   */
 /* ------------------------------------------------------------------ */
 
