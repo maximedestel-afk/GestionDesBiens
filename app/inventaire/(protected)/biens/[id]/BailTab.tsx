@@ -70,6 +70,13 @@ export function BailTab({
                     placeholder="ex. 1 an"
                   />
                   <Field
+                    label="Franchise de loyer"
+                    name="leaseRentFreePeriod"
+                    defaultValue={owner?.leaseRentFreePeriod}
+                    csvKey="leaseRentFreePeriod"
+                    placeholder="ex. 2 000 €"
+                  />
+                  <Field
                     label="Société locataire"
                     name="leaseTenantCompany"
                     defaultValue={owner?.leaseTenantCompany}

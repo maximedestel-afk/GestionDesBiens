@@ -92,6 +92,7 @@ export function serializePropertyOwner(row: any): PropertyOwner {
     leaseStartDate: row.lease_start_date,
     leaseInitialTerm: row.lease_initial_term,
     leaseRenewalTerm: row.lease_renewal_term,
+    leaseRentFreePeriod: row.lease_rent_free_period,
     leaseTenantCompany: row.lease_tenant_company,
     leaseTenantDirector: row.lease_tenant_director,
     leaseTenantNotes: row.lease_tenant_notes,

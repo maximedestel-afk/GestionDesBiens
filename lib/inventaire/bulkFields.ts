@@ -68,6 +68,7 @@ export const BULK_FIELDS: BulkFieldDef[] = [
   { id: "lease_start_date", label: "Date de début du bail", group: "Propriétaire", formKey: "leaseStartDate", inputType: "text" },
   { id: "lease_initial_term", label: "Durée initiale du bail", group: "Propriétaire", formKey: "leaseInitialTerm", inputType: "text" },
   { id: "lease_renewal_term", label: "Durée tacite reconduction", group: "Propriétaire", formKey: "leaseRenewalTerm", inputType: "text" },
+  { id: "lease_rent_free_period", label: "Franchise de loyer", group: "Propriétaire", formKey: "leaseRentFreePeriod", inputType: "text" },
   { id: "lease_tenant_company", label: "Société locataire", group: "Propriétaire", formKey: "leaseTenantCompany", inputType: "text" },
   { id: "lease_tenant_director", label: "Directeur locataire", group: "Propriétaire", formKey: "leaseTenantDirector", inputType: "text" },
   { id: "lease_tenant_notes", label: "Notes locataire", group: "Propriétaire", formKey: "leaseTenantNotes", inputType: "text" },
