@@ -67,6 +67,13 @@ export function BailTab({
                     defaultValue={owner?.leaseTenantDirector}
                     csvKey="leaseTenantDirector"
                   />
+                  <Field
+                    label="Notes locataire"
+                    name="leaseTenantNotes"
+                    textarea
+                    defaultValue={owner?.leaseTenantNotes}
+                    csvKey="leaseTenantNotes"
+                  />
                 </>
               }
             />

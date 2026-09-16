@@ -92,6 +92,7 @@ export const CSV_FIELDS = {
   leaseStartDate: { header: "Date début Bail" },
   leaseTenantCompany: { header: "Société Locataire" },
   leaseTenantDirector: { header: "Directeur Locataire" },
+  leaseTenantNotes: { header: "Notes Locataire" },
   leaseNotes: { header: "Note Bail" },
   ribNotes: { header: "Note RIB" },
   rcpNotes: { header: "Note RCP" },
