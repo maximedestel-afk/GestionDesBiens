@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import PizZip from "pizzip";
 import { numberToFrenchWords } from "./leaseNumberToWords";
+import { CSV_FIELDS, type CsvFieldKey } from "./csvFields";
 import type { Property, PropertyAgencement, PropertyDetails, PropertyOwner, PropertyWaterElec } from "./types";
 
 const TEMPLATE_PATH = path.join(process.cwd(), "lib/inventaire/assets/bail-template.docx");
@@ -10,7 +11,18 @@ function escapeXml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-const RUN_RE = /<w:r>(?:<w:rPr>([\s\S]*?)<\/w:rPr>)?<w:t(\s[^>]*)?>([\s\S]*?)<\/w:t><\/w:r>/g;
+// `<w:r>` porte presque toujours des attributs dans un document Word réel
+// (w:rsidR, w:rsidRPr…) : matcher `<w:r>` sans attributs (comme une première
+// version le faisait) ne trouve alors quasiment aucun run dans un vrai
+// fichier — d'où `<w:r\b[^>]*>`, qui les accepte tous.
+const RUN_RE = /<w:r\b[^>]*>([\s\S]*?)<\/w:r>/g;
+const RPR_RE = /^<w:rPr>([\s\S]*?)<\/w:rPr>/;
+const T_RE = /<w:t(\s[^>]*)?>([\s\S]*?)<\/w:t>/g;
+// Un run "texte simple" ne contient (après sa <w:rPr> éventuelle) que des
+// <w:t> — pas de tabulation, saut de ligne, image, champ… Seuls ceux-là
+// peuvent être fusionnés sans risquer de perdre autre chose qu'ils
+// contiendraient.
+const SIMPLE_TEXT_ONLY_RE = /^(?:<w:t(?:\s[^>]*)?>[\s\S]*?<\/w:t>)+$/;
 
 /** Word (et Google Docs) coupe souvent une balise tapée d'un bloc, ex.
  * "[nom_bailleur]", en plusieurs `<w:r>` internes de même mise en forme —
@@ -40,8 +52,36 @@ function normalizeRuns(xml: string): string {
   RUN_RE.lastIndex = 0;
   let match: RegExpExecArray | null;
   while ((match = RUN_RE.exec(out))) {
-    const [full, rPr = "", attrs = "", text] = match;
+    const [full, inner] = match;
     const gapText = out.slice(lastIndex, match.index);
+
+    const rprMatch = RPR_RE.exec(inner);
+    const rPr = rprMatch ? rprMatch[1] : "";
+    const afterRpr = rprMatch ? inner.slice(rprMatch[0].length) : inner;
+
+    if (!SIMPLE_TEXT_ONLY_RE.test(afterRpr)) {
+      // Run "opaque" (tabulation, saut de ligne, image, champ…) : on le
+      // laisse tel quel sans jamais fusionner à travers, pour ne rien
+      // perdre de son contenu.
+      if (gapText.length > 0) {
+        flush();
+        result += gapText;
+      }
+      flush();
+      result += full;
+      lastIndex = match.index + full.length;
+      continue;
+    }
+
+    let text = "";
+    let attrs = "";
+    T_RE.lastIndex = 0;
+    let tMatch: RegExpExecArray | null;
+    while ((tMatch = T_RE.exec(afterRpr))) {
+      text += tMatch[2];
+      attrs = tMatch[1] || attrs;
+    }
+
     // Un blanc pur entre deux `<w:r>` (retour à la ligne d'un export, etc.)
     // n'a aucun effet visuel dans Word : on l'ignore plutôt que de le
     // laisser casser la fusion de deux runs qui, sinon, se suivraient.
@@ -90,6 +130,11 @@ function formatKeys(details: PropertyDetails | null): string {
   const typeLabel =
     details.keyContentType === "cle" ? "Clé" : details.keyContentType === "cle_vigik" ? "Clé Vigik" : "";
   return [typeLabel, details.keyContentDetail].filter(Boolean).join(" — ");
+}
+
+function formatAmountFr(value: number | null): string {
+  if (value == null) return "";
+  return `${value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€`;
 }
 
 /** Balises du modèle de bail (voir `assets/bail-template.docx`) déjà
@@ -153,6 +198,116 @@ function buildFieldMap(input: {
   };
 }
 
+/** Balises correspondant au nom de colonne Excel affiché par le badge "#"
+ * au survol de chaque champ dans l'app (ex. [Nom Owner], [Société
+ * Locataire]) — pour utiliser dans un modèle de bail le même nom déjà vu
+ * ailleurs dans l'application plutôt qu'un second vocabulaire séparé. */
+const HASHTAG_FIELD_KEYS: CsvFieldKey[] = [
+  "name",
+  "address",
+  "surface",
+  "syndicLotNumber",
+  "syndicName",
+  "syndicPhone",
+  "syndicEmail",
+  "hotWaterProduction",
+  "heatingProduction",
+  "ownerLastName",
+  "ownerFirstName",
+  "ownerEmail",
+  "ownerPhone",
+  "ownerAddress",
+  "ownerBirthDate",
+  "ownerBirthPlace",
+  "ownerNationality",
+  "ownerPassportNumber",
+  "ownerCompanyName",
+  "ownerCompanyLegalForm",
+  "ownerCompanyCapital",
+  "ownerCompanyAddress",
+  "ownerCompanySiren",
+  "ownerCompanyRcsCity",
+  "ownerCompanyRepresentedBy",
+  "ownerCompanyRole",
+  "ownerNotes",
+  "leaseStartDate",
+  "leaseInitialTerm",
+  "leaseRenewalTerm",
+  "leaseTenantCompany",
+  "leaseTenantDirector",
+  "leaseTenantNotes",
+  "leaseNotes",
+  "ribNotes",
+  "rcpNotes",
+  "rentType",
+  "rentNotes",
+  "rentAmount",
+  "chargesAmount",
+  "otherAmountLabel",
+  "otherAmount",
+];
+
+function buildHashtagFieldMap(input: {
+  property: Property;
+  owner: PropertyOwner | null;
+  details: PropertyDetails | null;
+  agencement: PropertyAgencement | null;
+  waterElec: PropertyWaterElec | null;
+}): Record<string, string> {
+  const { property, owner, details, agencement, waterElec } = input;
+
+  const values: Partial<Record<CsvFieldKey, string>> = {
+    name: property.name ?? "",
+    address: property.address ?? "",
+    surface: agencement?.surface != null ? String(agencement.surface) : "",
+    syndicLotNumber: details?.syndicLotNumber ?? "",
+    syndicName: details?.syndicName ?? "",
+    syndicPhone: details?.syndicPhone ?? "",
+    syndicEmail: details?.syndicEmail ?? "",
+    hotWaterProduction: formatProduction(waterElec?.hotWaterProduction ?? null),
+    heatingProduction: formatProduction(waterElec?.heatingProduction ?? null),
+    ownerLastName: owner?.lastName ?? "",
+    ownerFirstName: owner?.firstName ?? "",
+    ownerEmail: owner?.email ?? "",
+    ownerPhone: owner?.phone ?? "",
+    ownerAddress: owner?.address ?? "",
+    ownerBirthDate: formatDateFr(owner?.birthDate ?? null),
+    ownerBirthPlace: owner?.birthPlace ?? "",
+    ownerNationality: owner?.nationality ?? "",
+    ownerPassportNumber: owner?.passportNumber ?? "",
+    ownerCompanyName: owner?.companyName ?? "",
+    ownerCompanyLegalForm: owner?.companyLegalForm ?? "",
+    ownerCompanyCapital: owner?.companyCapital ?? "",
+    ownerCompanyAddress: owner?.companyAddress ?? "",
+    ownerCompanySiren: owner?.companySiren ?? "",
+    ownerCompanyRcsCity: owner?.companyRcsCity ?? "",
+    ownerCompanyRepresentedBy: owner?.companyRepresentedBy ?? "",
+    ownerCompanyRole: owner?.companyRole ?? "",
+    ownerNotes: owner?.notes ?? "",
+    leaseStartDate: formatDateFr(owner?.leaseStartDate ?? null),
+    leaseInitialTerm: owner?.leaseInitialTerm ?? "",
+    leaseRenewalTerm: owner?.leaseRenewalTerm ?? "",
+    leaseTenantCompany: owner?.leaseTenantCompany ?? "",
+    leaseTenantDirector: owner?.leaseTenantDirector ?? "",
+    leaseTenantNotes: owner?.leaseTenantNotes ?? "",
+    leaseNotes: owner?.leaseNotes ?? "",
+    ribNotes: owner?.ribNotes ?? "",
+    rcpNotes: owner?.rcpNotes ?? "",
+    rentType: owner?.rentType ?? "",
+    rentNotes: owner?.rentNotes ?? "",
+    rentAmount: formatAmountFr(owner?.rentAmount ?? null),
+    chargesAmount: formatAmountFr(owner?.chargesAmount ?? null),
+    otherAmountLabel: owner?.otherAmountLabel ?? "",
+    otherAmount: formatAmountFr(owner?.otherAmount ?? null),
+  };
+
+  const result: Record<string, string> = {};
+  for (const key of HASHTAG_FIELD_KEYS) {
+    result[CSV_FIELDS[key].header] = values[key] ?? "";
+  }
+  return result;
+}
+
 /** Balises de paragraphe(s) conditionnel(s) : `[si_XXX]…texte…[fin_si_XXX]`
  * n'apparaît dans le document généré que si la condition XXX est vraie
  * (sinon tout le bloc, balises comprises, est retiré) — pour les cas où
@@ -207,7 +362,7 @@ export function generateLeaseDocx(input: {
   let xml = normalizeRuns(documentXmlFile.asText());
   const isCompany = input.owner?.isCompany === true;
   xml = applyConditionalBlocks(xml, { bailleur_individuel: !isCompany, bailleur_société: isCompany });
-  const fields = buildFieldMap(input);
+  const fields = { ...buildFieldMap(input), ...buildHashtagFieldMap(input) };
   for (const [key, value] of Object.entries(fields)) {
     xml = xml.split(`[${key}]`).join(escapeXml(value));
   }
@@ -216,17 +371,12 @@ export function generateLeaseDocx(input: {
   return zip.generate({ type: "nodebuffer", compression: "DEFLATE" });
 }
 
-const EMPTY_FIELD_MAP_INPUT: Parameters<typeof buildFieldMap>[0] = {
-  property: { id: "", reference: "", name: null, address: null, tags: [], createdAt: "", updatedAt: "" },
-  owner: null,
-  details: null,
-  agencement: null,
-  waterElec: null,
-};
-
-/** Balises que le système sait remplir automatiquement (voir buildFieldMap) — dérivé directement de buildFieldMap pour ne jamais désynchroniser cette liste. */
+/** Balises recommandées pour construire un modèle de bail : le nom de
+ * colonne Excel affiché par le badge "#" au survol de chaque champ ailleurs
+ * dans l'app (ex. [Nom Owner]) — un seul vocabulaire à connaître dans toute
+ * l'application. */
 export function listSupportedLeaseTags(): string[] {
-  return Object.keys(buildFieldMap(EMPTY_FIELD_MAP_INPUT));
+  return HASHTAG_FIELD_KEYS.map((key) => CSV_FIELDS[key].header);
 }
 
 /** Pour la page "Bail type" : quelles balises du système sont effectivement

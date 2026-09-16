@@ -41,9 +41,9 @@ export default async function BailTypePage() {
         <h2 className="text-sm font-semibold text-[#1d1d1f]">Balises reconnues par la génération</h2>
         <p className="text-[13px] text-[#6e6e73]">
           Pour qu&apos;une information soit remplie automatiquement dans le bail généré, tapez la balise
-          correspondante entre crochets à l&apos;endroit voulu dans votre document Word — ce sont ces
-          balises-ci, pas les noms de colonnes Excel utilisés pour l&apos;import CSV. Cliquez sur une balise
-          pour la copier.
+          correspondante entre crochets à l&apos;endroit voulu dans votre document Word — ce sont les mêmes
+          noms que ceux affichés par le badge « # » au survol d&apos;un champ ailleurs dans
+          l&apos;application (colonnes Excel de l&apos;import CSV). Cliquez sur une balise pour la copier.
         </p>
         <LeaseTagReference tags={listSupportedLeaseTags()} />
         <div className="border-t border-black/[0.06] pt-3">
