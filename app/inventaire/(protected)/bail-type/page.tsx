@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getLeaseTemplateInfo } from "@/lib/inventaire/queries";
-import { analyzeLeaseTemplateTags } from "@/lib/inventaire/leaseTemplate";
+import { LEASE_CONDITIONS, analyzeLeaseTemplateTags, listSupportedLeaseTags } from "@/lib/inventaire/leaseTemplate";
 import { LeaseTemplateUploadForm } from "./LeaseTemplateUploadForm";
+import { LeaseTagReference } from "./LeaseTagReference";
 
 export default async function BailTypePage() {
   const profile = await getCurrentProfile();
@@ -36,7 +37,33 @@ export default async function BailTypePage() {
         chaque bien). Le remplacer ici s&apos;applique immédiatement à tous les biens.
       </p>
 
-      <div className="mt-6 card space-y-2 p-5">
+      <div className="mt-6 card space-y-3 p-5">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Balises reconnues par la génération</h2>
+        <p className="text-[13px] text-[#6e6e73]">
+          Pour qu&apos;une information soit remplie automatiquement dans le bail généré, tapez la balise
+          correspondante entre crochets à l&apos;endroit voulu dans votre document Word — ce sont ces
+          balises-ci, pas les noms de colonnes Excel utilisés pour l&apos;import CSV. Cliquez sur une balise
+          pour la copier.
+        </p>
+        <LeaseTagReference tags={listSupportedLeaseTags()} />
+        <div className="border-t border-black/[0.06] pt-3">
+          <p className="text-[13px] font-medium text-[#1d1d1f]">Choisir entre deux passages (ex. bailleur particulier ou société)</p>
+          <p className="mt-1 text-[13px] text-[#6e6e73]">
+            Entourez le passage à n&apos;afficher que dans ce cas avec une balise de début et une balise de
+            fin correspondantes. Le passage entier (balises comprises) est retiré si la condition ne
+            correspond pas au propriétaire du bien.
+          </p>
+          <div className="mt-2 space-y-2">
+            {LEASE_CONDITIONS.map((key) => (
+              <div key={key} className="flex flex-wrap items-center gap-1.5">
+                <LeaseTagReference tags={[`si_${key}`, `fin_si_${key}`]} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 card space-y-2 p-5">
         <h2 className="text-sm font-semibold text-[#1d1d1f]">Modèle actuellement utilisé</h2>
         {template.filePath ? (
           <div className="text-[14px] text-[#1d1d1f]">

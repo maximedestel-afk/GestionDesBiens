@@ -148,7 +148,40 @@ function buildFieldMap(input: {
     chargeslettre_agreement: charges ? numberToFrenchWords(charges).toUpperCase() : "",
     totalchiffre_agreement: total ? String(total) : "",
     totallettre_agreement: total ? numberToFrenchWords(total).toUpperCase() : "",
+    autrelabel_agreement: owner?.otherAmountLabel ?? "",
+    autremontant_agreement: owner?.otherAmount != null ? String(owner.otherAmount) : "",
   };
+}
+
+/** Balises de paragraphe(s) conditionnel(s) : `[si_XXX]…texte…[fin_si_XXX]`
+ * n'apparaît dans le document généré que si la condition XXX est vraie
+ * (sinon tout le bloc, balises comprises, est retiré) — pour les cas où
+ * deux passages s'excluent (ex. bailleur individuel vs société) plutôt que
+ * de tout montrer en même temps. */
+export const LEASE_CONDITIONS = ["bailleur_individuel", "bailleur_société"] as const;
+export type LeaseConditionKey = (typeof LEASE_CONDITIONS)[number];
+
+function applyConditionalBlocks(xml: string, conditions: Record<LeaseConditionKey, boolean>): string {
+  let out = xml;
+  for (const key of LEASE_CONDITIONS) {
+    const startTag = `[si_${key}]`;
+    const endTag = `[fin_si_${key}]`;
+    const include = conditions[key];
+    let searchFrom = 0;
+    for (;;) {
+      const start = out.indexOf(startTag, searchFrom);
+      if (start === -1) break;
+      const end = out.indexOf(endTag, start + startTag.length);
+      // Balise de fin manquante : on laisse tel quel, un admin corrigera dans Word.
+      if (end === -1) break;
+      const endPos = end + endTag.length;
+      out = include
+        ? out.slice(0, start) + out.slice(start + startTag.length, end) + out.slice(endPos)
+        : out.slice(0, start) + out.slice(endPos);
+      searchFrom = start;
+    }
+  }
+  return out;
 }
 
 /** Remplit le modèle de bail (`assets/bail-template.docx`, balises
@@ -172,6 +205,8 @@ export function generateLeaseDocx(input: {
   if (!documentXmlFile) throw new Error("Modèle de bail invalide : word/document.xml introuvable.");
 
   let xml = normalizeRuns(documentXmlFile.asText());
+  const isCompany = input.owner?.isCompany === true;
+  xml = applyConditionalBlocks(xml, { bailleur_individuel: !isCompany, bailleur_société: isCompany });
   const fields = buildFieldMap(input);
   for (const [key, value] of Object.entries(fields)) {
     xml = xml.split(`[${key}]`).join(escapeXml(value));
