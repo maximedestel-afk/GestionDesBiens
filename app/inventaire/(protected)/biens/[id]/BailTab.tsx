@@ -109,6 +109,36 @@ export function BailTab({
                     defaultValue={owner?.leaseSpecialClause2}
                     csvKey="leaseSpecialClause2"
                   />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field
+                      label="Délai résiliation locataire"
+                      name="leaseTenantTerminationDelay"
+                      defaultValue={owner?.leaseTenantTerminationDelay}
+                      csvKey="leaseTenantTerminationDelay"
+                      placeholder="ex. DOUZE (12) mois"
+                    />
+                    <Field
+                      label="Préavis locataire"
+                      name="leaseTenantNotice"
+                      defaultValue={owner?.leaseTenantNotice}
+                      csvKey="leaseTenantNotice"
+                    />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field
+                      label="Délai résiliation bailleur"
+                      name="leaseOwnerTerminationDelay"
+                      defaultValue={owner?.leaseOwnerTerminationDelay}
+                      csvKey="leaseOwnerTerminationDelay"
+                      placeholder="ex. DOUZE (12) mois"
+                    />
+                    <Field
+                      label="Préavis bailleur"
+                      name="leaseOwnerNotice"
+                      defaultValue={owner?.leaseOwnerNotice}
+                      csvKey="leaseOwnerNotice"
+                    />
+                  </div>
                 </>
               }
             />
