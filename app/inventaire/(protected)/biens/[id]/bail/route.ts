@@ -7,6 +7,7 @@ import {
   getPropertyDetails,
   getPropertyOwner,
   getPropertyWaterElec,
+  listRooms,
 } from "@/lib/inventaire/queries";
 import { generateLeaseDocx } from "@/lib/inventaire/leaseTemplate";
 
@@ -26,11 +27,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Bien introuvable." }, { status: 404 });
   }
 
-  const [owner, details, agencement, waterElec, templateInfo] = await Promise.all([
+  const [owner, details, agencement, waterElec, rooms, templateInfo] = await Promise.all([
     getPropertyOwner(id),
     getPropertyDetails(id),
     getPropertyAgencement(id),
     getPropertyWaterElec(id),
+    listRooms(id),
     getLeaseTemplateInfo(),
   ]);
 
@@ -45,7 +47,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     templateBuffer = Buffer.from(await templateBlob.arrayBuffer());
   }
 
-  const buffer = generateLeaseDocx({ property, owner, details, agencement, waterElec, templateBuffer });
+  const buffer = generateLeaseDocx({ property, owner, details, agencement, waterElec, rooms, templateBuffer });
   const fileName = `bail-${property.reference}.docx`;
 
   return new NextResponse(new Uint8Array(buffer), {
