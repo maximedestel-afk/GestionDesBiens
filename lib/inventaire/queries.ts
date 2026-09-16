@@ -30,6 +30,7 @@ import type {
   Equipment,
   InventoryCategoryRow,
   InventoryItem,
+  LeaseTemplateInfo,
   OwnerDirectoryEntry,
   Profile,
   Property,
@@ -568,6 +569,32 @@ export async function getAppNotes(): Promise<string | null> {
   const { data, error } = await supabase.from("app_notes").select("content").eq("id", "main").maybeSingle();
   if (error) throw error;
   return data?.content ?? null;
+}
+
+export async function getLeaseTemplateInfo(): Promise<LeaseTemplateInfo> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("lease_template")
+    .select("file_path, original_filename, uploaded_by_email, updated_at")
+    .eq("id", "main")
+    .maybeSingle();
+  if (error) throw error;
+
+  let downloadUrl: string | null = null;
+  if (data?.file_path) {
+    const { data: signedUrl } = await supabase.storage
+      .from("property-files")
+      .createSignedUrl(data.file_path, SIGNED_URL_TTL_SECONDS);
+    downloadUrl = signedUrl?.signedUrl ?? null;
+  }
+
+  return {
+    filePath: data?.file_path ?? null,
+    originalFilename: data?.original_filename ?? null,
+    uploadedByEmail: data?.uploaded_by_email ?? null,
+    updatedAt: data?.updated_at ?? null,
+    downloadUrl,
+  };
 }
 
 export async function listPropertiesMissingChecks(

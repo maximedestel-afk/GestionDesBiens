@@ -312,3 +312,12 @@ export interface Task {
   doneAt: string | null;
   comments: TaskComment[];
 }
+
+export interface LeaseTemplateInfo {
+  /** null tant qu'aucun modèle personnalisé n'a été envoyé : le modèle par défaut fourni avec l'application est alors utilisé. */
+  filePath: string | null;
+  originalFilename: string | null;
+  uploadedByEmail: string | null;
+  updatedAt: string | null;
+  downloadUrl: string | null;
+}
