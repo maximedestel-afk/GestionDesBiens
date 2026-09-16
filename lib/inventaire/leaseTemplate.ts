@@ -198,14 +198,15 @@ function buildFieldMap(input: {
     startdate_agreement: formatDateFr(owner?.leaseStartDate ?? null),
     initialterm_agreement: owner?.leaseInitialTerm ?? "",
     termrenew_agreement: owner?.leaseRenewalTerm ?? "",
-    loyerchiffre_agreement: rent ? String(rent) : "",
-    loyerlettre_agreement: rent ? numberToFrenchWords(rent).toUpperCase() : "",
-    chargeschiffre_agreement: charges ? String(charges) : "",
-    chargeslettre_agreement: charges ? numberToFrenchWords(charges).toUpperCase() : "",
-    totalchiffre_agreement: total ? String(total) : "",
-    totallettre_agreement: total ? numberToFrenchWords(total).toUpperCase() : "",
+    loyerchiffre_agreement: rent ? formatAmountFr(rent) : "",
+    loyerlettre_agreement: rent ? `${numberToFrenchWords(rent).toUpperCase()} EUROS` : "",
+    chargeschiffre_agreement: charges ? formatAmountFr(charges) : "",
+    chargeslettre_agreement: charges ? `${numberToFrenchWords(charges).toUpperCase()} EUROS` : "",
+    totalchiffre_agreement: total ? formatAmountFr(total) : "",
+    totallettre_agreement: total ? `${numberToFrenchWords(total).toUpperCase()} EUROS` : "",
     autrelabel_agreement: owner?.otherAmountLabel ?? "",
-    autremontant_agreement: owner?.otherAmount != null ? String(owner.otherAmount) : "",
+    autrechiffre_agreement: owner?.otherAmount ? formatAmountFr(owner.otherAmount) : "",
+    autrelettre_agreement: owner?.otherAmount ? `${numberToFrenchWords(owner.otherAmount).toUpperCase()} EUROS` : "",
   };
 }
 
