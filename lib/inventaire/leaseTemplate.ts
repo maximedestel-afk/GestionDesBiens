@@ -24,20 +24,36 @@ const T_RE = /<w:t(\s[^>]*)?>([\s\S]*?)<\/w:t>/g;
 // contiendraient.
 const SIMPLE_TEXT_ONLY_RE = /^(?:<w:t(?:\s[^>]*)?>[\s\S]*?<\/w:t>)+$/;
 
+/** Nombre de "[" non refermés par un "]" dans `text` — sert à savoir si un
+ * run se termine au milieu d'une balise "[xxx]" commencée. */
+function openBracketCount(text: string): number {
+  let count = 0;
+  for (const ch of text) {
+    if (ch === "[") count++;
+    else if (ch === "]" && count > 0) count--;
+  }
+  return count;
+}
+
 /** Word (et Google Docs) coupe souvent une balise tapée d'un bloc, ex.
- * "[nom_bailleur]", en plusieurs `<w:r>` internes de même mise en forme —
- * invisible à l'oeil dans le document, mais invisible aussi à une simple
- * recherche de "[nom_bailleur]" dans le XML brut (le correcteur
- * orthographique/grammatical ou des signets insérés automatiquement en
- * sont la cause la plus fréquente). On supprime ces marqueurs muets puis on
- * fusionne les `<w:r>` consécutifs de même mise en forme avant de chercher
- * les balises, pour que "tapé normalement dans Word" suffise à ce qu'une
- * balise soit reconnue. */
+ * "[nom_bailleur]", en plusieurs `<w:r>` internes — invisible à l'oeil dans
+ * le document, mais invisible aussi à une simple recherche de
+ * "[nom_bailleur]" dans le XML brut (le correcteur orthographique/
+ * grammatical, des signets insérés automatiquement, un saut de page mémorisé
+ * par Word, ou tout simplement une partie de la balise tapée avec une mise
+ * en forme différente — ex. en gras — en sont les causes les plus
+ * fréquentes). On supprime ces marqueurs muets puis on fusionne les `<w:r>`
+ * consécutifs avant de chercher les balises — de même mise en forme, ou de
+ * mise en forme différente si on est encore au milieu d'un "[...]" non
+ * refermé (dans ce cas, le "]" pouvant arriver dans un tout autre style ne
+ * doit pas empêcher de reconnaître la balise), pour que "tapé normalement
+ * dans Word" suffise à ce qu'une balise soit reconnue. */
 function normalizeRuns(xml: string): string {
   const out = xml
     .replace(/<w:proofErr[^>]*\/>/g, "")
     .replace(/<w:bookmarkStart[^>]*\/>/g, "")
-    .replace(/<w:bookmarkEnd[^>]*\/>/g, "");
+    .replace(/<w:bookmarkEnd[^>]*\/>/g, "")
+    .replace(/<w:lastRenderedPageBreak[^>]*\/>/g, "");
 
   let result = "";
   let lastIndex = 0;
@@ -89,7 +105,7 @@ function normalizeRuns(xml: string): string {
       flush();
       result += gapText;
     }
-    if (pending && pending.rPr === rPr) {
+    if (pending && (pending.rPr === rPr || openBracketCount(pending.text) > 0)) {
       pending.text += text;
       if (attrs.includes("xml:space") && !pending.attrs.includes("xml:space")) {
         pending.attrs = attrs;
