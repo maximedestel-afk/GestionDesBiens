@@ -74,6 +74,7 @@ function buildFieldMap(input: {
     // Locataire
     sté_locataire: owner?.leaseTenantCompany ?? "",
     directeur_locataire: owner?.leaseTenantDirector ?? "",
+    notes_locataire: owner?.leaseTenantNotes ?? "",
     // Bien
     address_appart: property.address ?? "",
     superficie_appart: agencement?.surface != null ? String(agencement.surface) : "",
