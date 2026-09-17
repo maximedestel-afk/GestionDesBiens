@@ -55,6 +55,9 @@ export function FinanceTab({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [extraReferences, setExtraReferences] = useState<string[]>(
+    financeSettings?.extraVrplatformReferences ?? []
+  );
 
   const isFixedRent = owner?.rentType === "fixe";
   const fixedRentAmount = owner?.rentAmount ?? null;
@@ -89,11 +92,11 @@ export function FinanceTab({
       <div className="card space-y-3 p-5">
         <h2 className="text-sm font-semibold text-[#1d1d1f]">Regroupement VRPlatform</h2>
         <p className="text-[13px] text-[#6e6e73]">
-          Certains biens correspondent à deux listings VRPlatform distincts (ex. « 14ECO » et « 14ECO 1 ») —
-          ajoutez ici la référence du second listing pour l&apos;additionner au tableau ci-dessous.
+          Certains biens correspondent à plusieurs listings VRPlatform distincts (ex. « 14ECO », « 14ECO 1 »,
+          « 14ECO 2 ») — ajoutez ici leurs références pour les additionner au tableau ci-dessous.
         </p>
         <ActionForm
-          className="flex flex-wrap items-end gap-3"
+          className="space-y-3"
           action={async (formData) => {
             await savePropertyFinanceSettings(propertyId, formData);
             setRefreshKey((k) => k + 1);
@@ -101,23 +104,46 @@ export function FinanceTab({
         >
           {({ pending, error, success }) => (
             <>
-              <div>
-                <label className="field-label" htmlFor="extraVrplatformReference">
-                  Référence VRPlatform supplémentaire
-                </label>
-                <input
-                  id="extraVrplatformReference"
-                  name="extraVrplatformReference"
-                  type="text"
-                  defaultValue={financeSettings?.extraVrplatformReference ?? ""}
-                  placeholder="ex. 14ECO 1"
-                  className="mt-1 w-full min-w-[220px] rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-                />
+              <div className="space-y-2">
+                {extraReferences.length === 0 && (
+                  <p className="text-[13px] text-[#6e6e73]">Aucune référence supplémentaire.</p>
+                )}
+                {extraReferences.map((reference, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      name="extraVrplatformReferences"
+                      type="text"
+                      value={reference}
+                      onChange={(e) =>
+                        setExtraReferences((refs) => refs.map((r, i) => (i === index ? e.target.value : r)))
+                      }
+                      placeholder="ex. 14ECO 1"
+                      className="w-full min-w-[220px] rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setExtraReferences((refs) => refs.filter((_, i) => i !== index))}
+                      aria-label="Supprimer cette référence"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-black/10 text-[#6e6e73] transition hover:bg-black/[0.04]"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
-              <button type="submit" className="btn-secondary btn-sm">
-                Enregistrer
-              </button>
-              <SaveStatus pending={pending} error={error} success={success} />
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setExtraReferences((refs) => [...refs, ""])}
+                  className="btn-secondary btn-sm"
+                >
+                  + Ajouter une référence
+                </button>
+                <button type="submit" className="btn-secondary btn-sm">
+                  Enregistrer
+                </button>
+                <SaveStatus pending={pending} error={error} success={success} />
+              </div>
             </>
           )}
         </ActionForm>

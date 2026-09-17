@@ -118,7 +118,7 @@ export function serializePropertyOwner(row: any): PropertyOwner {
 export function serializePropertyFinanceSettings(row: any): PropertyFinanceSettings {
   return {
     propertyId: row.property_id,
-    extraVrplatformReference: row.extra_vrplatform_reference,
+    extraVrplatformReferences: row.extra_vrplatform_references ?? [],
   };
 }
 
