@@ -957,6 +957,7 @@ const BULK_FIELD_SOURCE: Record<string, { table: string; column: string }> = {
   rib_notes: { table: "property_owner", column: "rib_notes" },
   rcp_notes: { table: "property_owner", column: "rcp_notes" },
   rent_amount: { table: "property_owner", column: "rent_amount" },
+  commission_percent: { table: "property_owner", column: "commission_percent" },
   charges_amount: { table: "property_owner", column: "charges_amount" },
   other_amount_label: { table: "property_owner", column: "other_amount_label" },
   other_amount: { table: "property_owner", column: "other_amount" },
