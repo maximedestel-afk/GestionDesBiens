@@ -20,7 +20,9 @@ const MONTH_LABELS = [
 
 interface MonthlyFinance {
   month: number;
-  revenueCents: number;
+  rentsCents: number;
+  channelFeesCents: number;
+  netRevenueCents: number;
   nightsBooked: number;
   daysInMonth: number;
   fillRate: number;
@@ -93,7 +95,9 @@ export function FinanceTab({ propertyId, owner }: { propertyId: string; owner: P
             <thead>
               <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-wide text-[#6e6e73]">
                 <th className="py-2 pr-3">Mois</th>
-                <th className="py-2 pr-3">Revenu</th>
+                <th className="py-2 pr-3">Rents</th>
+                <th className="py-2 pr-3">Channel Fees</th>
+                <th className="py-2 pr-3">Net Commissionable Revenue</th>
                 <th className="py-2 pr-3">Taux de remplissage</th>
                 {isFixedRent && <th className="py-2 pr-3">Loyer fixe</th>}
                 {isFixedRent && <th className="py-2 pr-3">Écart</th>}
@@ -101,12 +105,14 @@ export function FinanceTab({ propertyId, owner }: { propertyId: string; owner: P
             </thead>
             <tbody>
               {months.map((m) => {
-                const revenueEuros = m.revenueCents / 100;
-                const diff = fixedRentAmount != null ? revenueEuros - fixedRentAmount : null;
+                const netRevenueEuros = m.netRevenueCents / 100;
+                const diff = fixedRentAmount != null ? netRevenueEuros - fixedRentAmount : null;
                 return (
                   <tr key={m.month} className="border-b border-black/5">
                     <td className="py-2 pr-3 text-[#1d1d1f]">{MONTH_LABELS[m.month - 1]}</td>
-                    <td className="py-2 pr-3 text-[#1d1d1f]">{formatEuros(revenueEuros)}</td>
+                    <td className="py-2 pr-3 text-[#1d1d1f]">{formatEuros(m.rentsCents / 100)}</td>
+                    <td className="py-2 pr-3 text-[#1d1d1f]">{formatEuros(m.channelFeesCents / 100)}</td>
+                    <td className="py-2 pr-3 font-semibold text-[#1d1d1f]">{formatEuros(netRevenueEuros)}</td>
                     <td className="py-2 pr-3 text-[#1d1d1f]">{formatPercent(m.fillRate)}</td>
                     {isFixedRent && (
                       <td className="py-2 pr-3 text-[#1d1d1f]">
