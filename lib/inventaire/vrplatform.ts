@@ -35,7 +35,7 @@ async function vrPlatformFetch<T>(path: string, query: Record<string, string>): 
   return response.json() as Promise<T>;
 }
 
-export interface VrPlatformListingOption {
+interface VrPlatformListingOption {
   id: string;
   name: string;
   address: string | null;
@@ -51,9 +51,10 @@ interface VrPlatformListingsResponse {
   pagination: { page: number; totalPage: number };
 }
 
-/** Tous les listings actifs de l'équipe VRPlatform — pour le sélecteur
- * "Listing VRPlatform" de l'onglet Finances (associé une fois par bien). */
-export async function listVrPlatformListingOptions(): Promise<VrPlatformListingOption[]> {
+/** Tous les listings actifs de l'équipe VRPlatform — pour retrouver celui
+ * dont le nom correspond à la référence d'un bien (voir
+ * findVrPlatformListingIdByReference). */
+async function listVrPlatformListingOptions(): Promise<VrPlatformListingOption[]> {
   const options: VrPlatformListingOption[] = [];
   let page = 1;
   for (;;) {
@@ -73,6 +74,17 @@ export async function listVrPlatformListingOptions(): Promise<VrPlatformListingO
     page++;
   }
   return options.sort((a, b) => a.name.localeCompare(b.name, "fr"));
+}
+
+/** Trouve le listing VRPlatform dont le nom correspond exactement à la
+ * référence du bien (ex. bien "097STHON" ↔ listing VRPlatform "097STHON") —
+ * les deux systèmes utilisent la même référence, donc aucune association
+ * manuelle n'est nécessaire. */
+export async function findVrPlatformListingIdByReference(reference: string): Promise<string | null> {
+  const normalized = reference.trim().toLowerCase();
+  const listings = await listVrPlatformListingOptions();
+  const match = listings.find((listing) => listing.name.trim().toLowerCase() === normalized);
+  return match?.id ?? null;
 }
 
 interface VrPlatformReservation {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCurrentProfile, getPropertyFinanceSettings } from "@/lib/inventaire/queries";
-import { getListingMonthlyFinancials, isVrPlatformConfigured } from "@/lib/inventaire/vrplatform";
+import { getCurrentProfile, getProperty } from "@/lib/inventaire/queries";
+import { findVrPlatformListingIdByReference, getListingMonthlyFinancials, isVrPlatformConfigured } from "@/lib/inventaire/vrplatform";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,13 +19,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Année invalide." }, { status: 400 });
   }
 
-  const settings = await getPropertyFinanceSettings(id);
-  if (!settings?.vrplatformListingId) {
-    return NextResponse.json({ error: "Aucun listing VRPlatform associé à ce bien." }, { status: 404 });
-  }
+  const property = await getProperty(id);
+  if (!property) return NextResponse.json({ error: "Bien introuvable." }, { status: 404 });
 
   try {
-    const months = await getListingMonthlyFinancials(settings.vrplatformListingId, year);
+    const listingId = await findVrPlatformListingIdByReference(property.reference);
+    if (!listingId) {
+      return NextResponse.json(
+        { error: `Aucun listing VRPlatform trouvé pour la référence « ${property.reference} ».` },
+        { status: 404 }
+      );
+    }
+    const months = await getListingMonthlyFinancials(listingId, year);
     return NextResponse.json({ year, months });
   } catch (err) {
     return NextResponse.json(

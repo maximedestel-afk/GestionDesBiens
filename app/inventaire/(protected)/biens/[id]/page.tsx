@@ -6,7 +6,6 @@ import {
   getProperty,
   getPropertyAgencement,
   getPropertyDetails,
-  getPropertyFinanceSettings,
   getPropertyOwner,
   getPropertyWaterElec,
   listActivityLog,
@@ -42,7 +41,6 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     profile,
     ownerRow,
     details,
-    financeSettings,
     keys,
     platforms,
     waterElec,
@@ -69,7 +67,6 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     getCurrentProfile(),
     getPropertyOwner(id),
     getPropertyDetails(id),
-    getPropertyFinanceSettings(id),
     listPropertyKeys(id),
     listPropertyPlatforms(id),
     getPropertyWaterElec(id),
@@ -214,7 +211,6 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         profiles={profiles}
         ownersDirectory={ownersDirectory}
         allowedTabs={profile?.allowedTabs ?? []}
-        financeSettings={financeSettings}
       />
     </div>
   );
