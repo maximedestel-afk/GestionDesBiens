@@ -88,7 +88,7 @@ export async function findVrPlatformListingIdByReference(reference: string): Pro
 }
 
 interface VrPlatformReservationLine {
-  uniqueRef: string | null;
+  type: string | null;
   amount: number | null;
 }
 
@@ -100,38 +100,70 @@ interface VrPlatformReservation {
   lines: VrPlatformReservationLine[] | null;
 }
 
-// Repérées sur les réservations réelles de l'équipe : la ligne "tarif
-// d'hébergement" est toujours "accommodationFare" ; la commission prélevée
-// par le canal de réservation (pas la commission du gestionnaire) porte un
-// nom différent selon la plateforme — "hostChannelFee" sur Airbnb,
-// "hostServiceFee" sur Booking.com. Les réservations en direct n'en ont
-// aucune (pas de commission de canal).
-const ACCOMMODATION_FARE_LINE_REF = "accommodationFare";
-const CHANNEL_COMMISSION_LINE_REFS = new Set(["hostChannelFee", "hostServiceFee"]);
-
-/** Revenu net commissionable d'une réservation : tarif d'hébergement brut
- * moins la commission du canal de réservation (Airbnb, Booking.com…) —
- * hors ménage, taxes et autres frais annexes. */
-function netCommissionableRevenue(lines: VrPlatformReservationLine[] | null): number {
-  if (!lines) return 0;
-  let total = 0;
-  for (const line of lines) {
-    if (line.uniqueRef === ACCOMMODATION_FARE_LINE_REF || (line.uniqueRef && CHANNEL_COMMISSION_LINE_REFS.has(line.uniqueRef))) {
-      total += line.amount ?? 0;
-    }
-  }
-  return total;
-}
-
 interface VrPlatformReservationsResponse {
   data: VrPlatformReservation[];
   pagination: { page: number; totalPage: number };
 }
 
+interface VrPlatformLineMappingsResponse {
+  data: { type: string; account: { name: string } | null }[];
+  pagination: { page: number; totalPage: number };
+}
+
+// Comptes de la comptabilité VRPlatform (page "Reservation Line Mappings"
+// de l'équipe) vers lesquels sont classées les lignes des réservations —
+// "Rents" pour le tarif du séjour, deux comptes de commission de canal
+// selon la plateforme d'origine (Airbnb / Booking.com).
+const RENTS_ACCOUNT = "Rents";
+const CHANNEL_COMMISSION_ACCOUNTS = new Set(["Channel Commissions - Airbnb", "Channel Commissions (Reference Account)"]);
+
+/** Table "type de ligne de réservation" → nom du compte comptable,
+ * configurée côté VRPlatform (Réglages > Reservation Line Mappings) —
+ * relue à chaque calcul pour rester synchronisée si l'équipe modifie ce
+ * mapping dans VRPlatform. */
+async function getReservationLineAccountMap(): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  let page = 1;
+  for (;;) {
+    const res = await vrPlatformFetch<VrPlatformLineMappingsResponse>("/reservations/line-mappings", {
+      limit: "250",
+      page: String(page),
+    });
+    for (const mapping of res.data) {
+      if (mapping.account) map.set(mapping.type, mapping.account.name);
+    }
+    if (page >= res.pagination.totalPage) break;
+    page++;
+  }
+  return map;
+}
+
+/** Somme des lignes "Rents" et des lignes de commission de canal d'une
+ * réservation, d'après le mapping comptable VRPlatform de l'équipe. */
+function classifyReservationLines(
+  lines: VrPlatformReservationLine[] | null,
+  accountByLineType: Map<string, string>
+): { rentsCents: number; channelFeesCents: number } {
+  let rentsCents = 0;
+  let channelFeesCents = 0;
+  if (!lines) return { rentsCents, channelFeesCents };
+  for (const line of lines) {
+    if (!line.type) continue;
+    const account = accountByLineType.get(line.type);
+    if (account === RENTS_ACCOUNT) rentsCents += line.amount ?? 0;
+    else if (account && CHANNEL_COMMISSION_ACCOUNTS.has(account)) channelFeesCents += Math.abs(line.amount ?? 0);
+  }
+  return { rentsCents, channelFeesCents };
+}
+
 export interface MonthlyFinance {
   /** 1 (janvier) à 12 (décembre). */
   month: number;
-  revenueCents: number;
+  rentsCents: number;
+  /** Toujours positif : montant de la commission de canal (déjà déduite du tarif pour obtenir netRevenueCents). */
+  channelFeesCents: number;
+  /** rentsCents - channelFeesCents : Net Commissionable Revenue. */
+  netRevenueCents: number;
   nightsBooked: number;
   daysInMonth: number;
   fillRate: number;
@@ -155,19 +187,23 @@ function overlapNights(checkIn: string, checkOut: string, year: number, month: n
   return Math.max(0, (overlapEnd - overlapStart) / MS_PER_DAY);
 }
 
-/** Revenu net commissionable (tarif d'hébergement brut moins la commission
- * du canal de réservation) et taux de remplissage de chaque mois d'une
- * année pour un listing VRPlatform. Une réservation à cheval sur deux mois
- * est répartie au prorata des nuits de chaque mois. Les réservations
- * annulées ne comptent pas. */
+/** Rents, commission de canal, Net Commissionable Revenue (Rents - Channel
+ * Fees) et taux de remplissage de chaque mois d'une année pour un listing
+ * VRPlatform — d'après le mapping comptable VRPlatform de l'équipe. Une
+ * réservation à cheval sur deux mois est répartie au prorata des nuits de
+ * chaque mois. Les réservations annulées ne comptent pas. */
 export async function getListingMonthlyFinancials(listingId: string, year: number): Promise<MonthlyFinance[]> {
   const months: MonthlyFinance[] = Array.from({ length: 12 }, (_, i) => ({
     month: i + 1,
-    revenueCents: 0,
+    rentsCents: 0,
+    channelFeesCents: 0,
+    netRevenueCents: 0,
     nightsBooked: 0,
     daysInMonth: daysInMonth(year, i + 1),
     fillRate: 0,
   }));
+
+  const accountByLineType = await getReservationLineAccountMap();
 
   let page = 1;
   for (;;) {
@@ -184,14 +220,15 @@ export async function getListingMonthlyFinancials(listingId: string, year: numbe
     for (const reservation of res.data) {
       if (!reservation.checkIn || !reservation.checkOut) continue;
       const totalNights = reservation.nights ?? 0;
-      const totalRevenue = netCommissionableRevenue(reservation.lines);
       if (totalNights <= 0) continue;
+      const { rentsCents, channelFeesCents } = classifyReservationLines(reservation.lines, accountByLineType);
 
       for (const entry of months) {
         const nights = overlapNights(reservation.checkIn, reservation.checkOut, year, entry.month);
         if (nights <= 0) continue;
         entry.nightsBooked += nights;
-        entry.revenueCents += Math.round((totalRevenue * nights) / totalNights);
+        entry.rentsCents += Math.round((rentsCents * nights) / totalNights);
+        entry.channelFeesCents += Math.round((channelFeesCents * nights) / totalNights);
       }
     }
 
@@ -200,6 +237,7 @@ export async function getListingMonthlyFinancials(listingId: string, year: numbe
   }
 
   for (const entry of months) {
+    entry.netRevenueCents = entry.rentsCents - entry.channelFeesCents;
     entry.fillRate = entry.daysInMonth > 0 ? entry.nightsBooked / entry.daysInMonth : 0;
   }
   return months;
