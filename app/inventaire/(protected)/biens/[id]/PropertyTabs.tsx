@@ -15,6 +15,7 @@ import type {
   PropertyAgencement,
   PropertyDetails,
   PropertyElement,
+  PropertyFinanceSettings,
   PropertyKey,
   PropertyOwner,
   PropertyPlatform,
@@ -42,6 +43,7 @@ import { NotesTab } from "./NotesTab";
 import { PhotosTab } from "./PhotosTab";
 import { DocumentsTab } from "./DocumentsTab";
 import { BailTab } from "./BailTab";
+import { FinanceTab } from "./FinanceTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 import { TasksTab } from "./TasksTab";
 import { MissingDataTab } from "./MissingDataTab";
@@ -78,12 +80,14 @@ export function PropertyTabs({
   profiles,
   ownersDirectory,
   allowedTabs,
+  financeSettings,
 }: {
   property: Property;
   isAdmin: boolean;
   /** Rôle "prestataire" uniquement : restreint les onglets visibles à cette liste. */
   allowedTabs: string[];
   owner: PropertyOwner | null;
+  financeSettings: PropertyFinanceSettings | null;
   details: PropertyDetails | null;
   keys: PropertyKey[];
   platforms: PropertyPlatform[];
@@ -112,7 +116,8 @@ export function PropertyTabs({
   const isPrestataire = role === "prestataire";
   const allowedTabsSet = new Set(allowedTabs);
   const visibleTabs = TABS.filter((tab) => {
-    if (tab.key === "proprietaire" || tab.key === "documents" || tab.key === "bail") return isAdmin;
+    if (tab.key === "proprietaire" || tab.key === "documents" || tab.key === "bail" || tab.key === "finances")
+      return isAdmin;
     if (isPrestataire) return allowedTabsSet.has(tab.key);
     return true;
   });
@@ -361,6 +366,9 @@ export function PropertyTabs({
             leaseAttachments={propertyAttachments.filter((a) => a.kind === "lease_contract")}
             missingCheckKeys={missingCheckKeys}
           />
+        )}
+        {activeTab === "finances" && isAdmin && (
+          <FinanceTab propertyId={property.id} financeSettings={financeSettings} owner={owner} />
         )}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />

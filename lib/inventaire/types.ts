@@ -121,6 +121,11 @@ export interface OwnerDirectoryEntry {
   companyRole: string | null;
 }
 
+export interface PropertyFinanceSettings {
+  propertyId: string;
+  vrplatformListingId: string | null;
+}
+
 export interface PropertyAgencement {
   propertyId: string;
   capacity: number | null;
