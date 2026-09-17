@@ -187,32 +187,12 @@ function overlapNights(checkIn: string, checkOut: string, year: number, month: n
   return Math.max(0, (overlapEnd - overlapStart) / MS_PER_DAY);
 }
 
-/** Rents, commission de canal, Net Commissionable Revenue (Rents - Channel
- * Fees) et taux de remplissage de chaque mois d'une année pour un listing
- * VRPlatform — d'après le mapping comptable VRPlatform de l'équipe.
- *
- * Deux logiques d'attribution différentes, volontairement découplées :
- * - Occupation (nuits, taux de remplissage) : répartie au prorata des
- *   nuits réellement passées dans chaque mois — une réservation à cheval
- *   sur deux mois compte des nuits dans chacun.
- * - Revenu (Rents, Channel Fees) : attribué en entier au mois de la date
- *   de départ (checkOut), sans prorata — c'est ainsi que VRPlatform
- *   reconnaît ce revenu (vérifié : la réservation du 27/12 au 02/01 compte
- *   entièrement en janvier, pas en décembre). Les réservations annulées
- *   ne comptent pas. */
-export async function getListingMonthlyFinancials(listingId: string, year: number): Promise<MonthlyFinance[]> {
-  const months: MonthlyFinance[] = Array.from({ length: 12 }, (_, i) => ({
-    month: i + 1,
-    rentsCents: 0,
-    channelFeesCents: 0,
-    netRevenueCents: 0,
-    nightsBooked: 0,
-    daysInMonth: daysInMonth(year, i + 1),
-    fillRate: 0,
-  }));
-
-  const accountByLineType = await getReservationLineAccountMap();
-
+async function addListingMonthlyFinancials(
+  months: MonthlyFinance[],
+  listingId: string,
+  year: number,
+  accountByLineType: Map<string, string>
+): Promise<void> {
   let page = 1;
   for (;;) {
     const res = await vrPlatformFetch<VrPlatformReservationsResponse>("/reservations", {
@@ -244,6 +224,38 @@ export async function getListingMonthlyFinancials(listingId: string, year: numbe
 
     if (page >= res.pagination.totalPage) break;
     page++;
+  }
+}
+
+/** Rents, commission de canal, Net Commissionable Revenue (Rents - Channel
+ * Fees) et taux de remplissage de chaque mois d'une année, cumulés sur un
+ * ou plusieurs listings VRPlatform — un bien réparti sur deux listings
+ * (ex. "14ECO" et "14ECO 1") est ainsi regroupé en un seul tableau —
+ * d'après le mapping comptable VRPlatform de l'équipe.
+ *
+ * Deux logiques d'attribution différentes, volontairement découplées :
+ * - Occupation (nuits, taux de remplissage) : répartie au prorata des
+ *   nuits réellement passées dans chaque mois — une réservation à cheval
+ *   sur deux mois compte des nuits dans chacun.
+ * - Revenu (Rents, Channel Fees) : attribué en entier au mois de la date
+ *   de départ (checkOut), sans prorata — c'est ainsi que VRPlatform
+ *   reconnaît ce revenu (vérifié : la réservation du 27/12 au 02/01 compte
+ *   entièrement en janvier, pas en décembre). Les réservations annulées
+ *   ne comptent pas. */
+export async function getListingMonthlyFinancials(listingIds: string[], year: number): Promise<MonthlyFinance[]> {
+  const months: MonthlyFinance[] = Array.from({ length: 12 }, (_, i) => ({
+    month: i + 1,
+    rentsCents: 0,
+    channelFeesCents: 0,
+    netRevenueCents: 0,
+    nightsBooked: 0,
+    daysInMonth: daysInMonth(year, i + 1),
+    fillRate: 0,
+  }));
+
+  const accountByLineType = await getReservationLineAccountMap();
+  for (const listingId of listingIds) {
+    await addListingMonthlyFinancials(months, listingId, year, accountByLineType);
   }
 
   for (const entry of months) {
