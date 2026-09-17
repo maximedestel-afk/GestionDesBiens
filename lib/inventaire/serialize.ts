@@ -8,6 +8,7 @@ import type {
   PropertyAgencement,
   PropertyDetails,
   PropertyElement,
+  PropertyFinanceSettings,
   PropertyKey,
   PropertyOwner,
   InventoryCategoryRow,
@@ -111,6 +112,13 @@ export function serializePropertyOwner(row: any): PropertyOwner {
     chargesAmount: row.charges_amount,
     otherAmountLabel: row.other_amount_label,
     otherAmount: row.other_amount,
+  };
+}
+
+export function serializePropertyFinanceSettings(row: any): PropertyFinanceSettings {
+  return {
+    propertyId: row.property_id,
+    vrplatformListingId: row.vrplatform_listing_id,
   };
 }
 

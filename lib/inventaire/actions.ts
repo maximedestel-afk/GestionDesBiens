@@ -2350,6 +2350,24 @@ export async function recordLeaseTemplateUpload(input: { filePath: string; origi
 }
 
 /* ------------------------------------------------------------------ */
+/* Finances (admin) — association au listing VRPlatform                */
+/* ------------------------------------------------------------------ */
+
+export async function savePropertyFinanceSettings(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const vrplatformListingId = optionalString(formData.get("vrplatformListingId"));
+
+  const { error } = await supabase
+    .from("property_finance_settings")
+    .upsert({ property_id: propertyId, vrplatform_listing_id: vrplatformListingId });
+  if (error) throw error;
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
 /* Liste des biens — indicateur "données manquantes"                   */
 /* ------------------------------------------------------------------ */
 
