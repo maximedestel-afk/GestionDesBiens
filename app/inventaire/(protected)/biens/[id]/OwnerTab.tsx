@@ -214,18 +214,19 @@ function RentFieldset({
   propertyId,
   owner,
   missingCheckKeys,
+  rentType,
+  setRentType,
 }: {
   propertyId: string;
   owner: PropertyOwner | null;
   missingCheckKeys: string[];
+  rentType: string;
+  setRentType: (value: string) => void;
 }) {
-  const [rentType, setRentType] = useState(owner?.rentType ?? "");
   const [rent, setRent] = useState(owner?.rentAmount != null ? String(owner.rentAmount) : "");
-  const [commission, setCommission] = useState(owner?.commissionPercent != null ? String(owner.commissionPercent) : "");
   const [charges, setCharges] = useState(owner?.chargesAmount != null ? String(owner.chargesAmount) : "");
   const [other, setOther] = useState(owner?.otherAmount != null ? String(owner.otherAmount) : "");
 
-  const isFixedRent = rentType === "fixe";
   const total = parseAmount(rent) + parseAmount(charges) + parseAmount(other);
 
   return (
@@ -297,24 +298,6 @@ function RentFieldset({
           />
         </div>
         <div>
-          <label className="field-label flex items-center" htmlFor="commissionPercent">
-            Commission (%)
-            <FieldRef csvKey="commissionPercent" />
-          </label>
-          <input
-            id="commissionPercent"
-            name="commissionPercent"
-            type="number"
-            min={0}
-            step="0.01"
-            value={isFixedRent ? "" : commission}
-            onChange={(e) => setCommission(e.target.value)}
-            disabled={isFixedRent}
-            title={isFixedRent ? "Sans objet pour un loyer fixe" : undefined}
-            className={`${AMOUNT_INPUT_CLASS} disabled:cursor-not-allowed disabled:bg-black/[0.04] disabled:text-black/40`}
-          />
-        </div>
-        <div>
           <label className="field-label flex items-center" htmlFor="chargesAmount">
             Charges
             <FieldRef csvKey="chargesAmount" />
@@ -373,6 +356,35 @@ function RentFieldset({
             {total.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
           </span>
         </div>
+      </div>
+    </fieldset>
+  );
+}
+
+function CommissionFieldset({ owner, rentType }: { owner: PropertyOwner | null; rentType: string }) {
+  const [commission, setCommission] = useState(owner?.commissionPercent != null ? String(owner.commissionPercent) : "");
+  const isFixedRent = rentType === "fixe";
+
+  return (
+    <fieldset className="card p-5">
+      <legend className="flex items-center px-1 text-sm font-semibold text-[#1d1d1f]">Commission</legend>
+      <div className="mt-2">
+        <label className="field-label flex items-center" htmlFor="commissionPercent">
+          Commission (%)
+          <FieldRef csvKey="commissionPercent" />
+        </label>
+        <input
+          id="commissionPercent"
+          name="commissionPercent"
+          type="number"
+          min={0}
+          step="0.01"
+          value={isFixedRent ? "" : commission}
+          onChange={(e) => setCommission(e.target.value)}
+          disabled={isFixedRent}
+          title={isFixedRent ? "Sans objet pour un loyer fixe" : undefined}
+          className={`${AMOUNT_INPUT_CLASS} disabled:cursor-not-allowed disabled:bg-black/[0.04] disabled:text-black/40`}
+        />
       </div>
     </fieldset>
   );
@@ -552,6 +564,9 @@ export function OwnerTab({
     owner?.companyRole
   );
   const [isCompany, setIsCompany] = useState(!!owner?.isCompany || hasCompanyData);
+  // Remonté ici pour que CommissionFieldset (case séparée) sache si le
+  // champ Commission doit être grisé, sans dupliquer l'état du type de loyer.
+  const [rentType, setRentType] = useState(owner?.rentType ?? "");
 
   function fillFromOwner(selected: DedupedOwner) {
     const setValue = (ref: RefObject<HTMLInputElement | null>, value: string | null) => {
@@ -698,7 +713,15 @@ export function OwnerTab({
 
             <CompanyFieldset owner={owner} isCompany={isCompany} setIsCompany={setIsCompany} />
 
-            <RentFieldset propertyId={propertyId} owner={owner} missingCheckKeys={missingCheckKeys} />
+            <RentFieldset
+              propertyId={propertyId}
+              owner={owner}
+              missingCheckKeys={missingCheckKeys}
+              rentType={rentType}
+              setRentType={setRentType}
+            />
+
+            <CommissionFieldset owner={owner} rentType={rentType} />
 
             <fieldset className="card space-y-3 p-5">
               <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Documents</legend>
