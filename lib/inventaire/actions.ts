@@ -655,6 +655,9 @@ export async function importProperties(formData: FormData): Promise<ImportProper
       if (hasColumn("ownerIsCompany")) ownerPatch.is_company = parseEnumCell(get(row, "ownerIsCompany"), BOOLEAN_CELL_MAP);
       if (hasColumn("rentType")) ownerPatch.rent_type = parseEnumCell(get(row, "rentType"), RENT_TYPE_CELL_MAP);
       if (hasColumn("rentAmount")) ownerPatch.rent_amount = optionalAmount(get(row, "rentAmount"), "Le loyer");
+      if (hasColumn("commissionPercent")) {
+        ownerPatch.commission_percent = optionalAmount(get(row, "commissionPercent"), "La commission");
+      }
       if (hasColumn("chargesAmount")) ownerPatch.charges_amount = optionalAmount(get(row, "chargesAmount"), "Les charges");
       if (hasColumn("otherAmount")) ownerPatch.other_amount = optionalAmount(get(row, "otherAmount"), "Le montant « Autre »");
       if (Object.keys(ownerPatch).length > 0) {
@@ -877,6 +880,10 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
   if (formData.has("rentAmount")) {
     patch.rent_amount = optionalAmount(formData.get("rentAmount"), "Le loyer");
     labels.rent_amount = "Loyer";
+  }
+  if (formData.has("commissionPercent")) {
+    patch.commission_percent = optionalAmount(formData.get("commissionPercent"), "La commission");
+    labels.commission_percent = "Commission";
   }
   if (formData.has("chargesAmount")) {
     patch.charges_amount = optionalAmount(formData.get("chargesAmount"), "Les charges");
