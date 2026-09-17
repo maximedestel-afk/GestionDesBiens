@@ -121,6 +121,14 @@ export interface OwnerDirectoryEntry {
   companyRole: string | null;
 }
 
+export interface PropertyFinanceSettings {
+  propertyId: string;
+  /** Référence VRPlatform d'un second listing correspondant au même bien
+   * (ex. "14ECO 1"), à additionner à celui trouvé automatiquement par la
+   * référence du bien — pour les biens répartis sur deux listings. */
+  extraVrplatformReference: string | null;
+}
+
 export interface PropertyAgencement {
   propertyId: string;
   capacity: number | null;
