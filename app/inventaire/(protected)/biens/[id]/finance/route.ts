@@ -22,8 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const [property, financeSettings] = await Promise.all([getProperty(id), getPropertyFinanceSettings(id)]);
   if (!property) return NextResponse.json({ error: "Bien introuvable." }, { status: 404 });
 
-  const references = [property.reference];
-  if (financeSettings?.extraVrplatformReference) references.push(financeSettings.extraVrplatformReference);
+  const references = [property.reference, ...(financeSettings?.extraVrplatformReferences ?? [])];
 
   try {
     const resolved = await Promise.all(
