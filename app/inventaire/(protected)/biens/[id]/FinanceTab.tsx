@@ -60,7 +60,10 @@ export function FinanceTab({
   );
 
   const isFixedRent = owner?.rentType === "fixe";
-  const fixedRentAmount = owner?.rentAmount ?? null;
+  // Loyer fixe total (comme le "Total" de l'onglet Propriétaire) : loyer +
+  // charges + autre montant — pas seulement le loyer nu.
+  const fixedRentAmount =
+    owner?.rentAmount != null ? owner.rentAmount + (owner.chargesAmount ?? 0) + (owner.otherAmount ?? 0) : null;
 
   useEffect(() => {
     (async () => {
