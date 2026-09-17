@@ -189,9 +189,17 @@ function overlapNights(checkIn: string, checkOut: string, year: number, month: n
 
 /** Rents, commission de canal, Net Commissionable Revenue (Rents - Channel
  * Fees) et taux de remplissage de chaque mois d'une année pour un listing
- * VRPlatform — d'après le mapping comptable VRPlatform de l'équipe. Une
- * réservation à cheval sur deux mois est répartie au prorata des nuits de
- * chaque mois. Les réservations annulées ne comptent pas. */
+ * VRPlatform — d'après le mapping comptable VRPlatform de l'équipe.
+ *
+ * Deux logiques d'attribution différentes, volontairement découplées :
+ * - Occupation (nuits, taux de remplissage) : répartie au prorata des
+ *   nuits réellement passées dans chaque mois — une réservation à cheval
+ *   sur deux mois compte des nuits dans chacun.
+ * - Revenu (Rents, Channel Fees) : attribué en entier au mois de la date
+ *   de départ (checkOut), sans prorata — c'est ainsi que VRPlatform
+ *   reconnaît ce revenu (vérifié : la réservation du 27/12 au 02/01 compte
+ *   entièrement en janvier, pas en décembre). Les réservations annulées
+ *   ne comptent pas. */
 export async function getListingMonthlyFinancials(listingId: string, year: number): Promise<MonthlyFinance[]> {
   const months: MonthlyFinance[] = Array.from({ length: 12 }, (_, i) => ({
     month: i + 1,
@@ -219,16 +227,18 @@ export async function getListingMonthlyFinancials(listingId: string, year: numbe
 
     for (const reservation of res.data) {
       if (!reservation.checkIn || !reservation.checkOut) continue;
-      const totalNights = reservation.nights ?? 0;
-      if (totalNights <= 0) continue;
-      const { rentsCents, channelFeesCents } = classifyReservationLines(reservation.lines, accountByLineType);
 
       for (const entry of months) {
         const nights = overlapNights(reservation.checkIn, reservation.checkOut, year, entry.month);
-        if (nights <= 0) continue;
-        entry.nightsBooked += nights;
-        entry.rentsCents += Math.round((rentsCents * nights) / totalNights);
-        entry.channelFeesCents += Math.round((channelFeesCents * nights) / totalNights);
+        if (nights > 0) entry.nightsBooked += nights;
+      }
+
+      const checkOutDate = new Date(`${reservation.checkOut}T00:00:00Z`);
+      if (checkOutDate.getUTCFullYear() === year) {
+        const { rentsCents, channelFeesCents } = classifyReservationLines(reservation.lines, accountByLineType);
+        const entry = months[checkOutDate.getUTCMonth()];
+        entry.rentsCents += rentsCents;
+        entry.channelFeesCents += channelFeesCents;
       }
     }
 
