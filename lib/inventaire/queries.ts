@@ -12,7 +12,6 @@ import {
   serializeProperty,
   serializePropertyDetails,
   serializePropertyElement,
-  serializePropertyFinanceSettings,
   serializePropertyKey,
   serializePropertyOwner,
   serializeInventoryCategory,
@@ -38,7 +37,6 @@ import type {
   PropertyAgencement,
   PropertyDetails,
   PropertyElement,
-  PropertyFinanceSettings,
   PropertyKey,
   PropertyOwner,
   PropertyPlatform,
@@ -315,17 +313,6 @@ export async function getPropertyWaterElec(propertyId: string): Promise<Property
     .maybeSingle();
   if (error) throw error;
   return data ? serializeWaterElec(data) : null;
-}
-
-export async function getPropertyFinanceSettings(propertyId: string): Promise<PropertyFinanceSettings | null> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("property_finance_settings")
-    .select("*")
-    .eq("property_id", propertyId)
-    .maybeSingle();
-  if (error) throw error;
-  return data ? serializePropertyFinanceSettings(data) : null;
 }
 
 export async function listPropertyElements(

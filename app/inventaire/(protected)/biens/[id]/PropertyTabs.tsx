@@ -15,7 +15,6 @@ import type {
   PropertyAgencement,
   PropertyDetails,
   PropertyElement,
-  PropertyFinanceSettings,
   PropertyKey,
   PropertyOwner,
   PropertyPlatform,
@@ -80,14 +79,12 @@ export function PropertyTabs({
   profiles,
   ownersDirectory,
   allowedTabs,
-  financeSettings,
 }: {
   property: Property;
   isAdmin: boolean;
   /** Rôle "prestataire" uniquement : restreint les onglets visibles à cette liste. */
   allowedTabs: string[];
   owner: PropertyOwner | null;
-  financeSettings: PropertyFinanceSettings | null;
   details: PropertyDetails | null;
   keys: PropertyKey[];
   platforms: PropertyPlatform[];
@@ -367,9 +364,7 @@ export function PropertyTabs({
             missingCheckKeys={missingCheckKeys}
           />
         )}
-        {activeTab === "finances" && isAdmin && (
-          <FinanceTab propertyId={property.id} financeSettings={financeSettings} owner={owner} />
-        )}
+        {activeTab === "finances" && isAdmin && <FinanceTab propertyId={property.id} owner={owner} />}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}
