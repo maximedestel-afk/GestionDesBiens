@@ -91,6 +91,8 @@ export interface PropertyOwner {
   rentType: "fixe" | "variable" | "fixe_variable" | null;
   rentNotes: string | null;
   rentAmount: number | null;
+  /** Commission (%) — sans objet pour un loyer fixe. */
+  commissionPercent: number | null;
   chargesAmount: number | null;
   otherAmountLabel: string | null;
   otherAmount: number | null;

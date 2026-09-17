@@ -219,10 +219,13 @@ function RentFieldset({
   owner: PropertyOwner | null;
   missingCheckKeys: string[];
 }) {
+  const [rentType, setRentType] = useState(owner?.rentType ?? "");
   const [rent, setRent] = useState(owner?.rentAmount != null ? String(owner.rentAmount) : "");
+  const [commission, setCommission] = useState(owner?.commissionPercent != null ? String(owner.commissionPercent) : "");
   const [charges, setCharges] = useState(owner?.chargesAmount != null ? String(owner.chargesAmount) : "");
   const [other, setOther] = useState(owner?.otherAmount != null ? String(owner.otherAmount) : "");
 
+  const isFixedRent = rentType === "fixe";
   const total = parseAmount(rent) + parseAmount(charges) + parseAmount(other);
 
   return (
@@ -248,7 +251,8 @@ function RentFieldset({
               type="radio"
               name="rentType"
               value="fixe"
-              defaultChecked={owner?.rentType === "fixe"}
+              checked={rentType === "fixe"}
+              onChange={(e) => setRentType(e.target.value)}
               className="h-4 w-4 accent-[#0071e3]"
             />
             Fixe
@@ -258,7 +262,8 @@ function RentFieldset({
               type="radio"
               name="rentType"
               value="variable"
-              defaultChecked={owner?.rentType === "variable"}
+              checked={rentType === "variable"}
+              onChange={(e) => setRentType(e.target.value)}
               className="h-4 w-4 accent-[#0071e3]"
             />
             Variable
@@ -268,7 +273,8 @@ function RentFieldset({
               type="radio"
               name="rentType"
               value="fixe_variable"
-              defaultChecked={owner?.rentType === "fixe_variable"}
+              checked={rentType === "fixe_variable"}
+              onChange={(e) => setRentType(e.target.value)}
               className="h-4 w-4 accent-[#0071e3]"
             />
             Fixe + Variable
@@ -288,6 +294,24 @@ function RentFieldset({
             value={rent}
             onChange={(e) => setRent(e.target.value)}
             className={AMOUNT_INPUT_CLASS}
+          />
+        </div>
+        <div>
+          <label className="field-label flex items-center" htmlFor="commissionPercent">
+            Commission (%)
+            <FieldRef csvKey="commissionPercent" />
+          </label>
+          <input
+            id="commissionPercent"
+            name="commissionPercent"
+            type="number"
+            min={0}
+            step="0.01"
+            value={isFixedRent ? "" : commission}
+            onChange={(e) => setCommission(e.target.value)}
+            disabled={isFixedRent}
+            title={isFixedRent ? "Sans objet pour un loyer fixe" : undefined}
+            className={`${AMOUNT_INPUT_CLASS} disabled:cursor-not-allowed disabled:bg-black/[0.04] disabled:text-black/40`}
           />
         </div>
         <div>

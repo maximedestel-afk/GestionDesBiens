@@ -82,6 +82,7 @@ export const BULK_FIELDS: BulkFieldDef[] = [
   { id: "rib_notes", label: "Note RIB", group: "Propriétaire", formKey: "ribNotes", inputType: "text" },
   { id: "rcp_notes", label: "Note RCP", group: "Propriétaire", formKey: "rcpNotes", inputType: "text" },
   { id: "rent_amount", label: "Loyer (montant)", group: "Propriétaire", formKey: "rentAmount", inputType: "number", placeholder: "€", step: "any" },
+  { id: "commission_percent", label: "Commission (%)", group: "Propriétaire", formKey: "commissionPercent", inputType: "number", placeholder: "%", step: "any" },
   { id: "charges_amount", label: "Charges", group: "Propriétaire", formKey: "chargesAmount", inputType: "number", placeholder: "€", step: "any" },
   { id: "other_amount_label", label: "Autre (précisez)", group: "Propriétaire", formKey: "otherAmountLabel", inputType: "text" },
   { id: "other_amount", label: "Autre (montant)", group: "Propriétaire", formKey: "otherAmount", inputType: "number", placeholder: "€", step: "any" },

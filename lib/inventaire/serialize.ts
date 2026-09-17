@@ -109,6 +109,7 @@ export function serializePropertyOwner(row: any): PropertyOwner {
     rentType: row.rent_type,
     rentNotes: row.rent_notes,
     rentAmount: row.rent_amount,
+    commissionPercent: row.commission_percent,
     chargesAmount: row.charges_amount,
     otherAmountLabel: row.other_amount_label,
     otherAmount: row.other_amount,

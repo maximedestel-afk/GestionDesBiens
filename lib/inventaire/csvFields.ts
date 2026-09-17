@@ -108,6 +108,7 @@ export const CSV_FIELDS = {
   rentType: { header: "Modèle Loyer" },
   rentNotes: { header: "Note Loyer" },
   rentAmount: { header: "Loyer" },
+  commissionPercent: { header: "Commission (%)" },
   chargesAmount: { header: "Charges" },
   otherAmountLabel: { header: "Autre Label" },
   otherAmount: { header: "Autre Montant" },
