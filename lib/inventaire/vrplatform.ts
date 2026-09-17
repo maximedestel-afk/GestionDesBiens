@@ -87,12 +87,40 @@ export async function findVrPlatformListingIdByReference(reference: string): Pro
   return match?.id ?? null;
 }
 
+interface VrPlatformReservationLine {
+  uniqueRef: string | null;
+  amount: number | null;
+}
+
 interface VrPlatformReservation {
   checkIn: string | null;
   checkOut: string | null;
   nights: number | null;
   status: "booked" | "canceled" | "inactive";
-  ownersCentTotal: number | null;
+  lines: VrPlatformReservationLine[] | null;
+}
+
+// Repérées sur les réservations réelles de l'équipe : la ligne "tarif
+// d'hébergement" est toujours "accommodationFare" ; la commission prélevée
+// par le canal de réservation (pas la commission du gestionnaire) porte un
+// nom différent selon la plateforme — "hostChannelFee" sur Airbnb,
+// "hostServiceFee" sur Booking.com. Les réservations en direct n'en ont
+// aucune (pas de commission de canal).
+const ACCOMMODATION_FARE_LINE_REF = "accommodationFare";
+const CHANNEL_COMMISSION_LINE_REFS = new Set(["hostChannelFee", "hostServiceFee"]);
+
+/** Revenu net commissionable d'une réservation : tarif d'hébergement brut
+ * moins la commission du canal de réservation (Airbnb, Booking.com…) —
+ * hors ménage, taxes et autres frais annexes. */
+function netCommissionableRevenue(lines: VrPlatformReservationLine[] | null): number {
+  if (!lines) return 0;
+  let total = 0;
+  for (const line of lines) {
+    if (line.uniqueRef === ACCOMMODATION_FARE_LINE_REF || (line.uniqueRef && CHANNEL_COMMISSION_LINE_REFS.has(line.uniqueRef))) {
+      total += line.amount ?? 0;
+    }
+  }
+  return total;
 }
 
 interface VrPlatformReservationsResponse {
@@ -127,10 +155,11 @@ function overlapNights(checkIn: string, checkOut: string, year: number, month: n
   return Math.max(0, (overlapEnd - overlapStart) / MS_PER_DAY);
 }
 
-/** Revenu (net reversé au propriétaire) et taux de remplissage de chaque
- * mois d'une année pour un listing VRPlatform. Une réservation à cheval sur
- * deux mois est répartie au prorata des nuits de chaque mois. Les
- * réservations annulées ne comptent pas. */
+/** Revenu net commissionable (tarif d'hébergement brut moins la commission
+ * du canal de réservation) et taux de remplissage de chaque mois d'une
+ * année pour un listing VRPlatform. Une réservation à cheval sur deux mois
+ * est répartie au prorata des nuits de chaque mois. Les réservations
+ * annulées ne comptent pas. */
 export async function getListingMonthlyFinancials(listingId: string, year: number): Promise<MonthlyFinance[]> {
   const months: MonthlyFinance[] = Array.from({ length: 12 }, (_, i) => ({
     month: i + 1,
@@ -149,12 +178,13 @@ export async function getListingMonthlyFinancials(listingId: string, year: numbe
       status: "booked",
       limit: "250",
       page: String(page),
+      includeLines: "true",
     });
 
     for (const reservation of res.data) {
       if (!reservation.checkIn || !reservation.checkOut) continue;
       const totalNights = reservation.nights ?? 0;
-      const totalRevenue = reservation.ownersCentTotal ?? 0;
+      const totalRevenue = netCommissionableRevenue(reservation.lines);
       if (totalNights <= 0) continue;
 
       for (const entry of months) {
