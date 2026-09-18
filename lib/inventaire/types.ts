@@ -342,3 +342,18 @@ export interface LeaseTemplateInfo {
   updatedAt: string | null;
   downloadUrl: string | null;
 }
+
+/** Un document joint sur la page Accès (instructions d'utilisation de
+ * divers programmes, etc.), avec un titre. */
+export interface AppDocument {
+  id: string;
+  title: string;
+  filePath: string;
+  originalFilename: string;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  position: number;
+  uploadedByEmail: string | null;
+  createdAt: string;
+  downloadUrl: string | null;
+}

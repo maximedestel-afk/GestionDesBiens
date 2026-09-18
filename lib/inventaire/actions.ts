@@ -2357,6 +2357,55 @@ export async function recordLeaseTemplateUpload(input: { filePath: string; origi
 }
 
 /* ------------------------------------------------------------------ */
+/* Documents de la page Accès (admin)                                  */
+/* ------------------------------------------------------------------ */
+
+// Comme pour le modèle de bail : le fichier est envoyé au bucket de
+// stockage côté client, cette action n'enregistre que les métadonnées.
+export async function createAppDocument(input: {
+  title: string;
+  filePath: string;
+  originalFilename: string;
+  mimeType: string | null;
+  sizeBytes: number;
+}) {
+  const supabase = await createClient();
+  const user = await requireAdmin(supabase);
+
+  const title = input.title.trim();
+  if (!title) throw new Error("Le titre est requis.");
+
+  const { count } = await supabase.from("app_documents").select("id", { count: "exact", head: true });
+
+  const { error } = await supabase.from("app_documents").insert({
+    title,
+    file_path: input.filePath,
+    original_filename: input.originalFilename,
+    mime_type: input.mimeType,
+    size_bytes: input.sizeBytes,
+    position: count ?? 0,
+    uploaded_by_email: user.email ?? null,
+  });
+  if (error) throw error;
+
+  revalidatePath("/inventaire/acces");
+}
+
+export async function deleteAppDocument(id: string) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const { data: doc } = await supabase.from("app_documents").select("file_path").eq("id", id).maybeSingle();
+
+  const { error } = await supabase.from("app_documents").delete().eq("id", id);
+  if (error) throw error;
+
+  if (doc?.file_path) await supabase.storage.from("property-files").remove([doc.file_path]);
+
+  revalidatePath("/inventaire/acces");
+}
+
+/* ------------------------------------------------------------------ */
 /* Finances (admin) — références VRPlatform supplémentaires            */
 /* ------------------------------------------------------------------ */
 
