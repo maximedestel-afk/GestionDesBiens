@@ -5,6 +5,7 @@ import { getBulkField, parsePlatformFieldId } from "./bulkFields";
 import {
   serializeActivityLogEntry,
   serializeAgencement,
+  serializeAppDocument,
   serializeAttachment,
   serializeEquipment,
   serializeInventoryItem,
@@ -25,6 +26,7 @@ import {
 } from "./serialize";
 import type {
   ActivityLogEntry,
+  AppDocument,
   Attachment,
   AttachmentEntityType,
   ElementSection,
@@ -608,6 +610,27 @@ export async function getLeaseTemplateInfo(): Promise<LeaseTemplateInfo> {
     updatedAt: data?.updated_at ?? null,
     downloadUrl,
   };
+}
+
+/** Documents joints sur la page Accès (instructions d'utilisation de
+ * divers programmes, etc.), avec une URL de téléchargement signée chacun. */
+export async function listAppDocuments(): Promise<AppDocument[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("app_documents")
+    .select("*")
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+
+  return Promise.all(
+    (data ?? []).map(async (row) => {
+      const { data: signedUrl } = await supabase.storage
+        .from("property-files")
+        .createSignedUrl(row.file_path, SIGNED_URL_TTL_SECONDS);
+      return serializeAppDocument(row, signedUrl?.signedUrl ?? null);
+    })
+  );
 }
 
 export async function listPropertiesMissingChecks(

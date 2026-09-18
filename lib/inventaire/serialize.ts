@@ -1,5 +1,6 @@
 import type {
   ActivityLogEntry,
+  AppDocument,
   Attachment,
   Equipment,
   InventoryItem,
@@ -264,6 +265,21 @@ export function serializeAttachment(row: any, url: string | null = null): Attach
     sizeBytes: row.size_bytes,
     createdAt: row.created_at,
     url,
+  };
+}
+
+export function serializeAppDocument(row: any, downloadUrl: string | null = null): AppDocument {
+  return {
+    id: row.id,
+    title: row.title,
+    filePath: row.file_path,
+    originalFilename: row.original_filename,
+    mimeType: row.mime_type,
+    sizeBytes: row.size_bytes,
+    position: row.position,
+    uploadedByEmail: row.uploaded_by_email,
+    createdAt: row.created_at,
+    downloadUrl,
   };
 }
 

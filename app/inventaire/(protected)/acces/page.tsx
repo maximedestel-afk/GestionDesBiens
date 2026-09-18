@@ -1,5 +1,6 @@
-import { getAppNotes, getCurrentProfile } from "@/lib/inventaire/queries";
+import { getAppNotes, getCurrentProfile, listAppDocuments } from "@/lib/inventaire/queries";
 import { AccesNotesForm } from "./AccesNotesForm";
+import { AppDocumentsSection } from "./AppDocumentsSection";
 
 export default async function AccesPage() {
   const profile = await getCurrentProfile();
@@ -8,7 +9,7 @@ export default async function AccesPage() {
     return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
   }
 
-  const content = await getAppNotes();
+  const [content, documents] = await Promise.all([getAppNotes(), listAppDocuments()]);
 
   return (
     <div>
@@ -21,6 +22,14 @@ export default async function AccesPage() {
 
       <div className="mt-6">
         <AccesNotesForm content={content} />
+      </div>
+
+      <h2 className="mt-8 text-[20px] font-semibold tracking-tight text-[#1d1d1f]">Documents</h2>
+      <p className="mt-1 text-[15px] text-[#6e6e73]">
+        Instructions d&apos;utilisation de divers programmes, etc. — un titre et un fichier par document.
+      </p>
+      <div className="mt-4">
+        <AppDocumentsSection documents={documents} />
       </div>
     </div>
   );
