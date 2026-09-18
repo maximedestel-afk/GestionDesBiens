@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState, type RefObject } from "react";
 import type { Attachment, OwnerDirectoryEntry, PropertyElement, PropertyOwner } from "@/lib/inventaire/types";
 import { savePropertyOwner } from "@/lib/inventaire/actions";
@@ -616,8 +617,31 @@ export function OwnerTab({
     }, 0);
   }
 
+  // Autres biens du même propriétaire (même nom+prénom+email), pour repérer
+  // tout de suite qu'un propriétaire possède plusieurs biens.
+  const hasOwnerIdentity = !!(owner?.lastName || owner?.firstName);
+  const currentOwnerKey = `${owner?.lastName ?? ""}|${owner?.firstName ?? ""}|${owner?.email ?? ""}`;
+  const otherProperties = hasOwnerIdentity
+    ? ownersDirectory.filter(
+        (entry) => `${entry.lastName ?? ""}|${entry.firstName ?? ""}|${entry.email ?? ""}` === currentOwnerKey
+      )
+    : [];
+
   return (
     <div className="space-y-4">
+      {otherProperties.length > 0 && (
+        <div className="card p-4 text-[14px] text-[#1d1d1f]">
+          <span className="font-medium">Ce propriétaire possède aussi :</span>{" "}
+          {otherProperties.map((p, i) => (
+            <span key={p.propertyId}>
+              {i > 0 && ", "}
+              <Link href={`/inventaire/biens/${p.propertyId}`} className="link-quiet">
+                {p.propertyReference}
+              </Link>
+            </span>
+          ))}
+        </div>
+      )}
       <div className="flex justify-end">
         <OwnerPortalLinkButton />
       </div>
