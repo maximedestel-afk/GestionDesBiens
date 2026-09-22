@@ -38,6 +38,7 @@ export function KeyCard({
               <ConfirmDeleteButton
                 confirmText={`Supprimer « ${title} » ?`}
                 action={() => deletePropertyKey(propertyId, propertyKey.id)}
+                allowRoleDeletePermission
               />
             </div>
 

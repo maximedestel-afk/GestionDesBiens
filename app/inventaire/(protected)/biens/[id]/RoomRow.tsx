@@ -158,6 +158,7 @@ export function RoomRow({
             <ConfirmDeleteButton
               confirmText={`Supprimer la pièce « ${room.name} » ? Les équipements associés seront aussi supprimés.`}
               action={() => deleteRoom(propertyId, room.id)}
+              allowRoleDeletePermission
             />
           </div>
         </div>

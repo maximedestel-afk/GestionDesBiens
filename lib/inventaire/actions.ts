@@ -28,17 +28,47 @@ import type {
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
+/** Niveau d'accréditation configuré pour un rôle (page Utilisateurs >
+ * Autorisations par rôle) — admin non concerné (toujours accès complet,
+ * vérifié à part par requireAdmin). Sans configuration : "write" pour tout
+ * rôle, sauf "prestataire" qui reste en lecture seule par défaut (même
+ * comportement qu'avant l'introduction de ce réglage). */
+async function getRolePermissionLevel(
+  supabase: SupabaseServerClient,
+  role: UserRole
+): Promise<"read" | "write" | "delete"> {
+  const { data } = await supabase.from("role_permissions").select("permission_level").eq("role", role).maybeSingle();
+  if (data?.permission_level) return data.permission_level as "read" | "write" | "delete";
+  return role === "prestataire" ? "read" : "write";
+}
+
 async function requireUser(supabase: SupabaseServerClient) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Vous devez être connecté.");
 
-  // Le rôle "prestataire" est en lecture seule : bloqué ici pour toute
-  // action d'écriture, quel que soit l'onglet ou le bien concerné.
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profile?.role === "prestataire") throw new Error("Accès en lecture seule.");
+  const role = profile?.role as UserRole | undefined;
+  if (role && role !== "admin") {
+    const level = await getRolePermissionLevel(supabase, role);
+    if (level === "read") throw new Error("Accès en lecture seule.");
+  }
 
+  return user;
+}
+
+/** Autorise l'admin, ou un rôle accrédité "lecture + écriture + suppression"
+ * (page Utilisateurs > Autorisations par rôle). Pour les suppressions déjà
+ * soumises à une règle spécifique (équipements vides, pièces jointes),
+ * requireAdminOrOperations / requireAdminOrManager restent inchangées. */
+async function requireDelete(supabase: SupabaseServerClient) {
+  const user = await requireUser(supabase);
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const role = profile?.role as UserRole | undefined;
+  if (role === "admin") return user;
+  const level = role ? await getRolePermissionLevel(supabase, role) : "read";
+  if (level !== "delete") throw new Error("Suppression réservée aux rôles autorisés.");
   return user;
 }
 
@@ -1172,7 +1202,7 @@ export async function ensureDefaultKeyElements(propertyId: string) {
 
 export async function deletePropertyElement(propertyId: string, elementId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireDelete(supabase);
 
   const { data: element } = await supabase
     .from("property_elements")
@@ -1272,7 +1302,7 @@ export async function updatePropertyKey(propertyId: string, keyId: string, formD
 
 export async function deletePropertyKey(propertyId: string, keyId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireDelete(supabase);
 
   const { error } = await supabase.from("property_keys").delete().eq("id", keyId);
   if (error) throw error;
@@ -1435,7 +1465,7 @@ export async function bulkUpdatePlatformField(
 
 export async function deletePropertyPlatform(propertyId: string, platformId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireDelete(supabase);
 
   const { error } = await supabase.from("property_platforms").delete().eq("id", platformId);
   if (error) throw error;
@@ -1523,7 +1553,7 @@ export async function updateRoom(propertyId: string, roomId: string, formData: F
 
 export async function deleteRoom(propertyId: string, roomId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireDelete(supabase);
 
   const { data: room } = await supabase.from("rooms").select("name").eq("id", roomId).maybeSingle();
 
@@ -1822,7 +1852,7 @@ export async function createInventoryCategory(propertyId: string, formData: Form
 
 export async function deleteInventoryCategory(propertyId: string, categoryId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireDelete(supabase);
 
   const { data: category } = await supabase
     .from("inventory_categories")
@@ -2014,7 +2044,7 @@ export async function updateInventoryDetails(propertyId: string, itemId: string,
 
 export async function deleteInventoryItem(propertyId: string, itemId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireDelete(supabase);
 
   const { data: item } = await supabase
     .from("inventory_items")
@@ -2174,7 +2204,7 @@ export async function addTaskComment(propertyId: string, taskId: string, formDat
 
 export async function deleteTask(propertyId: string, taskId: string) {
   const supabase = await createClient();
-  await requireAdmin(supabase);
+  await requireDelete(supabase);
 
   const { error } = await supabase.from("tasks").delete().eq("id", taskId);
   if (error) throw error;
@@ -2288,11 +2318,17 @@ export async function updatePrestataireAccess(userId: string, propertyIds: strin
 // par tous les utilisateurs de ce rôle (pas par utilisateur individuel).
 // Affecte le menu du haut et les pages qu'il gère : revalide toute la
 // section protégée, pas juste /utilisateurs.
-export async function updateRoleAllowedTabs(role: UserRole, allowedTabs: string[]) {
+export async function updateRolePermissions(
+  role: UserRole,
+  allowedTabs: string[],
+  permissionLevel: "read" | "write" | "delete"
+) {
   const supabase = await createClient();
   await requireAdmin(supabase);
 
-  const { error } = await supabase.from("role_permissions").upsert({ role, allowed_tabs: allowedTabs });
+  const { error } = await supabase
+    .from("role_permissions")
+    .upsert({ role, allowed_tabs: allowedTabs, permission_level: permissionLevel });
   if (error) throw error;
 
   revalidatePath("/inventaire", "layout");

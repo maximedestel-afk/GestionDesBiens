@@ -79,15 +79,47 @@ export async function getAllowedSectionsForRole(role: string | null | undefined)
   return data?.allowed_tabs ?? [];
 }
 
+/** Niveau d'accréditation du rôle courant — admin a toujours "delete"
+ * (accès complet), les autres suivent role_permissions (même règle et même
+ * défaut que côté serveur dans actions.ts). Utilisé côté client (contexte
+ * UserRoleProvider) pour afficher les boutons de suppression au bon rôle. */
+export async function getRolePermissionLevel(
+  role: string | null | undefined
+): Promise<"read" | "write" | "delete"> {
+  if (!role) return "read";
+  if (role === "admin") return "delete";
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("role_permissions")
+    .select("permission_level")
+    .eq("role", role)
+    .maybeSingle();
+  if (error) throw error;
+  return (data?.permission_level as "read" | "write" | "delete" | undefined) ?? (role === "prestataire" ? "read" : "write");
+}
+
+export interface RolePermissions {
+  allowedTabs: string[];
+  /** Accréditation appliquée à tout ce que le rôle peut déjà voir : lecture
+   * seule, lecture + écriture, ou lecture + écriture + suppression. */
+  permissionLevel: "read" | "write" | "delete";
+}
+
 /** Autorisations de tous les rôles (hors admin) — pour la page Utilisateurs,
  * un éditeur par rôle. Un rôle sans ligne configurée est réputé non
- * restreint (liste vide), comme getAllowedSectionsForRole. */
-export async function listRolePermissions(): Promise<Record<string, string[]>> {
+ * restreint (liste vide) et en écriture ("write"), sauf prestataire qui
+ * reste en lecture seule par défaut. */
+export async function listRolePermissions(): Promise<Record<string, RolePermissions>> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("role_permissions").select("role, allowed_tabs");
+  const { data, error } = await supabase.from("role_permissions").select("role, allowed_tabs, permission_level");
   if (error) throw error;
-  const result: Record<string, string[]> = {};
-  for (const row of data ?? []) result[row.role] = row.allowed_tabs ?? [];
+  const result: Record<string, RolePermissions> = {};
+  for (const row of data ?? []) {
+    result[row.role] = {
+      allowedTabs: row.allowed_tabs ?? [],
+      permissionLevel: row.permission_level ?? (row.role === "prestataire" ? "read" : "write"),
+    };
+  }
   return result;
 }
 

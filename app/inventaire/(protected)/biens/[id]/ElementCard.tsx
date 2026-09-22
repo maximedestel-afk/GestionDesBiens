@@ -52,6 +52,7 @@ export function ElementCard({
               <ConfirmDeleteButton
                 confirmText={`Supprimer « ${element.name} » ?`}
                 action={() => deletePropertyElement(propertyId, element.id)}
+                allowRoleDeletePermission
               />
             </div>
             <div className="mt-2">

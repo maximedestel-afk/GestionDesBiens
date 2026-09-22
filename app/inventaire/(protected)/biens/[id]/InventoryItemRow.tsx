@@ -109,6 +109,7 @@ export function InventoryItemRow({
                     await deleteInventoryItem(propertyId, item.id);
                     dialogRef.current?.close();
                   }}
+                  allowRoleDeletePermission
                 />
                 <button
                   type="submit"

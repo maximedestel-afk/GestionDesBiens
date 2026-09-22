@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getAllowedSectionsForRole, getCurrentProfile } from "@/lib/inventaire/queries";
+import { getAllowedSectionsForRole, getCurrentProfile, getRolePermissionLevel } from "@/lib/inventaire/queries";
 import { signOut } from "@/lib/inventaire/actions";
 import { canAccessSection } from "@/lib/inventaire/tabs";
 import { UserRoleProvider } from "@/components/inventaire/UserRoleContext";
@@ -8,11 +8,14 @@ import { HeaderPropertySearch } from "@/components/inventaire/HeaderPropertySear
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const profile = await getCurrentProfile();
-  const allowedSections = await getAllowedSectionsForRole(profile?.role);
+  const [allowedSections, permissionLevel] = await Promise.all([
+    getAllowedSectionsForRole(profile?.role),
+    getRolePermissionLevel(profile?.role),
+  ]);
   const canSee = (key: string) => canAccessSection(profile?.role, allowedSections, key);
 
   return (
-    <UserRoleProvider role={profile?.role ?? null}>
+    <UserRoleProvider role={profile?.role ?? null} permissionLevel={permissionLevel}>
       <div className="min-h-screen">
         <header className="sticky top-0 z-10 border-b border-black/[0.06] bg-white/80 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">

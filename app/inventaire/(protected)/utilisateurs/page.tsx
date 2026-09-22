@@ -48,15 +48,20 @@ export default async function UsersPage() {
       <div className="mt-6 card p-5">
         <h2 className="text-sm font-semibold text-[#1d1d1f]">Autorisations par rôle</h2>
         <p className="mt-1 text-[13px] text-[#6e6e73]">
-          Pour chaque rôle, choisissez quels onglets de bien et quels items du menu du haut (Utilisateurs,
-          Bail type, Accès…) sont visibles — partagé par tous les utilisateurs de ce rôle. Laissez vide
-          pour ne rien restreindre. Admin voit toujours tout.
+          Pour chaque rôle : quels onglets de bien et items du menu du haut (Utilisateurs, Bail type,
+          Accès…) sont visibles (vide = rien de restreint), et le niveau d&apos;accréditation (lecture
+          seule / lecture + écriture / lecture + écriture + suppression) sur tout ce que le rôle peut voir.
+          Partagé par tous les utilisateurs du rôle. Admin voit et peut toujours tout.
         </p>
         <div className="mt-3 space-y-3">
           {NON_ADMIN_ROLES.map(({ role, label }) => (
             <div key={role}>
               <p className="mb-1 text-[12px] font-medium text-[#6e6e73]">{label}</p>
-              <RolePermissionsEditor role={role} allowedTabs={rolePermissions[role] ?? []} />
+              <RolePermissionsEditor
+                role={role}
+                allowedTabs={rolePermissions[role]?.allowedTabs ?? []}
+                permissionLevel={rolePermissions[role]?.permissionLevel ?? (role === "prestataire" ? "read" : "write")}
+              />
             </div>
           ))}
         </div>
