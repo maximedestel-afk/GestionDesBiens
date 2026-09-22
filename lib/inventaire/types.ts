@@ -182,7 +182,7 @@ export interface PropertyPlatform {
   position: number;
 }
 
-export type ElementSection = "water_elec" | "notes" | "photos" | "cles" | "owner_documents" | "documents";
+export type ElementSection = "water_elec" | "notes" | "photos" | "cles" | "owner_documents" | "documents" | "defauts";
 
 export interface PropertyElement {
   id: string;

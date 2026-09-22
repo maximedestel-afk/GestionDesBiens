@@ -40,6 +40,7 @@ import { AgencementTab } from "./AgencementTab";
 import { EquipmentTab } from "./EquipmentTab";
 import { InventoryTab } from "./InventoryTab";
 import { NotesTab } from "./NotesTab";
+import { DefautsTab } from "./DefautsTab";
 import { PhotosTab } from "./PhotosTab";
 import { DocumentsTab } from "./DocumentsTab";
 import { BailTab } from "./BailTab";
@@ -68,6 +69,7 @@ export function PropertyTabs({
   inventoryItems,
   inventoryCategories,
   noteElements,
+  defautElements,
   photoAlbums,
   keyElements,
   ownerDocuments,
@@ -100,6 +102,7 @@ export function PropertyTabs({
   inventoryItems: InventoryItem[];
   inventoryCategories: InventoryCategoryRow[];
   noteElements: PropertyElement[];
+  defautElements: PropertyElement[];
   photoAlbums: PropertyElement[];
   keyElements: PropertyElement[];
   ownerDocuments: PropertyElement[];
@@ -319,6 +322,9 @@ export function PropertyTabs({
             elements={waterElecElements}
             attachments={elementAttachments}
           />
+        )}
+        {activeTab === "defauts" && (
+          <DefautsTab propertyId={property.id} elements={defautElements} attachments={elementAttachments} />
         )}
         {activeTab === "agencement" && (
           <AgencementTab
