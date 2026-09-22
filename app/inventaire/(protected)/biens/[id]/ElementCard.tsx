@@ -15,6 +15,7 @@ export function ElementCard({
   attachments,
   accept = "image/*,.pdf,.doc,.docx",
   showCamera = true,
+  showVideoCamera = false,
   galleryVariant = "grid",
   showMissingBadge = false,
 }: {
@@ -23,6 +24,7 @@ export function ElementCard({
   attachments: Attachment[];
   accept?: string;
   showCamera?: boolean;
+  showVideoCamera?: boolean;
   galleryVariant?: "grid" | "list";
   showMissingBadge?: boolean;
 }) {
@@ -75,6 +77,7 @@ export function ElementCard({
           <FileUploadButtons
             accept={accept}
             showCamera={showCamera}
+            showVideoCamera={showVideoCamera}
             target={{
               propertyId,
               entityType: "property_element",

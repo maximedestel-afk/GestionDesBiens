@@ -54,6 +54,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     inventoryItems,
     inventoryCategories,
     noteElements,
+    defautElements,
     photoAlbums,
     keyElements,
     ownerDocuments,
@@ -81,6 +82,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listInventoryItems(id),
     listInventoryCategories(id),
     listPropertyElements(id, "notes"),
+    listPropertyElements(id, "defauts"),
     listPropertyElements(id, "photos"),
     listPropertyElements(id, "cles"),
     listPropertyElements(id, "owner_documents"),
@@ -202,6 +204,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         inventoryItems={inventoryItems}
         inventoryCategories={inventoryCategories}
         noteElements={noteElements}
+        defautElements={defautElements}
         photoAlbums={photoAlbums}
         keyElements={keyElements}
         ownerDocuments={ownerDocuments}

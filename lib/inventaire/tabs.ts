@@ -9,6 +9,7 @@ export const PROPERTY_TABS = [
   { key: "equipements", code: "EQ", label: "EQ - Equipement" },
   { key: "inventaire", code: "IN", label: "IN - Inventaire" },
   { key: "eauelec", code: "UT", label: "UT - Eau / Élec" },
+  { key: "defauts", code: "DEF", label: "DEF - Défauts" },
   { key: "photos", code: "AN", label: "AN - Annonce" },
   { key: "notes", code: "AU", label: "AU - Autres" },
   { key: "plateformes", code: "OTA", label: "OTA" },
