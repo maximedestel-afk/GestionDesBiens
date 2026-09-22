@@ -1,5 +1,6 @@
 import { getCurrentProfile } from "@/lib/inventaire/queries";
 import { CSV_FIELDS } from "@/lib/inventaire/csvFields";
+import { canAccessSection } from "@/lib/inventaire/tabs";
 import { ImportPropertiesForm } from "./ImportPropertiesForm";
 
 const ALL_COLUMNS = Object.values(CSV_FIELDS)
@@ -9,7 +10,7 @@ const ALL_COLUMNS = Object.values(CSV_FIELDS)
 export default async function ImportPage() {
   const profile = await getCurrentProfile();
 
-  if (profile?.role !== "admin") {
+  if (!canAccessSection(profile?.role, profile?.allowedTabs, "menu_import")) {
     return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
   }
 

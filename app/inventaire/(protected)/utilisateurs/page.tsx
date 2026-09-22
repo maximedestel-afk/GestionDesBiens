@@ -1,15 +1,17 @@
 import { Fragment } from "react";
 import { getCurrentProfile, listAllProfilePropertyAssignments, listProfiles, listProperties } from "@/lib/inventaire/queries";
+import { canAccessSection } from "@/lib/inventaire/tabs";
 import { RoleSelect } from "@/components/inventaire/RoleSelect";
 import { InviteUserForm } from "./InviteUserForm";
 import { CreateUserForm } from "./CreateUserForm";
 import { UserActions } from "./UserActions";
 import { PrestataireAccessEditor } from "./PrestataireAccessEditor";
+import { TabAccessEditor } from "./TabAccessEditor";
 
 export default async function UsersPage() {
   const profile = await getCurrentProfile();
 
-  if (profile?.role !== "admin") {
+  if (!canAccessSection(profile?.role, profile?.allowedTabs, "menu_utilisateurs")) {
     return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
   }
 
@@ -23,7 +25,9 @@ export default async function UsersPage() {
     <div>
       <h1 className="text-[26px] font-semibold tracking-tight text-[#1d1d1f]">Utilisateurs</h1>
       <p className="mt-1 text-[15px] text-[#6e6e73]">
-        Gérez les rôles de l&apos;équipe (admin / ménage) et invitez de nouveaux membres.
+        Gérez les rôles de l&apos;équipe (admin / ménage) et invitez de nouveaux membres. Pour chaque
+        utilisateur non-admin, choisissez ci-dessous quels onglets de bien et quels items du menu du haut
+        (Utilisateurs, Bail type, Accès…) lui sont visibles — laissez vide pour ne rien restreindre.
       </p>
 
       <div className="mt-6 card p-5">
@@ -79,6 +83,16 @@ export default async function UsersPage() {
                         propertyIds={propertyAssignments[p.id] ?? []}
                         allowedTabs={p.allowedTabs}
                       />
+                    </td>
+                  </tr>
+                )}
+                {p.role !== "prestataire" && p.role !== "admin" && (
+                  <tr className="border-b border-black/[0.06] bg-black/[0.015] last:border-0">
+                    <td colSpan={4} className="px-4 py-3">
+                      <p className="mb-1 text-[12px] font-medium text-[#6e6e73]">
+                        Onglets et menu autorisés pour {p.email}
+                      </p>
+                      <TabAccessEditor userId={p.id} allowedTabs={p.allowedTabs} />
                     </td>
                   </tr>
                 )}

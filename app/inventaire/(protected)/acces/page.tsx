@@ -1,11 +1,12 @@
 import { getAppNotes, getCurrentProfile, listAppDocuments } from "@/lib/inventaire/queries";
+import { canAccessSection } from "@/lib/inventaire/tabs";
 import { AccesNotesForm } from "./AccesNotesForm";
 import { AppDocumentsSection } from "./AppDocumentsSection";
 
 export default async function AccesPage() {
   const profile = await getCurrentProfile();
 
-  if (profile?.role !== "admin") {
+  if (!canAccessSection(profile?.role, profile?.allowedTabs, "menu_acces")) {
     return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
   }
 
