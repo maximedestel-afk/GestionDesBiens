@@ -1,4 +1,4 @@
-import { getCurrentProfile, listAllActivityLog } from "@/lib/inventaire/queries";
+import { getAllowedSectionsForRole, getCurrentProfile, listAllActivityLog } from "@/lib/inventaire/queries";
 import { canAccessSection } from "@/lib/inventaire/tabs";
 import { SinceFilter } from "./SinceFilter";
 import { JournalList } from "./JournalList";
@@ -13,7 +13,8 @@ export default async function JournalPage({
   searchParams: Promise<{ since?: string }>;
 }) {
   const profile = await getCurrentProfile();
-  if (!canAccessSection(profile?.role, profile?.allowedTabs, "menu_journal")) {
+  const allowedSections = await getAllowedSectionsForRole(profile?.role);
+  if (!canAccessSection(profile?.role, allowedSections, "menu_journal")) {
     return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
   }
 

@@ -2204,16 +2204,15 @@ export async function updateUserRole(userId: string, role: UserRole) {
   revalidatePath("/inventaire/utilisateurs");
 }
 
-/** Enregistre les biens et onglets autorisés d'un nouvel utilisateur "prestataire". */
+/** Enregistre les biens autorisés d'un nouvel utilisateur "prestataire" —
+ * les onglets autorisés se configurent par rôle (page Utilisateurs), pas à
+ * la création d'un utilisateur. */
 async function applyPrestataireAccess(
   admin: ReturnType<typeof createAdminClient>,
   userId: string,
   formData: FormData
 ) {
   const propertyIds = formData.getAll("propertyIds").map(String).filter(Boolean);
-  const allowedTabs = formData.getAll("allowedTabs").map(String).filter(Boolean);
-
-  await admin.from("profiles").update({ allowed_tabs: allowedTabs }).eq("id", userId);
   if (propertyIds.length > 0) {
     await admin
       .from("profile_properties")
@@ -2268,15 +2267,9 @@ export async function createUserDirect(formData: FormData) {
   revalidatePath("/inventaire/utilisateurs");
 }
 
-export async function updatePrestataireAccess(userId: string, propertyIds: string[], allowedTabs: string[]) {
+export async function updatePrestataireAccess(userId: string, propertyIds: string[]) {
   const supabase = await createClient();
   await requireAdmin(supabase);
-
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ allowed_tabs: allowedTabs })
-    .eq("id", userId);
-  if (profileError) throw profileError;
 
   const { error: deleteError } = await supabase.from("profile_properties").delete().eq("profile_id", userId);
   if (deleteError) throw deleteError;
@@ -2291,17 +2284,18 @@ export async function updatePrestataireAccess(userId: string, propertyIds: strin
   revalidatePath("/inventaire/utilisateurs");
 }
 
-// Comme updatePrestataireAccess, mais sans la liste de biens : pour les
-// rôles autres que prestataire, l'accès aux biens n'est jamais restreint —
-// seuls les onglets de bien et les items du menu du haut le sont.
-export async function updateUserAllowedTabs(userId: string, allowedTabs: string[]) {
+// Onglets de bien / items du menu du haut autorisés pour un rôle — partagés
+// par tous les utilisateurs de ce rôle (pas par utilisateur individuel).
+// Affecte le menu du haut et les pages qu'il gère : revalide toute la
+// section protégée, pas juste /utilisateurs.
+export async function updateRoleAllowedTabs(role: UserRole, allowedTabs: string[]) {
   const supabase = await createClient();
   await requireAdmin(supabase);
 
-  const { error } = await supabase.from("profiles").update({ allowed_tabs: allowedTabs }).eq("id", userId);
+  const { error } = await supabase.from("role_permissions").upsert({ role, allowed_tabs: allowedTabs });
   if (error) throw error;
 
-  revalidatePath("/inventaire/utilisateurs");
+  revalidatePath("/inventaire", "layout");
 }
 
 export async function updateUserPassword(userId: string, formData: FormData) {

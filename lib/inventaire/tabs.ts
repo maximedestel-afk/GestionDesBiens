@@ -32,7 +32,7 @@ export const PRESTATAIRE_SELECTABLE_TABS = PROPERTY_TABS.filter(
 );
 
 // Items du menu du haut (réservés aux admins par défaut) — mêmes clés
-// utilisées dans `profiles.allowed_tabs` pour donner à un utilisateur non-
+// utilisées dans `role_permissions.allowed_tabs` pour donner à un rôle non-
 // admin l'accès à l'un de ces écrans, en plus de ses onglets de bien.
 export const TOP_MENU_ITEMS = [
   { key: "menu_utilisateurs", label: "Menu — Utilisateurs" },
@@ -44,14 +44,15 @@ export const TOP_MENU_ITEMS = [
 ] as const;
 
 /** Options combinées (onglets de bien + items du menu du haut) proposées
- * dans l'éditeur d'accès d'un utilisateur — une seule liste, un seul champ
- * `allowed_tabs` en base, comme demandé ("vaut aussi pour le menu du
- * dessus"). */
+ * dans l'éditeur d'autorisations d'un rôle — une seule liste, un seul champ
+ * `role_permissions.allowed_tabs`, comme demandé ("vaut aussi pour le menu
+ * du dessus"). Partagé par tous les utilisateurs d'un même rôle. */
 export const SELECTABLE_SECTIONS = [...PRESTATAIRE_SELECTABLE_TABS, ...TOP_MENU_ITEMS];
 
-/** Un admin voit toujours tout ; les autres rôles ne sont restreints que
- * s'ils ont une liste `allowedTabs` non vide (comportement par défaut
- * inchangé pour tous les comptes déjà existants, sans configuration). */
+/** Un admin voit toujours tout ; les autres rôles ne sont restreints que si
+ * leur rôle a une liste `allowedTabs` non vide configurée dans
+ * `role_permissions` (comportement par défaut inchangé pour tout rôle sans
+ * configuration). */
 export function canAccessSection(
   role: string | null | undefined,
   allowedTabs: string[] | null | undefined,

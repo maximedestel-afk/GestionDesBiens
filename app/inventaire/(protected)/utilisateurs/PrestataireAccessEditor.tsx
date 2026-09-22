@@ -4,30 +4,23 @@ import { updatePrestataireAccess } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { MultiSelectDropdown } from "@/components/inventaire/MultiSelectDropdown";
-import { SELECTABLE_SECTIONS } from "@/lib/inventaire/tabs";
 
+/** Biens accessibles à un prestataire — propre à chaque utilisateur
+ * (contrairement aux onglets/menu autorisés, configurés par rôle). */
 export function PrestataireAccessEditor({
   userId,
   properties,
   propertyIds,
-  allowedTabs,
 }: {
   userId: string;
   properties: { id: string; reference: string; name: string | null }[];
   propertyIds: string[];
-  allowedTabs: string[];
 }) {
   return (
     <ActionForm
       className="flex flex-wrap items-center gap-2"
       autoSave
-      action={(formData) =>
-        updatePrestataireAccess(
-          userId,
-          formData.getAll("propertyIds").map(String),
-          formData.getAll("allowedTabs").map(String)
-        )
-      }
+      action={(formData) => updatePrestataireAccess(userId, formData.getAll("propertyIds").map(String))}
     >
       {({ pending, error, success }) => (
         <>
@@ -39,12 +32,6 @@ export function PrestataireAccessEditor({
               value: p.id,
               label: p.reference,
             }))}
-          />
-          <MultiSelectDropdown
-            name="allowedTabs"
-            placeholder="Choisir les onglets…"
-            defaultValues={allowedTabs}
-            options={SELECTABLE_SECTIONS.map((t) => ({ value: t.key, label: t.label }))}
           />
           <SaveStatus pending={pending} error={error} success={success} />
         </>

@@ -64,6 +64,33 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   return serializeProfile(data);
 }
 
+/** Onglets de bien / items du menu du haut autorisés pour un rôle donné —
+ * partagés par tous les utilisateurs de ce rôle. Admin n'est jamais
+ * restreint (géré à part par canAccessSection), donc pas de ligne pour lui. */
+export async function getAllowedSectionsForRole(role: string | null | undefined): Promise<string[]> {
+  if (!role || role === "admin") return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("role_permissions")
+    .select("allowed_tabs")
+    .eq("role", role)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.allowed_tabs ?? [];
+}
+
+/** Autorisations de tous les rôles (hors admin) — pour la page Utilisateurs,
+ * un éditeur par rôle. Un rôle sans ligne configurée est réputé non
+ * restreint (liste vide), comme getAllowedSectionsForRole. */
+export async function listRolePermissions(): Promise<Record<string, string[]>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("role_permissions").select("role, allowed_tabs");
+  if (error) throw error;
+  const result: Record<string, string[]> = {};
+  for (const row of data ?? []) result[row.role] = row.allowed_tabs ?? [];
+  return result;
+}
+
 export async function listProperties(
   search?: string,
   /** Rôle "prestataire" uniquement : restreint la liste à ces biens. */
