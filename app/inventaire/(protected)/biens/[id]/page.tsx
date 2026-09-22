@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
+  getAllowedSectionsForRole,
   getCurrentProfile,
   getPrestataireAllowedPropertyIds,
   getProperty,
@@ -100,6 +101,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   // jamais l'inverse : un champ déjà rempli sur ce bien n'est pas écrasé.
   const owner = await withStaffOwnerFallback(id, ownerRow);
   const isAdmin = profile?.role === "admin";
+  const allowedSections = await getAllowedSectionsForRole(profile?.role);
 
   if (profile?.role === "prestataire") {
     const allowedPropertyIds = await getPrestataireAllowedPropertyIds(profile.id);
@@ -216,7 +218,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         tasks={tasks}
         profiles={profiles}
         ownersDirectory={ownersDirectory}
-        allowedTabs={profile?.allowedTabs ?? []}
+        allowedTabs={allowedSections}
         financeSettings={financeSettings}
       />
     </div>

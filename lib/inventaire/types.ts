@@ -5,8 +5,6 @@ export interface Profile {
   email: string;
   fullName: string | null;
   role: UserRole;
-  /** Onglets visibles sur la fiche d'un bien — utilisé uniquement pour le rôle "prestataire". */
-  allowedTabs: string[];
 }
 
 export interface Property {

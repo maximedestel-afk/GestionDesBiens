@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile, getLeaseTemplateInfo } from "@/lib/inventaire/queries";
+import { getAllowedSectionsForRole, getCurrentProfile, getLeaseTemplateInfo } from "@/lib/inventaire/queries";
 import { LEASE_CONDITIONS, analyzeLeaseTemplateTags, listSupportedLeaseTags } from "@/lib/inventaire/leaseTemplate";
 import { canAccessSection } from "@/lib/inventaire/tabs";
 import { LeaseTemplateUploadForm } from "./LeaseTemplateUploadForm";
@@ -7,8 +7,9 @@ import { LeaseTagReference } from "./LeaseTagReference";
 
 export default async function BailTypePage() {
   const profile = await getCurrentProfile();
+  const allowedSections = await getAllowedSectionsForRole(profile?.role);
 
-  if (!canAccessSection(profile?.role, profile?.allowedTabs, "menu_bail_type")) {
+  if (!canAccessSection(profile?.role, allowedSections, "menu_bail_type")) {
     return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
   }
 

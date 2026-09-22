@@ -5,7 +5,6 @@ import type { UserRole } from "@/lib/inventaire/types";
 import { inviteUser } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { MultiSelectDropdown } from "@/components/inventaire/MultiSelectDropdown";
-import { PRESTATAIRE_SELECTABLE_TABS } from "@/lib/inventaire/tabs";
 
 export function InviteUserForm({ properties }: { properties: { id: string; reference: string; name: string | null }[] }) {
   const [role, setRole] = useState<UserRole>("menage");
@@ -39,27 +38,17 @@ export function InviteUserForm({ properties }: { properties: { id: string; refer
             </select>
           </div>
           {role === "prestataire" && (
-            <>
-              <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Biens visibles</label>
-                <MultiSelectDropdown
-                  name="propertyIds"
-                  placeholder="Choisir les biens…"
-                  options={properties.map((p) => ({
-                    value: p.id,
-                    label: p.reference,
-                  }))}
-                />
-              </div>
-              <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Onglets visibles</label>
-                <MultiSelectDropdown
-                  name="allowedTabs"
-                  placeholder="Choisir les onglets…"
-                  options={PRESTATAIRE_SELECTABLE_TABS.map((t) => ({ value: t.key, label: t.label }))}
-                />
-              </div>
-            </>
+            <div>
+              <label className="block text-[12px] font-medium text-[#6e6e73]">Biens visibles</label>
+              <MultiSelectDropdown
+                name="propertyIds"
+                placeholder="Choisir les biens…"
+                options={properties.map((p) => ({
+                  value: p.id,
+                  label: p.reference,
+                }))}
+              />
+            </div>
           )}
           <button
             type="submit"

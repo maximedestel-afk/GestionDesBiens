@@ -1,21 +1,20 @@
 "use client";
 
-import { updateUserAllowedTabs } from "@/lib/inventaire/actions";
+import { updateRoleAllowedTabs } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { MultiSelectDropdown } from "@/components/inventaire/MultiSelectDropdown";
 import { SELECTABLE_SECTIONS } from "@/lib/inventaire/tabs";
+import type { UserRole } from "@/lib/inventaire/types";
 
-/** Éditeur des onglets de bien et items du menu du haut autorisés pour un
- * utilisateur (tout rôle sauf admin, qui voit toujours tout, et prestataire,
- * qui a son propre éditeur avec en plus la liste des biens accessibles).
- * Aucune sélection = comportement inchangé, tout est visible. */
-export function TabAccessEditor({ userId, allowedTabs }: { userId: string; allowedTabs: string[] }) {
+/** Onglets de bien et items du menu du haut autorisés pour un rôle —
+ * partagés par tous les utilisateurs de ce rôle. Vide = rien de restreint. */
+export function RolePermissionsEditor({ role, allowedTabs }: { role: UserRole; allowedTabs: string[] }) {
   return (
     <ActionForm
       className="flex flex-wrap items-center gap-2"
       autoSave
-      action={(formData) => updateUserAllowedTabs(userId, formData.getAll("allowedTabs").map(String))}
+      action={(formData) => updateRoleAllowedTabs(role, formData.getAll("allowedTabs").map(String))}
     >
       {({ pending, error, success }) => (
         <>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getCurrentProfile } from "@/lib/inventaire/queries";
+import { getAllowedSectionsForRole, getCurrentProfile } from "@/lib/inventaire/queries";
 import { signOut } from "@/lib/inventaire/actions";
 import { canAccessSection } from "@/lib/inventaire/tabs";
 import { UserRoleProvider } from "@/components/inventaire/UserRoleContext";
@@ -8,7 +8,8 @@ import { HeaderPropertySearch } from "@/components/inventaire/HeaderPropertySear
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const profile = await getCurrentProfile();
-  const canSee = (key: string) => canAccessSection(profile?.role, profile?.allowedTabs, key);
+  const allowedSections = await getAllowedSectionsForRole(profile?.role);
+  const canSee = (key: string) => canAccessSection(profile?.role, allowedSections, key);
 
   return (
     <UserRoleProvider role={profile?.role ?? null}>
