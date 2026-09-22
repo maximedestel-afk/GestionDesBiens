@@ -41,6 +41,12 @@ export function FileUploadButtons({
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const isVideo = accept.startsWith("video/");
+  // Le bouton caméra doit rester sur un type MIME unique : un `accept` mêlant
+  // plusieurs types (ex. "image/*,video/*" ou "image/*,.pdf") avec
+  // `capture="environment"` empêche certains navigateurs mobiles d'ouvrir
+  // l'appareil photo directement (ils affichent un sélecteur générique à la
+  // place). Le sélecteur de fichiers (trombone), lui, garde l'accept complet.
+  const cameraAccept = isVideo ? "video/*" : "image/*";
 
   function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -86,7 +92,7 @@ export function FileUploadButtons({
           <input
             ref={cameraInputRef}
             type="file"
-            accept={accept}
+            accept={cameraAccept}
             capture="environment"
             className="hidden"
             onChange={(e) => {
