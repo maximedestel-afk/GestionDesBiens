@@ -31,6 +31,36 @@ export const PRESTATAIRE_SELECTABLE_TABS = PROPERTY_TABS.filter(
   (t) => t.key !== "proprietaire" && t.key !== "documents" && t.key !== "bail" && t.key !== "finances"
 );
 
+// Items du menu du haut (réservés aux admins par défaut) — mêmes clés
+// utilisées dans `profiles.allowed_tabs` pour donner à un utilisateur non-
+// admin l'accès à l'un de ces écrans, en plus de ses onglets de bien.
+export const TOP_MENU_ITEMS = [
+  { key: "menu_utilisateurs", label: "Menu — Utilisateurs" },
+  { key: "menu_bail_type", label: "Menu — Bail type" },
+  { key: "menu_import", label: "Menu — Importer" },
+  { key: "menu_completer", label: "Menu — Compléter" },
+  { key: "menu_journal", label: "Menu — Journal" },
+  { key: "menu_acces", label: "Menu — Accès" },
+] as const;
+
+/** Options combinées (onglets de bien + items du menu du haut) proposées
+ * dans l'éditeur d'accès d'un utilisateur — une seule liste, un seul champ
+ * `allowed_tabs` en base, comme demandé ("vaut aussi pour le menu du
+ * dessus"). */
+export const SELECTABLE_SECTIONS = [...PRESTATAIRE_SELECTABLE_TABS, ...TOP_MENU_ITEMS];
+
+/** Un admin voit toujours tout ; les autres rôles ne sont restreints que
+ * s'ils ont une liste `allowedTabs` non vide (comportement par défaut
+ * inchangé pour tous les comptes déjà existants, sans configuration). */
+export function canAccessSection(
+  role: string | null | undefined,
+  allowedTabs: string[] | null | undefined,
+  key: string
+): boolean {
+  if (role === "admin") return true;
+  return (allowedTabs ?? []).includes(key);
+}
+
 const CODE_BY_KEY: Record<string, string> = Object.fromEntries(PROPERTY_TABS.map((t) => [t.key, t.code]));
 const ORDER_BY_KEY: Record<string, number> = Object.fromEntries(PROPERTY_TABS.map((t, i) => [t.key, i]));
 

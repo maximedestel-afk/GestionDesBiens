@@ -1,5 +1,6 @@
 import { getCurrentProfile, listPropertiesForBulkField } from "@/lib/inventaire/queries";
 import { BULK_FIELDS, getBulkField } from "@/lib/inventaire/bulkFields";
+import { canAccessSection } from "@/lib/inventaire/tabs";
 import { FieldSelector } from "./FieldSelector";
 import { BulkFieldTable } from "./BulkFieldTable";
 
@@ -9,7 +10,7 @@ export default async function CompleterPage({
   searchParams: Promise<{ field?: string }>;
 }) {
   const profile = await getCurrentProfile();
-  if (profile?.role !== "admin") {
+  if (!canAccessSection(profile?.role, profile?.allowedTabs, "menu_completer")) {
     return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
   }
 

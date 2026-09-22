@@ -2,11 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { getCurrentProfile } from "@/lib/inventaire/queries";
 import { signOut } from "@/lib/inventaire/actions";
+import { canAccessSection } from "@/lib/inventaire/tabs";
 import { UserRoleProvider } from "@/components/inventaire/UserRoleContext";
 import { HeaderPropertySearch } from "@/components/inventaire/HeaderPropertySearch";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const profile = await getCurrentProfile();
+  const canSee = (key: string) => canAccessSection(profile?.role, profile?.allowedTabs, key);
 
   return (
     <UserRoleProvider role={profile?.role ?? null}>
@@ -21,27 +23,35 @@ export default async function ProtectedLayout({ children }: { children: React.Re
               <span className="truncate">M.G.B</span>
             </Link>
             <div className="flex shrink-0 items-center gap-4 text-[13px]">
-              {profile?.role === "admin" && (
-                <>
-                  <Link href="/inventaire/utilisateurs" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
-                    Utilisateurs
-                  </Link>
-                  <Link href="/inventaire/bail-type" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
-                    Bail type
-                  </Link>
-                  <Link href="/inventaire/import" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
-                    Importer
-                  </Link>
-                  <Link href="/inventaire/completer" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
-                    Compléter
-                  </Link>
-                  <Link href="/inventaire/journal" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
-                    Journal
-                  </Link>
-                  <Link href="/inventaire/acces" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
-                    Accès
-                  </Link>
-                </>
+              {canSee("menu_utilisateurs") && (
+                <Link href="/inventaire/utilisateurs" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  Utilisateurs
+                </Link>
+              )}
+              {canSee("menu_bail_type") && (
+                <Link href="/inventaire/bail-type" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  Bail type
+                </Link>
+              )}
+              {canSee("menu_import") && (
+                <Link href="/inventaire/import" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  Importer
+                </Link>
+              )}
+              {canSee("menu_completer") && (
+                <Link href="/inventaire/completer" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  Compléter
+                </Link>
+              )}
+              {canSee("menu_journal") && (
+                <Link href="/inventaire/journal" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  Journal
+                </Link>
+              )}
+              {canSee("menu_acces") && (
+                <Link href="/inventaire/acces" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  Accès
+                </Link>
               )}
               {profile && <span className="hidden text-[#6e6e73] sm:inline">{profile.email}</span>}
               <form action={signOut}>

@@ -2291,6 +2291,19 @@ export async function updatePrestataireAccess(userId: string, propertyIds: strin
   revalidatePath("/inventaire/utilisateurs");
 }
 
+// Comme updatePrestataireAccess, mais sans la liste de biens : pour les
+// rôles autres que prestataire, l'accès aux biens n'est jamais restreint —
+// seuls les onglets de bien et les items du menu du haut le sont.
+export async function updateUserAllowedTabs(userId: string, allowedTabs: string[]) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const { error } = await supabase.from("profiles").update({ allowed_tabs: allowedTabs }).eq("id", userId);
+  if (error) throw error;
+
+  revalidatePath("/inventaire/utilisateurs");
+}
+
 export async function updateUserPassword(userId: string, formData: FormData) {
   const supabase = await createClient();
   await requireAdmin(supabase);

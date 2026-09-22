@@ -118,10 +118,15 @@ export function PropertyTabs({
   const role = useUserRole();
   const isPrestataire = role === "prestataire";
   const allowedTabsSet = new Set(allowedTabs);
+  // Un utilisateur non-admin avec une liste d'onglets autorisés configurée
+  // (n'importe quel rôle, pas seulement prestataire) est restreint à cette
+  // liste ; sans configuration (liste vide), comportement inchangé : tout
+  // est visible.
+  const hasTabRestriction = !isAdmin && allowedTabs.length > 0;
   const visibleTabs = TABS.filter((tab) => {
     if (tab.key === "proprietaire" || tab.key === "documents" || tab.key === "bail" || tab.key === "finances")
       return isAdmin;
-    if (isPrestataire) return allowedTabsSet.has(tab.key);
+    if (hasTabRestriction) return allowedTabsSet.has(tab.key);
     return true;
   });
 
