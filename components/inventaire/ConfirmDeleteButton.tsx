@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { unstable_rethrow } from "next/navigation";
-import { useUserRole } from "./UserRoleContext";
+import { useUserRole, usePermissionLevel } from "./UserRoleContext";
 
 export function ConfirmDeleteButton({
   label = "Supprimer",
@@ -12,6 +12,7 @@ export function ConfirmDeleteButton({
   allowOperationsWhenEmpty = false,
   isEmpty = false,
   allowManager = false,
+  allowRoleDeletePermission = false,
 }: {
   label?: string;
   confirmText: string;
@@ -26,16 +27,23 @@ export function ConfirmDeleteButton({
   /** Manager peut en plus supprimer librement les photos/documents (pièces
    * jointes), sans la restriction "uniquement si vide" — ex. galerie de fichiers. */
   allowManager?: boolean;
+  /** Action gérée par requireDelete côté serveur (accréditation par rôle,
+   * page Utilisateurs) : affiche aussi le bouton si le rôle courant est
+   * accrédité "lecture + écriture + suppression". Ne pas passer pour les
+   * suppressions qui restent toujours réservées aux admins. */
+  allowRoleDeletePermission?: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const role = useUserRole();
+  const permissionLevel = usePermissionLevel();
 
   const canDelete =
     role === "admin" ||
     (allowManager && role === "manager") ||
-    ((role === "operations" || role === "manager") && allowOperationsWhenEmpty && isEmpty);
+    ((role === "operations" || role === "manager") && allowOperationsWhenEmpty && isEmpty) ||
+    (allowRoleDeletePermission && permissionLevel === "delete");
   if (!canDelete) return null;
 
   return (

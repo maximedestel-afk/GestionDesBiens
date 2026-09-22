@@ -36,6 +36,7 @@ export function AlbumCard({
               <ConfirmDeleteButton
                 confirmText={`Supprimer l'album « ${element.name} » et ses photos ?`}
                 action={() => deletePropertyElement(propertyId, element.id)}
+                allowRoleDeletePermission
               />
             </div>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">

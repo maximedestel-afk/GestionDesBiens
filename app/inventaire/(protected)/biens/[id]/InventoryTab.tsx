@@ -200,6 +200,7 @@ export function InventoryTab({
                 <ConfirmDeleteButton
                   confirmText={`Supprimer la catégorie « ${category} » ?`}
                   action={() => deleteInventoryCategory(propertyId, custom.id)}
+                  allowRoleDeletePermission
                 />
               )}
             </div>

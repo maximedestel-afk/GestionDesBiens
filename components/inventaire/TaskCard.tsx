@@ -68,7 +68,11 @@ export function TaskCard({ propertyId, task, profiles }: { propertyId: string; t
             </p>
           </div>
         </div>
-        <ConfirmDeleteButton confirmText="Supprimer cette tâche ?" action={() => deleteTask(propertyId, task.id)} />
+        <ConfirmDeleteButton
+          confirmText="Supprimer cette tâche ?"
+          action={() => deleteTask(propertyId, task.id)}
+          allowRoleDeletePermission
+        />
       </div>
 
       {task.comments.length > 0 && (

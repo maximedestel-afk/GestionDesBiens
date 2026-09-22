@@ -62,6 +62,7 @@ export function PlatformCard({
               <ConfirmDeleteButton
                 confirmText={`Supprimer « ${title} » ?`}
                 action={() => deletePropertyPlatform(propertyId, platform.id)}
+                allowRoleDeletePermission
               />
             </div>
 
