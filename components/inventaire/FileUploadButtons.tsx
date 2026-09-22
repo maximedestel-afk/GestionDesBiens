@@ -94,7 +94,7 @@ export function FileUploadButtons({
             type="file"
             accept={cameraAccept}
             capture="environment"
-            className="hidden"
+            className="sr-only"
             onChange={(e) => {
               handleFiles(e.target.files);
               e.target.value = "";
@@ -117,7 +117,7 @@ export function FileUploadButtons({
             type="file"
             accept="video/*"
             capture="environment"
-            className="hidden"
+            className="sr-only"
             onChange={(e) => {
               handleFiles(e.target.files);
               e.target.value = "";
