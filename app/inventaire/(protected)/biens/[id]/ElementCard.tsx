@@ -64,29 +64,25 @@ export function ElementCard({
           </>
         )}
       </ActionForm>
-      <div className="mt-3 flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <AttachmentGallery
-            propertyId={propertyId}
-            attachments={attachments}
-            emptyLabel="Aucune photo/fichier"
-            variant={galleryVariant}
-            scrollable={galleryVariant === "grid"}
-          />
-        </div>
-        <div className="shrink-0">
-          <FileUploadButtons
-            accept={accept}
-            showCamera={showCamera}
-            showVideoCamera={showVideoCamera}
-            target={{
-              propertyId,
-              entityType: "property_element",
-              entityId: element.id,
-              kind: "element_photo",
-            }}
-          />
-        </div>
+      <div className="mt-3 space-y-2">
+        <AttachmentGallery
+          propertyId={propertyId}
+          attachments={attachments}
+          emptyLabel="Aucune photo/fichier"
+          variant={galleryVariant}
+          scrollable={galleryVariant === "grid"}
+        />
+        <FileUploadButtons
+          accept={accept}
+          showCamera={showCamera}
+          showVideoCamera={showVideoCamera}
+          target={{
+            propertyId,
+            entityType: "property_element",
+            entityId: element.id,
+            kind: "element_photo",
+          }}
+        />
       </div>
     </div>
   );
