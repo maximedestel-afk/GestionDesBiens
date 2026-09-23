@@ -339,7 +339,12 @@ export function PropertyTabs({
           <DefautsTab propertyId={property.id} elements={defautElements} attachments={elementAttachments} />
         )}
         {activeTab === "data" && (
-          <DataTab propertyId={property.id} cleaningProviders={cleaningProviders} propertyData={propertyData} />
+          <DataTab
+            propertyId={property.id}
+            propertyReference={property.reference}
+            cleaningProviders={cleaningProviders}
+            propertyData={propertyData}
+          />
         )}
         {activeTab === "agencement" && (
           <AgencementTab
