@@ -17,6 +17,7 @@ import {
   getGuestyCleaningRate,
   getGuestyRawCustomFieldDefinitions,
   isGuestyConfigured,
+  syncAllGuestyCleaningRates,
 } from "./guesty";
 import { CSV_FIELDS, csvFieldAliases, type CsvFieldKey } from "./csvFields";
 import { getCurrentProfile, getPrestataireAllowedPropertyIds, listProperties } from "./queries";
@@ -1252,6 +1253,52 @@ export async function registerGuestyWebhook(domain: string): Promise<string> {
   const targetUrl = `https://${cleanDomain}/api/webhooks/guesty?secret=${webhookSecret}`;
   await createGuestyWebhook(targetUrl, ["listing.updated"]);
   return `Webhook créé avec succès vers ${targetUrl}.`;
+}
+
+/** Lance immédiatement la même synchronisation que le cron quotidien
+ * (page API, section Guesty) — sans attendre le prochain passage
+ * programmé — pour tous les biens ayant une annonce Guesty correspondant
+ * à leur référence. */
+export async function syncAllGuestyCleaningRatesNow(): Promise<string> {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  if (!isGuestyConfigured()) throw new Error("Guesty n'est pas configuré (identifiants manquants).");
+
+  const { data: properties } = await supabase.from("properties").select("id, reference");
+
+  const results = await syncAllGuestyCleaningRates(properties ?? []);
+
+  let updated = 0;
+  let failed = 0;
+  let skipped = 0;
+  const now = new Date().toISOString();
+
+  for (const { propertyId, listingId, rate, error: syncError } of results) {
+    if (!listingId) {
+      skipped++;
+      continue;
+    }
+    if (syncError) {
+      failed++;
+      await supabase.from("property_data").update({ guesty_last_sync_error: syncError }).eq("property_id", propertyId);
+      continue;
+    }
+    await supabase.from("property_data").upsert(
+      {
+        property_id: propertyId,
+        cleaning_rate: rate,
+        guesty_listing_id: listingId,
+        guesty_last_synced_at: now,
+        guesty_last_sync_error: null,
+      },
+      { onConflict: "property_id" }
+    );
+    updated++;
+  }
+
+  revalidatePath("/inventaire", "layout");
+  return `Synchronisation terminée : ${updated} bien(s) mis à jour, ${skipped} sans annonce Guesty correspondante, ${failed} en erreur.`;
 }
 
 /* ------------------------------------------------------------------ */

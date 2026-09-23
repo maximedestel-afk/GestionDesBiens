@@ -3,6 +3,7 @@ import { canAccessSection } from "@/lib/inventaire/tabs";
 import { ApiKeysManager } from "./ApiKeysManager";
 import { ApiDocumentation } from "./ApiDocumentation";
 import { GuestyWebhookSetup } from "./GuestyWebhookSetup";
+import { GuestySyncNowButton } from "./GuestySyncNowButton";
 
 export default async function ApiKeysPage() {
   const profile = await getCurrentProfile();
@@ -29,6 +30,18 @@ export default async function ApiKeysPage() {
         </p>
         <div className="mt-4">
           <ApiKeysManager keys={keys} />
+        </div>
+      </div>
+
+      <div className="mt-4 card p-5">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Guesty — coût du ménage</h2>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Une vérification automatique a lieu une fois par jour pour tous les biens (limite du plan
+          Vercel actuel). Pour forcer une synchronisation immédiate sans attendre le prochain passage,
+          utilisez le bouton ci-dessous.
+        </p>
+        <div className="mt-4">
+          <GuestySyncNowButton />
         </div>
       </div>
 
