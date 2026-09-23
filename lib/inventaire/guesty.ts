@@ -10,14 +10,22 @@
 // l'Open API Guesty. Utiliser "Tester la connexion" (page DATA) après
 // déploiement pour vérifier/ajuster si besoin.
 
+import { createAdminClient } from "@/lib/supabase/admin";
+
 const TOKEN_URL = "https://open-api.guesty.com/oauth2/token";
 const API_BASE_URL = "https://open-api.guesty.com/v1";
+const TOKEN_CACHE_ROW_ID = "default";
 export const CLEANING_RATE_FIELD_KEY = "cleaning_rate";
 
 export function isGuestyConfigured(): boolean {
   return !!process.env.GUESTY_CLIENT_ID && !!process.env.GUESTY_CLIENT_SECRET;
 }
 
+// Cache mémoire (rapide, mais perdu à chaque nouvelle instance serverless
+// Vercel — "cold start") + cache persistant en base (guesty_token_cache,
+// partagé entre toutes les instances) : sans ce second niveau, chaque
+// invocation redemande un jeton à Guesty, jusqu'à se faire limiter (429
+// "Too many requests"), constaté en production.
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
@@ -28,6 +36,18 @@ async function getAccessToken(): Promise<string> {
   }
 
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
+
+  const supabase = createAdminClient();
+
+  const { data: persisted } = await supabase
+    .from("guesty_token_cache")
+    .select("access_token, expires_at")
+    .eq("id", TOKEN_CACHE_ROW_ID)
+    .maybeSingle();
+  if (persisted && new Date(persisted.expires_at).getTime() > Date.now() + 30_000) {
+    cachedToken = { value: persisted.access_token, expiresAt: new Date(persisted.expires_at).getTime() };
+    return persisted.access_token;
+  }
 
   const response = await fetch(TOKEN_URL, {
     method: "POST",
@@ -44,7 +64,15 @@ async function getAccessToken(): Promise<string> {
     throw new Error(`Authentification Guesty échouée (${response.status}) : ${await response.text()}`);
   }
   const json = (await response.json()) as { access_token: string; expires_in?: number };
-  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000 };
+  const expiresAt = Date.now() + (json.expires_in ?? 3600) * 1000;
+  cachedToken = { value: json.access_token, expiresAt };
+
+  await supabase.from("guesty_token_cache").upsert({
+    id: TOKEN_CACHE_ROW_ID,
+    access_token: json.access_token,
+    expires_at: new Date(expiresAt).toISOString(),
+  });
+
   return json.access_token;
 }
 
