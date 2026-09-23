@@ -185,6 +185,15 @@ export async function getGuestyCleaningRate(listingId: string): Promise<number |
   return Number.isFinite(num) ? num : null;
 }
 
+/** Diagnostic : réponse brute de Guesty pour les champs personnalisés
+ * d'une annonce — utilisé quand "cleaning_rate" n'est pas trouvé par
+ * extractCustomField, pour voir la forme réelle de la réponse (jamais
+ * vérifiée en conditions réelles avant ce diagnostic) et ajuster
+ * l'extraction si besoin. */
+export async function getGuestyRawCustomFields(listingId: string): Promise<unknown> {
+  return guestyFetch<unknown>(`/listings/${listingId}/custom-fields`);
+}
+
 /** Crée l'abonnement webhook Guesty → MGB (voir page API, section Guesty).
  * Nécessite le scope "endpoint:Create" sur l'application Guesty. */
 export async function createGuestyWebhook(targetUrl: string, events: string[]): Promise<void> {
