@@ -168,6 +168,10 @@ export function serializePropertyData(row: any): PropertyData {
   return {
     propertyId: row.property_id,
     cleaningProviderId: row.cleaning_provider_id,
+    guestyListingId: row.guesty_listing_id,
+    cleaningRate: row.cleaning_rate,
+    guestyLastSyncedAt: row.guesty_last_synced_at,
+    guestyLastSyncError: row.guesty_last_sync_error,
   };
 }
 
