@@ -7,21 +7,17 @@ import {
   addCleaningProvider,
   savePropertyFinanceSettings,
   saveCleaningProvider,
-  saveGuestyData,
-  testGuestyConnection,
+  refreshGuestyCleaningRate,
 } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
-
-const inputClass =
-  "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
 
 function formatDate(value: string | null) {
   if (!value) return null;
   return new Date(value).toLocaleString("fr-FR");
 }
 
-function TestConnectionButton({ propertyId }: { propertyId: string }) {
+function RefreshGuestyButton({ propertyId }: { propertyId: string }) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
@@ -35,7 +31,7 @@ function TestConnectionButton({ propertyId }: { propertyId: string }) {
           setResult(null);
           startTransition(async () => {
             try {
-              const message = await testGuestyConnection(propertyId);
+              const message = await refreshGuestyCleaningRate(propertyId);
               setIsError(false);
               setResult(message);
             } catch (e) {
@@ -47,7 +43,7 @@ function TestConnectionButton({ propertyId }: { propertyId: string }) {
         }}
         className="btn-secondary btn-sm"
       >
-        {pending ? "Test en cours…" : "Tester la connexion Guesty"}
+        {pending ? "Actualisation…" : "Actualiser depuis Guesty"}
       </button>
       {result && (
         <p className={`mt-2 text-[13px] ${isError ? "text-red-600" : "text-emerald-600"}`}>{result}</p>
@@ -195,31 +191,17 @@ export function DataTab({
       <fieldset className="card p-5">
         <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Coût du ménage (Guesty)</legend>
         <p className="mt-1 text-[13px] text-[#6e6e73]">
-          Synchronisé dans les deux sens avec le champ « cleaning_rate » de l&apos;annonce Guesty dont le
-          nom correspond à la référence de ce bien. MGB → Guesty est immédiat (à chaque enregistrement) ;
-          Guesty → MGB est vérifié une fois par jour (limite du plan Vercel actuel).
+          Valeur lue depuis le champ « cleaning_rate » de l&apos;annonce Guesty dont le nom correspond à la
+          référence de ce bien (lecture seule — MGB ne modifie rien côté Guesty). Actualisée automatiquement
+          une fois par jour, ou manuellement ci-dessous.
         </p>
-        <ActionForm className="mt-3" autoSave action={(formData) => saveGuestyData(propertyId, formData)}>
-          {({ pending, error, success }) => (
-            <>
-              <div className="max-w-xs">
-                <label className="block text-[12px] font-medium text-[#6e6e73]">Coût du ménage (€)</label>
-                <input
-                  name="cleaningRate"
-                  type="number"
-                  step="any"
-                  min={0}
-                  defaultValue={propertyData?.cleaningRate ?? ""}
-                  placeholder="Non renseigné"
-                  className={inputClass}
-                />
-              </div>
-              <div className="mt-1">
-                <SaveStatus pending={pending} error={error} success={success} />
-              </div>
-            </>
-          )}
-        </ActionForm>
+
+        <div className="mt-3 max-w-xs">
+          <label className="block text-[12px] font-medium text-[#6e6e73]">Coût du ménage (€)</label>
+          <p className="mt-1 text-[15px] text-[#1d1d1f]">
+            {propertyData?.cleaningRate ?? "Non renseigné"}
+          </p>
+        </div>
 
         {propertyData?.guestyLastSyncError && (
           <p className="mt-2 text-[13px] text-red-600">
@@ -232,7 +214,7 @@ export function DataTab({
           </p>
         )}
 
-        <TestConnectionButton propertyId={propertyId} />
+        <RefreshGuestyButton propertyId={propertyId} />
       </fieldset>
     </div>
   );
