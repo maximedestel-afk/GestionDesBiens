@@ -33,6 +33,7 @@ import { platformTitle } from "@/components/inventaire/PlatformLogo";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { DismissedChecksPanel } from "@/components/inventaire/DismissedChecksPanel";
 import { useUserRole } from "@/components/inventaire/UserRoleContext";
+import { PropertyTabMenu } from "./PropertyTabMenu";
 import { OwnerTab } from "./OwnerTab";
 import { DetailsTab } from "./DetailsTab";
 import { KeysTab } from "./KeysTab";
@@ -241,57 +242,38 @@ export function PropertyTabs({
 
   return (
     <div>
-      <div className="flex flex-col gap-3 pb-1 sm:flex-row sm:items-center sm:justify-between">
-        <nav className="flex flex-wrap gap-1">
-          {visibleTabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`pill-tab ${
-                activeTab === tab.key
-                  ? "bg-[#1d1d1f] text-white"
-                  : "text-[#6e6e73] hover:bg-black/[0.04] hover:text-[#1d1d1f]"
-              }`}
-            >
-              {tab.label}
-              {tab.key === "manquant" && missingChecks.length > 0 && (
-                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
-                  {missingChecks.length}
-                </span>
-              )}
-              {tab.key === "taches" && openTasksCount > 0 && (
-                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-semibold text-white">
-                  {openTasksCount}
-                </span>
-              )}
-            </button>
-          ))}
-        </nav>
-        {!isPrestataire && (
-          <div className="flex shrink-0 items-center gap-4 text-[13px]">
-            <DismissedChecksPanel propertyId={property.id} checks={dismissedChecks} />
-            <a href={`/inventaire/biens/${property.id}/export`} className="link-quiet text-[13px]">
-              Exporter (Excel)
-            </a>
-            <ConfirmDeleteButton
-              label="Supprimer le bien"
-              confirmText={`Supprimer définitivement « ${property.reference} » et toutes ses données ?`}
-              action={async () => {
-                try {
-                  await deleteProperty(property.id);
-                } catch (e) {
-                  unstable_rethrow(e);
-                  throw e;
-                }
-              }}
-            />
-          </div>
-        )}
-      </div>
+      {!isPrestataire && (
+        <div className="flex justify-end gap-4 pb-3 text-[13px]">
+          <DismissedChecksPanel propertyId={property.id} checks={dismissedChecks} />
+          <a href={`/inventaire/biens/${property.id}/export`} className="link-quiet text-[13px]">
+            Exporter (Excel)
+          </a>
+          <ConfirmDeleteButton
+            label="Supprimer le bien"
+            confirmText={`Supprimer définitivement « ${property.reference} » et toutes ses données ?`}
+            action={async () => {
+              try {
+                await deleteProperty(property.id);
+              } catch (e) {
+                unstable_rethrow(e);
+                throw e;
+              }
+            }}
+          />
+        </div>
+      )}
 
-      <fieldset disabled={isPrestataire} className="m-0 min-w-0 border-0 p-0">
-        <div className="mt-6">
+      <div className="lg:flex lg:items-start lg:gap-6">
+        <PropertyTabMenu
+          tabs={visibleTabs}
+          activeTab={activeTab}
+          onSelect={setActiveTab}
+          missingCount={missingChecks.length}
+          openTasksCount={openTasksCount}
+        />
+
+        <fieldset disabled={isPrestataire} className="m-0 min-w-0 flex-1 border-0 p-0">
+          <div className="mt-4 lg:mt-0">
         {activeTab === "proprietaire" && isAdmin && (
           <OwnerTab
             propertyId={property.id}
@@ -402,8 +384,9 @@ export function PropertyTabs({
         {activeTab === "historique" && <ActivityLogPanel entries={activityLog} />}
         {activeTab === "taches" && <TasksTab propertyId={property.id} tasks={tasks} profiles={profiles} />}
         {activeTab === "manquant" && <MissingDataTab checks={missingChecks} onNavigate={navigateToCheck} />}
+          </div>
+        </fieldset>
       </div>
-      </fieldset>
     </div>
   );
 }
