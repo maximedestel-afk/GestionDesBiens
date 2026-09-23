@@ -1,5 +1,6 @@
 import type {
   ActivityLogEntry,
+  ApiKey,
   AppDocument,
   Attachment,
   CleaningProvider,
@@ -141,6 +142,18 @@ export function serializeWaterElec(row: any): PropertyWaterElec {
     hasGas: row.has_gas,
     heatingProduction: row.heating_production,
     heatingProductionNotes: row.heating_production_notes,
+  };
+}
+
+export function serializeApiKey(row: any): ApiKey {
+  return {
+    id: row.id,
+    name: row.name,
+    keyPrefix: row.key_prefix,
+    createdAt: row.created_at,
+    createdByEmail: row.created_by_email,
+    lastUsedAt: row.last_used_at,
+    revokedAt: row.revoked_at,
   };
 }
 

@@ -5,6 +5,7 @@ import { getBulkField, parsePlatformFieldId } from "./bulkFields";
 import {
   serializeActivityLogEntry,
   serializeAgencement,
+  serializeApiKey,
   serializeAppDocument,
   serializeAttachment,
   serializeCleaningProvider,
@@ -28,6 +29,7 @@ import {
 } from "./serialize";
 import type {
   ActivityLogEntry,
+  ApiKey,
   AppDocument,
   Attachment,
   AttachmentEntityType,
@@ -380,6 +382,13 @@ export async function getPropertyWaterElec(propertyId: string): Promise<Property
     .maybeSingle();
   if (error) throw error;
   return data ? serializeWaterElec(data) : null;
+}
+
+export async function listApiKeys(): Promise<ApiKey[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("api_keys").select("*").order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(serializeApiKey);
 }
 
 export async function listCleaningProviders(): Promise<CleaningProvider[]> {

@@ -147,6 +147,16 @@ export interface PropertyWaterElec {
   heatingProductionNotes: string | null;
 }
 
+export interface ApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  createdAt: string;
+  createdByEmail: string | null;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+}
+
 export interface CleaningProvider {
   id: string;
   name: string;
