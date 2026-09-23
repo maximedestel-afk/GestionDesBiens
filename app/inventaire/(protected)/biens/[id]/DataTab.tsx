@@ -75,6 +75,60 @@ export function DataTab({
   return (
     <div className="space-y-6">
       <fieldset className="card p-5">
+        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Regroupement</legend>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Certains biens correspondent à plusieurs listings VRPlatform distincts (ex. « 14ECO », « 14ECO 1 »,
+          « 14ECO 2 ») — ajoutez ici leurs références pour les additionner dans l&apos;onglet Finances.
+        </p>
+        <ActionForm className="mt-3 space-y-3" action={(formData) => savePropertyFinanceSettings(propertyId, formData)}>
+          {({ pending, error, success }) => (
+            <>
+              <div className="space-y-2">
+                {extraReferences.length === 0 && (
+                  <p className="text-[13px] text-[#6e6e73]">Aucune référence supplémentaire.</p>
+                )}
+                {extraReferences.map((reference, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      name="extraVrplatformReferences"
+                      type="text"
+                      value={reference}
+                      onChange={(e) =>
+                        setExtraReferences((refs) => refs.map((r, i) => (i === index ? e.target.value : r)))
+                      }
+                      placeholder="ex. 14ECO 1"
+                      className="w-full min-w-[220px] rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setExtraReferences((refs) => refs.filter((_, i) => i !== index))}
+                      aria-label="Supprimer cette référence"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-black/10 text-[#6e6e73] transition hover:bg-black/[0.04]"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setExtraReferences((refs) => [...refs, ""])}
+                  className="btn-secondary btn-sm"
+                >
+                  + Ajouter une référence
+                </button>
+                <button type="submit" className="btn-secondary btn-sm">
+                  Enregistrer
+                </button>
+                <SaveStatus pending={pending} error={error} success={success} />
+              </div>
+            </>
+          )}
+        </ActionForm>
+      </fieldset>
+
+      <fieldset className="card p-5">
         <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Prestataire Ménage</legend>
         <ActionForm className="mt-2" autoSave action={(formData) => saveCleaningProvider(propertyId, formData)}>
           {({ pending, error, success }) => (
@@ -179,60 +233,6 @@ export function DataTab({
         )}
 
         <TestConnectionButton propertyId={propertyId} />
-      </fieldset>
-
-      <fieldset className="card p-5">
-        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Regroupement VRPlatform</legend>
-        <p className="mt-1 text-[13px] text-[#6e6e73]">
-          Certains biens correspondent à plusieurs listings VRPlatform distincts (ex. « 14ECO », « 14ECO 1 »,
-          « 14ECO 2 ») — ajoutez ici leurs références pour les additionner dans l&apos;onglet Finances.
-        </p>
-        <ActionForm className="mt-3 space-y-3" action={(formData) => savePropertyFinanceSettings(propertyId, formData)}>
-          {({ pending, error, success }) => (
-            <>
-              <div className="space-y-2">
-                {extraReferences.length === 0 && (
-                  <p className="text-[13px] text-[#6e6e73]">Aucune référence supplémentaire.</p>
-                )}
-                {extraReferences.map((reference, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      name="extraVrplatformReferences"
-                      type="text"
-                      value={reference}
-                      onChange={(e) =>
-                        setExtraReferences((refs) => refs.map((r, i) => (i === index ? e.target.value : r)))
-                      }
-                      placeholder="ex. 14ECO 1"
-                      className="w-full min-w-[220px] rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setExtraReferences((refs) => refs.filter((_, i) => i !== index))}
-                      aria-label="Supprimer cette référence"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-black/10 text-[#6e6e73] transition hover:bg-black/[0.04]"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setExtraReferences((refs) => [...refs, ""])}
-                  className="btn-secondary btn-sm"
-                >
-                  + Ajouter une référence
-                </button>
-                <button type="submit" className="btn-secondary btn-sm">
-                  Enregistrer
-                </button>
-                <SaveStatus pending={pending} error={error} success={success} />
-              </div>
-            </>
-          )}
-        </ActionForm>
       </fieldset>
     </div>
   );
