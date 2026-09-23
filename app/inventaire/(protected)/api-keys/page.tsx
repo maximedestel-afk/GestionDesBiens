@@ -37,8 +37,11 @@ export default async function ApiKeysPage() {
         <p className="mt-1 text-[13px] text-[#6e6e73]">
           Crée l&apos;abonnement webhook Guesty → MGB pour l&apos;onglet DATA (Coût du ménage), sans
           passer par la console Guesty. Nécessite GUESTY_CLIENT_ID / GUESTY_CLIENT_SECRET /
-          GUESTY_WEBHOOK_SECRET déjà configurés, et le scope « endpoint:Create » activé sur
-          l&apos;application Guesty.
+          GUESTY_WEBHOOK_SECRET déjà configurés, et le scope « endpoint:Create » activé sur le compte
+          Guesty — indisponible sur certains comptes (y compris depuis l&apos;interface native de
+          Guesty, pas seulement l&apos;API). En attendant, la vérification périodique (toutes les 15
+          minutes, voir vercel.json) prend le relais automatiquement, sans configuration
+          supplémentaire.
         </p>
         <div className="mt-4">
           <GuestyWebhookSetup />

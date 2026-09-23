@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/guesty-sync",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}
