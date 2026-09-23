@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { BULK_FIELDS, type BulkFieldGroup } from "@/lib/inventaire/bulkFields";
 
-const GROUP_ORDER: BulkFieldGroup[] = ["Plateformes", "Propriétaire", "Agencement", "Détails", "Eau/Élec"];
+const GROUP_ORDER: BulkFieldGroup[] = ["Plateformes", "Propriétaire", "Agencement", "Détails", "Eau/Élec", "Data"];
 
 export function FieldSelector({ fieldId }: { fieldId: string }) {
   const router = useRouter();

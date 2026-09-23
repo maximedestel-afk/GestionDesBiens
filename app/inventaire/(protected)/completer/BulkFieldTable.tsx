@@ -11,6 +11,7 @@ import {
   saveAgencement,
   savePropertyDetails,
   saveWaterElec,
+  saveCleaningProvider,
   bulkUpdatePlatformField,
 } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
@@ -28,6 +29,7 @@ function actionFor(field: BulkFieldDef) {
   if (field.group === "Propriétaire") return savePropertyOwner;
   if (field.group === "Agencement") return saveAgencement;
   if (field.group === "Eau/Élec") return saveWaterElec;
+  if (field.group === "Data") return saveCleaningProvider;
   return savePropertyDetails;
 }
 

@@ -1,4 +1,4 @@
-export type BulkFieldGroup = "Plateformes" | "Propriétaire" | "Agencement" | "Détails" | "Eau/Élec";
+export type BulkFieldGroup = "Plateformes" | "Propriétaire" | "Agencement" | "Détails" | "Eau/Élec" | "Data";
 
 export interface BulkFieldOption {
   value: string;
@@ -190,6 +190,12 @@ export const BULK_FIELDS: BulkFieldDef[] = [
     ],
   },
   { id: "heating_production_notes", label: "Note Chauffage", group: "Eau/Élec", formKey: "heatingProductionNotes", inputType: "text" },
+
+  // Data
+  // Les options sont injectées dynamiquement (liste de cleaning_providers) —
+  // voir CompleterPage, qui remplace ce tableau vide avant de passer le
+  // champ à BulkFieldTable.
+  { id: "cleaning_provider", label: "Prestataire Ménage", group: "Data", formKey: "cleaningProviderId", inputType: "select", options: [] },
 ];
 
 export function getBulkField(id: string): BulkFieldDef | undefined {

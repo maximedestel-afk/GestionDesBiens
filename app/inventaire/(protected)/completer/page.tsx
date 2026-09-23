@@ -1,4 +1,9 @@
-import { getAllowedSectionsForRole, getCurrentProfile, listPropertiesForBulkField } from "@/lib/inventaire/queries";
+import {
+  getAllowedSectionsForRole,
+  getCurrentProfile,
+  listCleaningProviders,
+  listPropertiesForBulkField,
+} from "@/lib/inventaire/queries";
 import { BULK_FIELDS, getBulkField } from "@/lib/inventaire/bulkFields";
 import { canAccessSection } from "@/lib/inventaire/tabs";
 import { FieldSelector } from "./FieldSelector";
@@ -17,7 +22,14 @@ export default async function CompleterPage({
 
   const { field } = await searchParams;
   const fieldId = (field && getBulkField(field)) ? field : BULK_FIELDS[0].id;
-  const fieldDef = getBulkField(fieldId)!;
+  let fieldDef = getBulkField(fieldId)!;
+
+  // Les options du champ "Prestataire Ménage" viennent de la liste partagée
+  // (cleaning_providers), pas d'un catalogue statique comme les autres champs.
+  if (fieldDef.id === "cleaning_provider") {
+    const cleaningProviders = await listCleaningProviders();
+    fieldDef = { ...fieldDef, options: cleaningProviders.map((p) => ({ value: p.id, label: p.name })) };
+  }
 
   const rows = await listPropertiesForBulkField(fieldId);
 
