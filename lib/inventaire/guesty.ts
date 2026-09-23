@@ -152,3 +152,12 @@ export async function setGuestyCleaningRate(listingId: string, value: number | n
     body: JSON.stringify({ customFields: [{ fieldId, value }] }),
   });
 }
+
+/** Crée l'abonnement webhook Guesty → MGB (voir page API, section Guesty).
+ * Nécessite le scope "endpoint:Create" sur l'application Guesty. */
+export async function createGuestyWebhook(targetUrl: string, events: string[]): Promise<void> {
+  await guestyFetch(`/webhooks`, {
+    method: "POST",
+    body: JSON.stringify({ url: targetUrl, events }),
+  });
+}

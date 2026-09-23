@@ -11,7 +11,13 @@ import {
   standardEquipmentNamesForRoom,
 } from "./catalog";
 import { decodeCsvBuffer, normalizeHeader, parseCsv } from "./csv";
-import { findGuestyListingIdByReference, getGuestyCleaningRate, isGuestyConfigured, setGuestyCleaningRate } from "./guesty";
+import {
+  createGuestyWebhook,
+  findGuestyListingIdByReference,
+  getGuestyCleaningRate,
+  isGuestyConfigured,
+  setGuestyCleaningRate,
+} from "./guesty";
 import { CSV_FIELDS, csvFieldAliases, type CsvFieldKey } from "./csvFields";
 import { getCurrentProfile, getPrestataireAllowedPropertyIds, listProperties } from "./queries";
 import { tabCode } from "./tabs";
@@ -1267,6 +1273,25 @@ export async function testGuestyConnection(propertyId: string): Promise<string> 
   return rate !== null
     ? `Connexion réussie. Coût du ménage actuel sur Guesty (annonce ${listingId}) : ${rate}.`
     : `Connexion réussie (annonce ${listingId}), mais le champ "cleaning_rate" est vide ou introuvable sur Guesty.`;
+}
+
+/** Crée l'abonnement webhook Guesty → MGB (page API), pour éviter de
+ * passer par la console/Postman de Guesty — nécessite le scope
+ * "endpoint:Create" sur l'application Guesty. */
+export async function registerGuestyWebhook(domain: string): Promise<string> {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  if (!isGuestyConfigured()) throw new Error("Guesty n'est pas configuré (identifiants manquants).");
+  const webhookSecret = process.env.GUESTY_WEBHOOK_SECRET;
+  if (!webhookSecret) throw new Error("GUESTY_WEBHOOK_SECRET n'est pas configuré.");
+
+  const cleanDomain = domain.trim().replace(/^https?:\/\//, "").replace(/\/$/, "");
+  if (!cleanDomain) throw new Error("Le domaine est requis.");
+
+  const targetUrl = `https://${cleanDomain}/api/webhooks/guesty?secret=${webhookSecret}`;
+  await createGuestyWebhook(targetUrl, ["listing.updated"]);
+  return `Webhook créé avec succès vers ${targetUrl}.`;
 }
 
 /* ------------------------------------------------------------------ */
