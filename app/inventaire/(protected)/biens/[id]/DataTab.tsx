@@ -196,7 +196,7 @@ export function DataTab({
           Synchronisé dans les deux sens avec le champ « cleaning_rate » de l&apos;annonce Guesty
           correspondante (retrouvée automatiquement par référence si l&apos;ID n&apos;est pas renseigné
           ci-dessous). MGB → Guesty est immédiat (à chaque enregistrement) ; Guesty → MGB est vérifié
-          toutes les 15 minutes environ.
+          une fois par jour (limite du plan Vercel actuel).
         </p>
         <ActionForm className="mt-3 grid gap-3 sm:grid-cols-2" autoSave action={(formData) => saveGuestyData(propertyId, formData)}>
           {({ pending, error, success }) => (
