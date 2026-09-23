@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { unstable_rethrow } from "next/navigation";
 import type { CleaningProvider, PropertyData } from "@/lib/inventaire/types";
 import { addCleaningProvider, saveCleaningProvider, saveGuestyData, testGuestyConnection } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
+
+interface GuestyListingOption {
+  id: string;
+  name: string;
+}
 
 const inputClass =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
@@ -50,12 +55,70 @@ function TestConnectionButton({ propertyId }: { propertyId: string }) {
   );
 }
 
+function GuestyListingSelect({ propertyReference, defaultValue }: { propertyReference: string; defaultValue: string }) {
+  const [listings, setListings] = useState<GuestyListingOption[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/inventaire/guesty-listings")
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled) return;
+        if (json.error) setError(json.error);
+        else setListings(json.data as GuestyListingOption[]);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Impossible de charger les annonces Guesty.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Pré-sélectionne l'annonce dont le nom correspond exactement à la
+  // référence du bien, tant qu'aucun ID n'est déjà enregistré — utile
+  // pour le cas courant (une seule annonce par bien) ; quand plusieurs
+  // annonces existent pour le même bien (ex. "14ECO" et "14ECO1"),
+  // l'admin choisit la bonne dans le menu.
+  const normalizedRef = propertyReference.trim().toLowerCase();
+  const autoMatch = listings?.find((listing) => listing.name.trim().toLowerCase() === normalizedRef);
+  const initialValue = defaultValue || autoMatch?.id || "";
+
+  if (error) {
+    return <p className="text-[13px] text-red-600">{error}</p>;
+  }
+
+  return (
+    <select
+      // Force le remontage une fois les annonces chargées : sinon
+      // `defaultValue` (non contrôlé) ne s'applique qu'au premier rendu,
+      // où la seule option est "Chargement…" — la présélection serait
+      // sinon ignorée.
+      key={listings ? "ready" : "loading"}
+      name="guestyListingId"
+      defaultValue={initialValue}
+      className={inputClass}
+      disabled={!listings}
+    >
+      <option value="">{listings ? "Non renseigné" : "Chargement…"}</option>
+      {listings?.map((listing) => (
+        <option key={listing.id} value={listing.id}>
+          {listing.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export function DataTab({
   propertyId,
+  propertyReference,
   cleaningProviders,
   propertyData,
 }: {
   propertyId: string;
+  propertyReference: string;
   cleaningProviders: CleaningProvider[];
   propertyData: PropertyData | null;
 }) {
@@ -151,13 +214,12 @@ export function DataTab({
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73]">ID Listing Guesty (optionnel)</label>
-                <input
-                  name="guestyListingId"
-                  defaultValue={propertyData?.guestyListingId ?? ""}
-                  placeholder="Auto (par référence)"
-                  className={inputClass}
-                />
+                <label className="block text-[12px] font-medium text-[#6e6e73]">ID Listing Guesty</label>
+                <GuestyListingSelect propertyReference={propertyReference} defaultValue={propertyData?.guestyListingId ?? ""} />
+                <p className="mt-1 text-[12px] text-black/35">
+                  Si plusieurs annonces existent pour ce bien (ex. « 14ECO » et « 14ECO1 »), choisissez la
+                  principale.
+                </p>
               </div>
               <div className="sm:col-span-2">
                 <SaveStatus pending={pending} error={error} success={success} />

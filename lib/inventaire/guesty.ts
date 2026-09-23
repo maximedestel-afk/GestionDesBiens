@@ -65,17 +65,19 @@ async function guestyFetch<T>(path: string, init: RequestInit = {}): Promise<T> 
   return response.json() as Promise<T>;
 }
 
-interface GuestyListingOption {
+export interface GuestyListingOption {
   id: string;
   name: string;
 }
 
-/** Toutes les annonces Guesty (nickname ou titre), pour retrouver celle
- * dont le nom correspond à la référence d'un bien — voir
- * findGuestyListingIdByReference. Format de réponse Guesty (`results` +
- * `count`) déduit de la documentation publique, pas encore vérifié en
- * conditions réelles. */
-async function listGuestyListingOptions(): Promise<GuestyListingOption[]> {
+/** Toutes les annonces Guesty (nickname ou titre) — utilisé à la fois pour
+ * le menu déroulant "ID Listing Guesty" de l'onglet DATA (un bien peut
+ * avoir plusieurs annonces, ex. "14ECO" et "14ECO1" : l'admin choisit
+ * laquelle est la principale) et pour retrouver automatiquement celle dont
+ * le nom correspond à la référence d'un bien (findGuestyListingIdByReference).
+ * Format de réponse Guesty (`results` + `count`) déduit de la
+ * documentation publique, pas encore vérifié en conditions réelles. */
+export async function listGuestyListingOptions(): Promise<GuestyListingOption[]> {
   const options: GuestyListingOption[] = [];
   let skip = 0;
   const limit = 100;
@@ -90,7 +92,7 @@ async function listGuestyListingOptions(): Promise<GuestyListingOption[]> {
     skip += limit;
     if (rows.length < limit || (res.count !== undefined && skip >= res.count)) break;
   }
-  return options;
+  return options.sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
 
 /** Trouve l'annonce Guesty dont le nom (nickname) correspond exactement à
