@@ -50,7 +50,11 @@ async function getAccessToken(): Promise<string> {
 
 async function guestyFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = await getAccessToken();
-  const response = await fetch(new URL(path, API_BASE_URL), {
+  // Concaténation simple plutôt que `new URL(path, API_BASE_URL)` : avec un
+  // `path` commençant par "/", la résolution WHATWG ignore le "/v1" de la
+  // base (elle repart de la racine du domaine) — bug réel constaté en
+  // production (404 "no Route matched").
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -82,9 +86,12 @@ export async function listGuestyListingOptions(): Promise<GuestyListingOption[]>
   let skip = 0;
   const limit = 100;
   for (;;) {
-    const res = await guestyFetch<{ results?: unknown[]; data?: unknown[]; count?: number }>(
-      `/listings?limit=${limit}&skip=${skip}&fields=_id nickname title`
-    );
+    const query = new URLSearchParams({
+      limit: String(limit),
+      skip: String(skip),
+      fields: "_id nickname title",
+    });
+    const res = await guestyFetch<{ results?: unknown[]; data?: unknown[]; count?: number }>(`/listings?${query}`);
     const rows = (res.results ?? res.data ?? []) as { _id: string; nickname?: string; title?: string }[];
     for (const row of rows) {
       options.push({ id: row._id, name: row.nickname || row.title || row._id });
