@@ -1,18 +1,18 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getGuestyCleaningRate } from "@/lib/inventaire/guesty";
+import { getGuestyCleaningFee, getGuestyCleaningRate } from "@/lib/inventaire/guesty";
 
 /** Reçoit les notifications Guesty (listing.updated) pour synchroniser
- * property_data.cleaning_rate quand le champ personnalisé "cleaning_rate"
- * est modifié directement dans Guesty. Vérifié par un secret partagé dans
- * l'URL (GUESTY_WEBHOOK_SECRET) plutôt qu'une signature Guesty — plus
- * simple et fonctionne quel que soit le mécanisme de signature exact de
- * Guesty (non vérifié en conditions réelles au moment du développement).
+ * property_data.cleaning_rate et property_data.guesty_cleaning_fee quand
+ * l'annonce est modifiée directement dans Guesty. Vérifié par un secret
+ * partagé dans l'URL (GUESTY_WEBHOOK_SECRET) plutôt qu'une signature
+ * Guesty — plus simple et fonctionne quel que soit le mécanisme de
+ * signature exact de Guesty (non vérifié en conditions réelles au moment
+ * du développement).
  *
- * Ne fait pas confiance au contenu exact du payload webhook pour la
- * valeur du champ personnalisé (forme non garantie) : une fois l'annonce
- * identifiée, la valeur est relue directement depuis Guesty (GET
- * /listings/:id/custom-fields), plus fiable. */
+ * Ne fait pas confiance au contenu exact du payload webhook pour les
+ * valeurs (forme non garantie) : une fois l'annonce identifiée, les
+ * valeurs sont relues directement depuis Guesty, plus fiable. */
 export async function POST(request: Request) {
   const url = new URL(request.url);
   const secret = process.env.GUESTY_WEBHOOK_SECRET;
@@ -45,10 +45,12 @@ export async function POST(request: Request) {
 
   try {
     const cleaningRate = await getGuestyCleaningRate(listingId);
+    const cleaningFee = await getGuestyCleaningFee(listingId);
     await supabase
       .from("property_data")
       .update({
         cleaning_rate: cleaningRate,
+        guesty_cleaning_fee: cleaningFee,
         guesty_last_synced_at: new Date().toISOString(),
         guesty_last_sync_error: null,
       })
@@ -56,7 +58,7 @@ export async function POST(request: Request) {
 
     revalidatePath(`/inventaire/biens/${propertyData.property_id}`);
 
-    return Response.json({ ok: true, propertyId: propertyData.property_id, cleaningRate });
+    return Response.json({ ok: true, propertyId: propertyData.property_id, cleaningRate, cleaningFee });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur de synchronisation Guesty.";
     await supabase.from("property_data").update({ guesty_last_sync_error: message }).eq("property_id", propertyData.property_id);

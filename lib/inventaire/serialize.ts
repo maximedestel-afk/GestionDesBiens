@@ -170,6 +170,7 @@ export function serializePropertyData(row: any): PropertyData {
     cleaningProviderId: row.cleaning_provider_id,
     guestyListingId: row.guesty_listing_id,
     cleaningRate: row.cleaning_rate,
+    guestyCleaningFee: row.guesty_cleaning_fee,
     guestyLastSyncedAt: row.guesty_last_synced_at,
     guestyLastSyncError: row.guesty_last_sync_error,
   };

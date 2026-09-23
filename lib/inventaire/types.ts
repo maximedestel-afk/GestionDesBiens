@@ -167,6 +167,7 @@ export interface PropertyData {
   cleaningProviderId: string | null;
   guestyListingId: string | null;
   cleaningRate: number | null;
+  guestyCleaningFee: number | null;
   guestyLastSyncedAt: string | null;
   guestyLastSyncError: string | null;
 }
