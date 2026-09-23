@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { unstable_rethrow } from "next/navigation";
-import type { CleaningProvider, PropertyData } from "@/lib/inventaire/types";
-import { addCleaningProvider, saveCleaningProvider, saveGuestyData, testGuestyConnection } from "@/lib/inventaire/actions";
+import type { CleaningProvider, PropertyData, PropertyFinanceSettings } from "@/lib/inventaire/types";
+import {
+  addCleaningProvider,
+  savePropertyFinanceSettings,
+  saveCleaningProvider,
+  saveGuestyData,
+  testGuestyConnection,
+} from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
-
-interface GuestyListingOption {
-  id: string;
-  name: string;
-}
 
 const inputClass =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
@@ -55,74 +56,21 @@ function TestConnectionButton({ propertyId }: { propertyId: string }) {
   );
 }
 
-function GuestyListingSelect({ propertyReference, defaultValue }: { propertyReference: string; defaultValue: string }) {
-  const [listings, setListings] = useState<GuestyListingOption[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/inventaire/guesty-listings")
-      .then((res) => res.json())
-      .then((json) => {
-        if (cancelled) return;
-        if (json.error) setError(json.error);
-        else setListings(json.data as GuestyListingOption[]);
-      })
-      .catch(() => {
-        if (!cancelled) setError("Impossible de charger les annonces Guesty.");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Pré-sélectionne l'annonce dont le nom correspond exactement à la
-  // référence du bien, tant qu'aucun ID n'est déjà enregistré — utile
-  // pour le cas courant (une seule annonce par bien) ; quand plusieurs
-  // annonces existent pour le même bien (ex. "14ECO" et "14ECO1"),
-  // l'admin choisit la bonne dans le menu.
-  const normalizedRef = propertyReference.trim().toLowerCase();
-  const autoMatch = listings?.find((listing) => listing.name.trim().toLowerCase() === normalizedRef);
-  const initialValue = defaultValue || autoMatch?.id || "";
-
-  if (error) {
-    return <p className="text-[13px] text-red-600">{error}</p>;
-  }
-
-  return (
-    <select
-      // Force le remontage une fois les annonces chargées : sinon
-      // `defaultValue` (non contrôlé) ne s'applique qu'au premier rendu,
-      // où la seule option est "Chargement…" — la présélection serait
-      // sinon ignorée.
-      key={listings ? "ready" : "loading"}
-      name="guestyListingId"
-      defaultValue={initialValue}
-      className={inputClass}
-      disabled={!listings}
-    >
-      <option value="">{listings ? "Non renseigné" : "Chargement…"}</option>
-      {listings?.map((listing) => (
-        <option key={listing.id} value={listing.id}>
-          {listing.name}
-        </option>
-      ))}
-    </select>
-  );
-}
-
 export function DataTab({
   propertyId,
-  propertyReference,
   cleaningProviders,
   propertyData,
+  financeSettings,
 }: {
   propertyId: string;
-  propertyReference: string;
   cleaningProviders: CleaningProvider[];
   propertyData: PropertyData | null;
+  financeSettings: PropertyFinanceSettings | null;
 }) {
   const [addingProvider, setAddingProvider] = useState(false);
+  const [extraReferences, setExtraReferences] = useState<string[]>(
+    financeSettings?.extraVrplatformReferences ?? []
+  );
 
   return (
     <div className="space-y-6">
@@ -193,15 +141,14 @@ export function DataTab({
       <fieldset className="card p-5">
         <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Coût du ménage (Guesty)</legend>
         <p className="mt-1 text-[13px] text-[#6e6e73]">
-          Synchronisé dans les deux sens avec le champ « cleaning_rate » de l&apos;annonce Guesty
-          correspondante (retrouvée automatiquement par référence si l&apos;ID n&apos;est pas renseigné
-          ci-dessous). MGB → Guesty est immédiat (à chaque enregistrement) ; Guesty → MGB est vérifié
-          une fois par jour (limite du plan Vercel actuel).
+          Synchronisé dans les deux sens avec le champ « cleaning_rate » de l&apos;annonce Guesty dont le
+          nom correspond à la référence de ce bien. MGB → Guesty est immédiat (à chaque enregistrement) ;
+          Guesty → MGB est vérifié une fois par jour (limite du plan Vercel actuel).
         </p>
-        <ActionForm className="mt-3 grid gap-3 sm:grid-cols-2" autoSave action={(formData) => saveGuestyData(propertyId, formData)}>
+        <ActionForm className="mt-3" autoSave action={(formData) => saveGuestyData(propertyId, formData)}>
           {({ pending, error, success }) => (
             <>
-              <div>
+              <div className="max-w-xs">
                 <label className="block text-[12px] font-medium text-[#6e6e73]">Coût du ménage (€)</label>
                 <input
                   name="cleaningRate"
@@ -213,15 +160,7 @@ export function DataTab({
                   className={inputClass}
                 />
               </div>
-              <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73]">ID Listing Guesty</label>
-                <GuestyListingSelect propertyReference={propertyReference} defaultValue={propertyData?.guestyListingId ?? ""} />
-                <p className="mt-1 text-[12px] text-black/35">
-                  Si plusieurs annonces existent pour ce bien (ex. « 14ECO » et « 14ECO1 »), choisissez la
-                  principale.
-                </p>
-              </div>
-              <div className="sm:col-span-2">
+              <div className="mt-1">
                 <SaveStatus pending={pending} error={error} success={success} />
               </div>
             </>
@@ -240,6 +179,60 @@ export function DataTab({
         )}
 
         <TestConnectionButton propertyId={propertyId} />
+      </fieldset>
+
+      <fieldset className="card p-5">
+        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Regroupement VRPlatform</legend>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Certains biens correspondent à plusieurs listings VRPlatform distincts (ex. « 14ECO », « 14ECO 1 »,
+          « 14ECO 2 ») — ajoutez ici leurs références pour les additionner dans l&apos;onglet Finances.
+        </p>
+        <ActionForm className="mt-3 space-y-3" action={(formData) => savePropertyFinanceSettings(propertyId, formData)}>
+          {({ pending, error, success }) => (
+            <>
+              <div className="space-y-2">
+                {extraReferences.length === 0 && (
+                  <p className="text-[13px] text-[#6e6e73]">Aucune référence supplémentaire.</p>
+                )}
+                {extraReferences.map((reference, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      name="extraVrplatformReferences"
+                      type="text"
+                      value={reference}
+                      onChange={(e) =>
+                        setExtraReferences((refs) => refs.map((r, i) => (i === index ? e.target.value : r)))
+                      }
+                      placeholder="ex. 14ECO 1"
+                      className="w-full min-w-[220px] rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setExtraReferences((refs) => refs.filter((_, i) => i !== index))}
+                      aria-label="Supprimer cette référence"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-black/10 text-[#6e6e73] transition hover:bg-black/[0.04]"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setExtraReferences((refs) => [...refs, ""])}
+                  className="btn-secondary btn-sm"
+                >
+                  + Ajouter une référence
+                </button>
+                <button type="submit" className="btn-secondary btn-sm">
+                  Enregistrer
+                </button>
+                <SaveStatus pending={pending} error={error} success={success} />
+              </div>
+            </>
+          )}
+        </ActionForm>
       </fieldset>
     </div>
   );

@@ -341,9 +341,9 @@ export function PropertyTabs({
         {activeTab === "data" && (
           <DataTab
             propertyId={property.id}
-            propertyReference={property.reference}
             cleaningProviders={cleaningProviders}
             propertyData={propertyData}
+            financeSettings={financeSettings}
           />
         )}
         {activeTab === "agencement" && (
@@ -394,7 +394,7 @@ export function PropertyTabs({
           />
         )}
         {activeTab === "finances" && isAdmin && (
-          <FinanceTab propertyId={property.id} owner={owner} financeSettings={financeSettings} />
+          <FinanceTab propertyId={property.id} owner={owner} />
         )}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
