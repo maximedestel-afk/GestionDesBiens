@@ -149,49 +149,99 @@ export async function findGuestyListingIdByReference(reference: string): Promise
   return match?.id ?? null;
 }
 
-interface RawCustomField {
+/** Sort le tableau d'un envelope Guesty {results:[...]} / {data:[...]} —
+ * ou renvoie directement le tableau si la réponse en est déjà un (constaté
+ * en production pour /listings/{id}/custom-fields, qui renvoie un tableau
+ * brut de {fieldId, value} sans enveloppe). */
+function unwrapArray(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === "object") {
+    const obj = raw as { results?: unknown[]; data?: unknown[] };
+    return obj.results ?? obj.data ?? [];
+  }
+  return [];
+}
+
+interface RawCustomFieldValue {
   fieldId?: string;
   _id?: string;
   id?: string;
-  name?: string;
-  key?: string;
   value?: unknown;
 }
 
-/** La réponse Guesty pour les champs personnalisés d'une annonce peut être
- * un tableau d'objets {fieldId, name, value} ou un objet {clé: valeur} —
- * gère les deux formes plutôt que de supposer une forme précise. */
-function extractCustomField(raw: unknown, fieldKey: string): { id: string | null; value: unknown } | null {
-  if (Array.isArray(raw)) {
-    const match = (raw as RawCustomField[]).find(
-      (f) => f.name === fieldKey || f.key === fieldKey || f.fieldId === fieldKey
-    );
-    if (!match) return null;
-    return { id: match.fieldId ?? match._id ?? match.id ?? null, value: match.value };
-  }
-  if (raw && typeof raw === "object" && fieldKey in (raw as Record<string, unknown>)) {
-    return { id: fieldKey, value: (raw as Record<string, unknown>)[fieldKey] };
-  }
-  return null;
+interface RawCustomFieldDefinition {
+  _id?: string;
+  id?: string;
+  name?: string;
+  fieldName?: string;
+  key?: string;
+  title?: string;
+  label?: string;
+}
+
+/** accountId Guesty associé aux identifiants configurés — nécessaire pour
+ * lister les définitions de champs personnalisés du compte (voir
+ * resolveCleaningRateFieldId). Lu depuis n'importe quelle annonce
+ * existante : accountId est un champ standard de l'objet listing. */
+async function getGuestyAccountId(): Promise<string> {
+  const res = await guestyFetch<unknown>(`/listings?limit=1&fields=accountId`);
+  const rows = unwrapArray(res) as { accountId?: string }[];
+  const accountId = rows[0]?.accountId;
+  if (!accountId) throw new Error("Impossible de retrouver l'identifiant du compte Guesty (accountId).");
+  return accountId;
+}
+
+// Mis en cache le temps de l'instance serverless (perdu à chaque cold
+// start, comme cachedToken) : ce mapping nom → fieldId ne change pas
+// d'un appel à l'autre, pas besoin de le résoudre à chaque fois.
+let cachedCleaningRateFieldId: string | null = null;
+
+/** Résout l'identifiant interne (ObjectId Guesty) du champ personnalisé
+ * "cleaning_rate" à partir de son nom. La réponse Guesty pour les champs
+ * personnalisés d'une annonce (/listings/{id}/custom-fields) ne contient
+ * que des paires {fieldId, value} sans nom lisible (constaté en
+ * production) — il faut donc croiser avec les définitions de champs du
+ * compte (/accounts/{accountId}/custom-fields), qui elles associent
+ * chaque fieldId à son nom. */
+async function resolveCleaningRateFieldId(): Promise<string | null> {
+  if (cachedCleaningRateFieldId) return cachedCleaningRateFieldId;
+
+  const accountId = await getGuestyAccountId();
+  const raw = await guestyFetch<unknown>(`/accounts/${accountId}/custom-fields`);
+  const definitions = unwrapArray(raw) as RawCustomFieldDefinition[];
+
+  const match = definitions.find((def) => {
+    const name = def.name ?? def.fieldName ?? def.key ?? def.title ?? def.label;
+    return typeof name === "string" && name.trim().toLowerCase() === CLEANING_RATE_FIELD_KEY;
+  });
+  const fieldId = match?._id ?? match?.id ?? null;
+  if (fieldId) cachedCleaningRateFieldId = fieldId;
+  return fieldId;
 }
 
 /** Valeur actuelle du champ personnalisé "cleaning_rate" d'une annonce
- * Guesty (null si l'annonce n'a pas ce champ renseigné). */
+ * Guesty (null si l'annonce n'a pas ce champ renseigné, ou si le champ
+ * n'existe pas sur le compte). */
 export async function getGuestyCleaningRate(listingId: string): Promise<number | null> {
+  const fieldId = await resolveCleaningRateFieldId();
+  if (!fieldId) return null;
+
   const raw = await guestyFetch<unknown>(`/listings/${listingId}/custom-fields`);
-  const field = extractCustomField(raw, CLEANING_RATE_FIELD_KEY);
-  if (!field || field.value === null || field.value === undefined) return null;
-  const num = Number(field.value);
+  const values = unwrapArray(raw) as RawCustomFieldValue[];
+  const match = values.find((v) => (v.fieldId ?? v._id ?? v.id) === fieldId);
+  if (!match || match.value === null || match.value === undefined) return null;
+  const num = Number(match.value);
   return Number.isFinite(num) ? num : null;
 }
 
-/** Diagnostic : réponse brute de Guesty pour les champs personnalisés
- * d'une annonce — utilisé quand "cleaning_rate" n'est pas trouvé par
- * extractCustomField, pour voir la forme réelle de la réponse (jamais
- * vérifiée en conditions réelles avant ce diagnostic) et ajuster
+/** Diagnostic : réponse brute de Guesty pour les définitions de champs
+ * personnalisés du compte — utilisé quand "cleaning_rate" n'est pas
+ * retrouvé par resolveCleaningRateFieldId, pour voir la forme réelle de
+ * la réponse (jamais vérifiée en conditions réelles) et ajuster
  * l'extraction si besoin. */
-export async function getGuestyRawCustomFields(listingId: string): Promise<unknown> {
-  return guestyFetch<unknown>(`/listings/${listingId}/custom-fields`);
+export async function getGuestyRawCustomFieldDefinitions(): Promise<unknown> {
+  const accountId = await getGuestyAccountId();
+  return guestyFetch<unknown>(`/accounts/${accountId}/custom-fields`);
 }
 
 /** Crée l'abonnement webhook Guesty → MGB (voir page API, section Guesty).
