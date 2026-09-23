@@ -248,20 +248,37 @@ export async function getGuestyCleaningRate(listingId: string): Promise<number |
   return Number.isFinite(num) ? num : null;
 }
 
+interface RawListingPrices {
+  prices?: { cleaningFee?: unknown };
+}
+
+/** Prix du ménage facturé au voyageur (champ standard Guesty
+ * prices.cleaningFee — distinct du champ personnalisé "cleaning_rate", qui
+ * est le coût payé au prestataire). Null si l'annonce n'a pas ce champ
+ * renseigné. */
+export async function getGuestyCleaningFee(listingId: string): Promise<number | null> {
+  const raw = await guestyFetch<RawListingPrices>(`/listings/${listingId}?fields=prices.cleaningFee`);
+  const fee = raw?.prices?.cleaningFee;
+  const num = Number(fee);
+  return typeof fee !== "undefined" && fee !== null && Number.isFinite(num) ? num : null;
+}
+
 export interface GuestyCleaningRateSyncResult {
   propertyId: string;
   listingId: string | null;
   rate: number | null;
+  fee: number | null;
   error: string | null;
 }
 
-/** Synchronise le coût du ménage de plusieurs biens en un seul passage —
- * un seul appel de liste des annonces Guesty (pas un par bien, ce qui
- * multiplierait les appels API et le risque de limite de débit), puis un
- * appel /custom-fields par bien effectivement lié à une annonce. Utilisé
- * par le cron quotidien pour couvrir tous les biens sans qu'un premier
- * clic manuel sur "Actualiser depuis Guesty" soit nécessaire. Une erreur
- * sur un bien n'interrompt pas les suivants. */
+/** Synchronise le coût du ménage (custom field) et le prix du ménage
+ * facturé au voyageur (prices.cleaningFee) de plusieurs biens en un seul
+ * passage — un seul appel de liste des annonces Guesty (pas un par bien,
+ * ce qui multiplierait les appels API et le risque de limite de débit),
+ * puis deux appels par bien effectivement lié à une annonce. Utilisé par
+ * le cron quotidien pour couvrir tous les biens sans qu'un premier clic
+ * manuel sur "Actualiser depuis Guesty" soit nécessaire. Une erreur sur un
+ * bien n'interrompt pas les suivants. */
 export async function syncAllGuestyCleaningRates(
   properties: { id: string; reference: string }[]
 ): Promise<GuestyCleaningRateSyncResult[]> {
@@ -271,17 +288,19 @@ export async function syncAllGuestyCleaningRates(
   for (const property of properties) {
     const listingId = matchGuestyListingId(listings, property.reference);
     if (!listingId) {
-      results.push({ propertyId: property.id, listingId: null, rate: null, error: null });
+      results.push({ propertyId: property.id, listingId: null, rate: null, fee: null, error: null });
       continue;
     }
     try {
       const rate = await getGuestyCleaningRate(listingId);
-      results.push({ propertyId: property.id, listingId, rate, error: null });
+      const fee = await getGuestyCleaningFee(listingId);
+      results.push({ propertyId: property.id, listingId, rate, fee, error: null });
     } catch (e) {
       results.push({
         propertyId: property.id,
         listingId,
         rate: null,
+        fee: null,
         error: e instanceof Error ? e.message : "Erreur de synchronisation Guesty.",
       });
     }

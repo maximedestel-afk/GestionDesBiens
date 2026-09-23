@@ -14,6 +14,7 @@ import { decodeCsvBuffer, normalizeHeader, parseCsv } from "./csv";
 import {
   createGuestyWebhook,
   findGuestyListingIdByReference,
+  getGuestyCleaningFee,
   getGuestyCleaningRate,
   getGuestyRawCustomFieldDefinitions,
   isGuestyConfigured,
@@ -1177,15 +1178,17 @@ export async function addCleaningProvider(propertyId: string, formData: FormData
   revalidateProperty(propertyId);
 }
 
-/** Actualise le coût du ménage depuis Guesty (lecture seule — MGB ne
- * modifie plus rien côté Guesty) : retrouve l'annonce par la référence du
- * bien (ex. bien "14ECO" ↔ annonce Guesty "14ECO") et copie la valeur du
- * champ personnalisé "cleaning_rate" dans property_data.cleaning_rate.
- * Utilisé par le bouton "Actualiser depuis Guesty" (page DATA) et par le
- * cron quotidien. Remonte l'erreur brute de Guesty en cas d'échec, et met
- * toujours à jour guesty_last_sync_error / guesty_last_synced_at pour que
- * le statut affiché ne reste jamais bloqué sur une ancienne erreur
- * corrigée depuis sans qu'une actualisation ne l'ait rafraîchi. */
+/** Actualise le coût du ménage et le prix du ménage facturé au voyageur
+ * depuis Guesty (lecture seule — MGB ne modifie plus rien côté Guesty) :
+ * retrouve l'annonce par la référence du bien (ex. bien "14ECO" ↔ annonce
+ * Guesty "14ECO") et copie la valeur du champ personnalisé "cleaning_rate"
+ * dans property_data.cleaning_rate, et celle de prices.cleaningFee dans
+ * property_data.guesty_cleaning_fee. Utilisé par le bouton "Actualiser
+ * depuis Guesty" (page DATA) et par le cron quotidien. Remonte l'erreur
+ * brute de Guesty en cas d'échec, et met toujours à jour
+ * guesty_last_sync_error / guesty_last_synced_at pour que le statut
+ * affiché ne reste jamais bloqué sur une ancienne erreur corrigée depuis
+ * sans qu'une actualisation ne l'ait rafraîchi. */
 export async function refreshGuestyCleaningRate(propertyId: string): Promise<string> {
   const supabase = await createClient();
   await requireUser(supabase);
@@ -1200,11 +1203,13 @@ export async function refreshGuestyCleaningRate(propertyId: string): Promise<str
     if (!listingId) throw new Error(`Aucune annonce Guesty trouvée pour la référence « ${property.reference} ».`);
 
     const rate = await getGuestyCleaningRate(listingId);
+    const fee = await getGuestyCleaningFee(listingId);
 
     await supabase
       .from("property_data")
       .update({
         cleaning_rate: rate,
+        guesty_cleaning_fee: fee,
         guesty_listing_id: listingId,
         guesty_last_synced_at: new Date().toISOString(),
         guesty_last_sync_error: null,
@@ -1212,8 +1217,8 @@ export async function refreshGuestyCleaningRate(propertyId: string): Promise<str
       .eq("property_id", propertyId);
     revalidateProperty(propertyId);
 
-    if (rate !== null) {
-      return `Coût du ménage actualisé depuis Guesty (annonce « ${property.reference} ») : ${rate}.`;
+    if (rate !== null || fee !== null) {
+      return `Actualisé depuis Guesty (annonce « ${property.reference} ») : coût du ménage ${rate ?? "non renseigné"}, prix facturé au voyageur ${fee ?? "non renseigné"}.`;
     }
 
     // Diagnostic : le fieldId "cleaning_rate" n'a pas été résolu — on
@@ -1227,7 +1232,7 @@ export async function refreshGuestyCleaningRate(propertyId: string): Promise<str
     } catch {
       // best-effort, on n'échoue pas l'actualisation pour ça
     }
-    return `Connexion réussie (annonce « ${property.reference} »), mais le champ "cleaning_rate" est vide ou introuvable sur Guesty.${debugSuffix}`;
+    return `Connexion réussie (annonce « ${property.reference} »), mais ni "cleaning_rate" ni le prix facturé au voyageur ne sont renseignés sur Guesty.${debugSuffix}`;
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur de synchronisation Guesty.";
     await supabase.from("property_data").update({ guesty_last_sync_error: message }).eq("property_id", propertyId);
@@ -1274,7 +1279,7 @@ export async function syncAllGuestyCleaningRatesNow(): Promise<string> {
   let skipped = 0;
   const now = new Date().toISOString();
 
-  for (const { propertyId, listingId, rate, error: syncError } of results) {
+  for (const { propertyId, listingId, rate, fee, error: syncError } of results) {
     if (!listingId) {
       skipped++;
       continue;
@@ -1288,6 +1293,7 @@ export async function syncAllGuestyCleaningRatesNow(): Promise<string> {
       {
         property_id: propertyId,
         cleaning_rate: rate,
+        guesty_cleaning_fee: fee,
         guesty_listing_id: listingId,
         guesty_last_synced_at: now,
         guesty_last_sync_error: null,

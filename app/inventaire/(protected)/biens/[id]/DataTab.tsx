@@ -189,18 +189,30 @@ export function DataTab({
       </fieldset>
 
       <fieldset className="card p-5">
-        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Coût du ménage (Guesty)</legend>
+        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Ménage (Guesty)</legend>
         <p className="mt-1 text-[13px] text-[#6e6e73]">
-          Valeur lue depuis le champ « cleaning_rate » de l&apos;annonce Guesty dont le nom correspond à la
-          référence de ce bien (lecture seule — MGB ne modifie rien côté Guesty). Actualisée automatiquement
-          une fois par jour, ou manuellement ci-dessous.
+          Valeurs lues depuis l&apos;annonce Guesty dont le nom correspond à la référence de ce bien
+          (lecture seule — MGB ne modifie rien côté Guesty). Actualisées automatiquement une fois par
+          jour, ou manuellement ci-dessous.
         </p>
 
-        <div className="mt-3 max-w-xs">
-          <label className="block text-[12px] font-medium text-[#6e6e73]">Coût du ménage (€)</label>
-          <p className="mt-1 text-[15px] text-[#1d1d1f]">
-            {propertyData?.cleaningRate ?? "Non renseigné"}
-          </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-[12px] font-medium text-[#6e6e73]">
+              Coût du ménage — prestataire (€)
+            </label>
+            <p className="mt-1 text-[15px] text-[#1d1d1f]">
+              {propertyData?.cleaningRate ?? "Non renseigné"}
+            </p>
+          </div>
+          <div>
+            <label className="block text-[12px] font-medium text-[#6e6e73]">
+              Prix du ménage facturé au voyageur (€)
+            </label>
+            <p className="mt-1 text-[15px] text-[#1d1d1f]">
+              {propertyData?.guestyCleaningFee ?? "Non renseigné"}
+            </p>
+          </div>
         </div>
 
         {propertyData?.guestyLastSyncError && (

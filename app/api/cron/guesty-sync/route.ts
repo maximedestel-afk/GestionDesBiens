@@ -2,14 +2,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isGuestyConfigured, syncAllGuestyCleaningRates } from "@/lib/inventaire/guesty";
 
 /** Synchronisation quotidienne (Vercel Cron, voir vercel.json) du coût du
- * ménage depuis Guesty pour tous les biens — retrouve l'annonce Guesty
- * correspondante par référence à chaque passage (pas seulement pour les
- * biens déjà liés manuellement), pour que le champ soit renseigné sans
- * action de l'utilisateur. Solution de repli pour la synchronisation
- * Guesty → MGB, le compte Guesty de l'équipe n'ayant pas accès à la
- * création de webhooks (scope "endpoint:Create" indisponible, y compris
- * depuis l'interface native de Guesty). Sécurisé par CRON_SECRET (en-tête
- * Authorization ajouté automatiquement par Vercel Cron). */
+ * ménage et du prix du ménage facturé au voyageur depuis Guesty pour tous
+ * les biens — retrouve l'annonce Guesty correspondante par référence à
+ * chaque passage (pas seulement pour les biens déjà liés manuellement),
+ * pour que les champs soient renseignés sans action de l'utilisateur.
+ * Solution de repli pour la synchronisation Guesty → MGB, le compte
+ * Guesty de l'équipe n'ayant pas accès à la création de webhooks (scope
+ * "endpoint:Create" indisponible, y compris depuis l'interface native de
+ * Guesty). Sécurisé par CRON_SECRET (en-tête Authorization ajouté
+ * automatiquement par Vercel Cron). */
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
     );
   }
 
-  for (const { propertyId, listingId, rate, error: syncError } of results) {
+  for (const { propertyId, listingId, rate, fee, error: syncError } of results) {
     if (!listingId) {
       skipped++;
       continue;
@@ -54,6 +55,7 @@ export async function GET(request: Request) {
       {
         property_id: propertyId,
         cleaning_rate: rate,
+        guesty_cleaning_fee: fee,
         guesty_listing_id: listingId,
         guesty_last_synced_at: now,
         guesty_last_sync_error: null,
