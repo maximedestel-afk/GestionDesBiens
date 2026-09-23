@@ -1,6 +1,7 @@
-// Intégration Guesty (onglet DATA > Coût du ménage) : synchronisation
-// bidirectionnelle du champ personnalisé Guesty "cleaning_rate" avec
-// property_data.cleaning_rate. Authentification OAuth2 (client
+// Intégration Guesty (onglet DATA > Coût du ménage) : lecture seule —
+// property_data.cleaning_rate est un miroir du champ personnalisé Guesty
+// "cleaning_rate" (annonce retrouvée par référence du bien). MGB ne
+// modifie jamais rien côté Guesty. Authentification OAuth2 (client
 // credentials) — jamais depuis le client, ces identifiants ne doivent
 // jamais être exposés au navigateur.
 //
@@ -182,20 +183,6 @@ export async function getGuestyCleaningRate(listingId: string): Promise<number |
   if (!field || field.value === null || field.value === undefined) return null;
   const num = Number(field.value);
   return Number.isFinite(num) ? num : null;
-}
-
-/** Pousse la nouvelle valeur du coût du ménage sur l'annonce Guesty
- * correspondante — résout d'abord l'identifiant interne du champ
- * personnalisé (fieldId), sinon retente avec la clé elle-même. */
-export async function setGuestyCleaningRate(listingId: string, value: number | null): Promise<void> {
-  const raw = await guestyFetch<unknown>(`/listings/${listingId}/custom-fields`);
-  const field = extractCustomField(raw, CLEANING_RATE_FIELD_KEY);
-  const fieldId = field?.id ?? CLEANING_RATE_FIELD_KEY;
-
-  await guestyFetch(`/listings/${listingId}/custom-fields`, {
-    method: "PUT",
-    body: JSON.stringify({ customFields: [{ fieldId, value }] }),
-  });
 }
 
 /** Crée l'abonnement webhook Guesty → MGB (voir page API, section Guesty).

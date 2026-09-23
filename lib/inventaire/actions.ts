@@ -16,7 +16,6 @@ import {
   findGuestyListingIdByReference,
   getGuestyCleaningRate,
   isGuestyConfigured,
-  setGuestyCleaningRate,
 } from "./guesty";
 import { CSV_FIELDS, csvFieldAliases, type CsvFieldKey } from "./csvFields";
 import { getCurrentProfile, getPrestataireAllowedPropertyIds, listProperties } from "./queries";
@@ -1176,72 +1175,16 @@ export async function addCleaningProvider(propertyId: string, formData: FormData
   revalidateProperty(propertyId);
 }
 
-/** Enregistre le coût du ménage et le pousse vers Guesty (champ
- * personnalisé "cleaning_rate") — l'annonce Guesty correspondante est
- * toujours retrouvée automatiquement à partir de la référence du bien
- * (ex. bien "14ECO" ↔ annonce Guesty "14ECO"), pas d'ID à renseigner à la
- * main. L'enregistrement côté MGB réussit toujours même si la
- * synchronisation Guesty échoue (source de vérité MGB) : l'erreur est
- * alors stockée sur le bien plutôt que de faire échouer la sauvegarde. */
-export async function saveGuestyData(propertyId: string, formData: FormData) {
-  const supabase = await createClient();
-  await requireUser(supabase);
-
-  const cleaningRateRaw = optionalString(formData.get("cleaningRate"));
-  const cleaningRate = cleaningRateRaw !== null ? Number(cleaningRateRaw) : null;
-
-  const { data: existing } = await supabase
-    .from("property_data")
-    .select("cleaning_rate")
-    .eq("property_id", propertyId)
-    .maybeSingle();
-
-  await updatePropertyDetailRow(supabase, "property_data", propertyId, { cleaning_rate: cleaningRate }, !!existing);
-
-  if (existing?.cleaning_rate !== cleaningRate) {
-    await logActivity(supabase, {
-      propertyId,
-      entityType: "property_data",
-      action: "update",
-      summary: `${tabCode("data")} › Coût du ménage mis à jour`,
-    });
-  }
-
-  if (isGuestyConfigured() && cleaningRate !== null) {
-    try {
-      const { data: property } = await supabase.from("properties").select("reference").eq("id", propertyId).maybeSingle();
-      if (!property) throw new Error("Bien introuvable.");
-      const listingId = await findGuestyListingIdByReference(property.reference);
-      if (!listingId) throw new Error(`Aucune annonce Guesty trouvée pour la référence « ${property.reference} ».`);
-
-      await setGuestyCleaningRate(listingId, cleaningRate);
-      await supabase
-        .from("property_data")
-        .update({
-          guesty_listing_id: listingId,
-          guesty_last_synced_at: new Date().toISOString(),
-          guesty_last_sync_error: null,
-        })
-        .eq("property_id", propertyId);
-    } catch (e) {
-      await supabase
-        .from("property_data")
-        .update({ guesty_last_sync_error: e instanceof Error ? e.message : "Erreur de synchronisation Guesty." })
-        .eq("property_id", propertyId);
-    }
-  }
-
-  revalidateProperty(propertyId);
-}
-
-/** Diagnostic manuel (bouton "Tester la connexion", page DATA) : retrouve
- * l'annonce Guesty par la référence du bien et lit la valeur actuelle de
- * "cleaning_rate" — remonte l'erreur brute de Guesty en cas d'échec, pour
- * ajuster l'intégration au besoin. Met aussi à jour guesty_last_sync_error /
- * guesty_last_synced_at (comme saveGuestyData), pour que le statut affiché
- * sur la page ne reste jamais bloqué sur une ancienne erreur corrigée
- * depuis sans qu'un test ou un enregistrement ne l'ait rafraîchi. */
-export async function testGuestyConnection(propertyId: string): Promise<string> {
+/** Actualise le coût du ménage depuis Guesty (lecture seule — MGB ne
+ * modifie plus rien côté Guesty) : retrouve l'annonce par la référence du
+ * bien (ex. bien "14ECO" ↔ annonce Guesty "14ECO") et copie la valeur du
+ * champ personnalisé "cleaning_rate" dans property_data.cleaning_rate.
+ * Utilisé par le bouton "Actualiser depuis Guesty" (page DATA) et par le
+ * cron quotidien. Remonte l'erreur brute de Guesty en cas d'échec, et met
+ * toujours à jour guesty_last_sync_error / guesty_last_synced_at pour que
+ * le statut affiché ne reste jamais bloqué sur une ancienne erreur
+ * corrigée depuis sans qu'une actualisation ne l'ait rafraîchi. */
+export async function refreshGuestyCleaningRate(propertyId: string): Promise<string> {
   const supabase = await createClient();
   await requireUser(supabase);
 
@@ -1259,6 +1202,7 @@ export async function testGuestyConnection(propertyId: string): Promise<string> 
     await supabase
       .from("property_data")
       .update({
+        cleaning_rate: rate,
         guesty_listing_id: listingId,
         guesty_last_synced_at: new Date().toISOString(),
         guesty_last_sync_error: null,
@@ -1267,7 +1211,7 @@ export async function testGuestyConnection(propertyId: string): Promise<string> 
     revalidateProperty(propertyId);
 
     return rate !== null
-      ? `Connexion réussie. Coût du ménage actuel sur Guesty (annonce « ${property.reference} ») : ${rate}.`
+      ? `Coût du ménage actualisé depuis Guesty (annonce « ${property.reference} ») : ${rate}.`
       : `Connexion réussie (annonce « ${property.reference} »), mais le champ "cleaning_rate" est vide ou introuvable sur Guesty.`;
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur de synchronisation Guesty.";
