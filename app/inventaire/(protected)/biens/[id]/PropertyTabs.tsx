@@ -152,6 +152,14 @@ export function PropertyTabs({
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", key);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    // scroll:false désactive le scroll-to-top automatique de Next (utile
+    // pour ne pas sauter en haut de page à chaque enregistrement
+    // automatique qui revalide l'URL) — mais sans rien à la place, cliquer
+    // un onglet depuis le menu latéral laissait la page à sa position de
+    // scroll précédente, qui peut tomber n'importe où dans le nouvel
+    // onglet si son contenu a une hauteur différente. On remonte donc
+    // explicitement en haut uniquement sur un changement d'onglet délibéré.
+    window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   const propertyAttachments = attachments.filter((a) => a.entityType === "property");
