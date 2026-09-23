@@ -1106,6 +1106,9 @@ const BULK_FIELD_SOURCE: Record<string, { table: string; column: string }> = {
   has_gas: { table: "property_water_elec", column: "has_gas" },
   heating_production: { table: "property_water_elec", column: "heating_production" },
   heating_production_notes: { table: "property_water_elec", column: "heating_production_notes" },
+
+  // Data
+  cleaning_provider: { table: "property_data", column: "cleaning_provider_id" },
 };
 
 export interface BulkFieldRow {
