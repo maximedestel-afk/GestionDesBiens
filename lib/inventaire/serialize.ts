@@ -2,11 +2,13 @@ import type {
   ActivityLogEntry,
   AppDocument,
   Attachment,
+  CleaningProvider,
   Equipment,
   InventoryItem,
   Profile,
   Property,
   PropertyAgencement,
+  PropertyData,
   PropertyDetails,
   PropertyElement,
   PropertyFinanceSettings,
@@ -139,6 +141,20 @@ export function serializeWaterElec(row: any): PropertyWaterElec {
     hasGas: row.has_gas,
     heatingProduction: row.heating_production,
     heatingProductionNotes: row.heating_production_notes,
+  };
+}
+
+export function serializeCleaningProvider(row: any): CleaningProvider {
+  return {
+    id: row.id,
+    name: row.name,
+  };
+}
+
+export function serializePropertyData(row: any): PropertyData {
+  return {
+    propertyId: row.property_id,
+    cleaningProviderId: row.cleaning_provider_id,
   };
 }
 

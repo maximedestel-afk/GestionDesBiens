@@ -178,7 +178,8 @@ function optionalString(value: FormDataEntryValue | null): string | null {
 
 /**
  * Met à jour la ligne "détails d'un bien" d'une table 1-1 avec `properties`
- * (property_details, property_owner, property_agencement, property_water_elec).
+ * (property_details, property_owner, property_agencement, property_water_elec,
+ * property_data).
  * Utilise un vrai UPDATE plutôt qu'un upsert : ces tables sont éditées depuis
  * plusieurs formulaires distincts qui n'envoient chacun qu'un sous-ensemble de
  * colonnes (ex. property_details est modifiée à la fois depuis l'onglet
@@ -192,7 +193,7 @@ function optionalString(value: FormDataEntryValue | null): string | null {
  */
 async function updatePropertyDetailRow(
   supabase: SupabaseServerClient,
-  table: "property_details" | "property_owner" | "property_agencement" | "property_water_elec",
+  table: "property_details" | "property_owner" | "property_agencement" | "property_water_elec" | "property_data",
   propertyId: string,
   patch: Record<string, unknown>,
   /** true si une ligne existe déjà pour ce bien (déterminé par un SELECT
@@ -1098,6 +1099,70 @@ export async function loadStandardWaterElecElements(propertyId: string) {
     entityType: "property_element",
     action: "create",
     summary: `Éléments standards Eau/Élec chargés (${rows.length})`,
+  });
+
+  revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
+/* Data                                                                 */
+/* ------------------------------------------------------------------ */
+
+export async function saveCleaningProvider(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const cleaningProviderId = optionalString(formData.get("cleaningProviderId"));
+
+  const { data: existing } = await supabase
+    .from("property_data")
+    .select("cleaning_provider_id")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  await updatePropertyDetailRow(supabase, "property_data", propertyId, { cleaning_provider_id: cleaningProviderId }, !!existing);
+
+  if (existing?.cleaning_provider_id !== cleaningProviderId) {
+    await logActivity(supabase, {
+      propertyId,
+      entityType: "property_data",
+      action: "update",
+      summary: `${tabCode("data")} › Prestataire Ménage mis à jour`,
+    });
+  }
+
+  revalidateProperty(propertyId);
+}
+
+/** Crée un nouveau prestataire de ménage dans la liste partagée (ou
+ * réutilise celui du même nom s'il existe déjà) et l'assigne directement à
+ * ce bien. */
+export async function addCleaningProvider(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const name = requireNonEmpty(formData.get("name"), "Le nom du prestataire");
+
+  const { data: providerId, error: upsertError } = await supabase
+    .from("cleaning_providers")
+    .upsert({ name }, { onConflict: "name", ignoreDuplicates: false })
+    .select("id")
+    .single();
+  if (upsertError) throw upsertError;
+
+  const { data: existing } = await supabase
+    .from("property_data")
+    .select("cleaning_provider_id")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  await updatePropertyDetailRow(supabase, "property_data", propertyId, { cleaning_provider_id: providerId.id }, !!existing);
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "property_data",
+    action: "update",
+    summary: `${tabCode("data")} › Prestataire Ménage mis à jour`,
   });
 
   revalidateProperty(propertyId);

@@ -7,10 +7,12 @@ import {
   serializeAgencement,
   serializeAppDocument,
   serializeAttachment,
+  serializeCleaningProvider,
   serializeEquipment,
   serializeInventoryItem,
   serializeProfile,
   serializeProperty,
+  serializePropertyData,
   serializePropertyDetails,
   serializePropertyElement,
   serializePropertyFinanceSettings,
@@ -29,6 +31,7 @@ import type {
   AppDocument,
   Attachment,
   AttachmentEntityType,
+  CleaningProvider,
   ElementSection,
   Equipment,
   InventoryCategoryRow,
@@ -38,6 +41,7 @@ import type {
   Profile,
   Property,
   PropertyAgencement,
+  PropertyData,
   PropertyDetails,
   PropertyElement,
   PropertyFinanceSettings,
@@ -376,6 +380,24 @@ export async function getPropertyWaterElec(propertyId: string): Promise<Property
     .maybeSingle();
   if (error) throw error;
   return data ? serializeWaterElec(data) : null;
+}
+
+export async function listCleaningProviders(): Promise<CleaningProvider[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("cleaning_providers").select("*").order("name");
+  if (error) throw error;
+  return (data ?? []).map(serializeCleaningProvider);
+}
+
+export async function getPropertyData(propertyId: string): Promise<PropertyData | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("property_data")
+    .select("*")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? serializePropertyData(data) : null;
 }
 
 export async function getPropertyFinanceSettings(propertyId: string): Promise<PropertyFinanceSettings | null> {

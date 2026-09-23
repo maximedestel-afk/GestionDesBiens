@@ -147,6 +147,16 @@ export interface PropertyWaterElec {
   heatingProductionNotes: string | null;
 }
 
+export interface CleaningProvider {
+  id: string;
+  name: string;
+}
+
+export interface PropertyData {
+  propertyId: string;
+  cleaningProviderId: string | null;
+}
+
 export type KeyType = "guest" | "menage" | "backup" | "autre";
 export type KeyLocation = "boite_a_cle" | "locker" | "autre";
 
