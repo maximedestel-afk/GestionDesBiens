@@ -170,11 +170,13 @@ interface RawCustomFieldValue {
 }
 
 interface RawCustomFieldDefinition {
+  fieldId?: string;
   _id?: string;
   id?: string;
+  key?: string;
+  displayName?: string;
   name?: string;
   fieldName?: string;
-  key?: string;
   title?: string;
   label?: string;
 }
@@ -211,10 +213,18 @@ async function resolveCleaningRateFieldId(): Promise<string | null> {
   const definitions = unwrapArray(raw) as RawCustomFieldDefinition[];
 
   const match = definitions.find((def) => {
-    const name = def.name ?? def.fieldName ?? def.key ?? def.title ?? def.label;
+    // "key" est le nom technique constaté en production (ex. "real_address",
+    // "cleaning_rate") — les autres candidats restent en repli défensif au
+    // cas où Guesty renverrait une forme différente pour un autre type de
+    // champ personnalisé.
+    const name = def.key ?? def.displayName ?? def.name ?? def.fieldName ?? def.title ?? def.label;
     return typeof name === "string" && name.trim().toLowerCase() === CLEANING_RATE_FIELD_KEY;
   });
-  const fieldId = match?._id ?? match?.id ?? null;
+  // "fieldId" est l'identifiant constaté en production sur les définitions
+  // de champs (pas "_id"/"id") — c'est aussi le nom utilisé dans les
+  // valeurs par annonce (/listings/{id}/custom-fields), donc les deux
+  // doivent correspondre pour que getGuestyCleaningRate retrouve la valeur.
+  const fieldId = match?.fieldId ?? match?._id ?? match?.id ?? null;
   if (fieldId) cachedCleaningRateFieldId = fieldId;
   return fieldId;
 }
