@@ -6,6 +6,7 @@ import {
   getPrestataireAllowedPropertyIds,
   getProperty,
   getPropertyAgencement,
+  getPropertyData,
   getPropertyDetails,
   getPropertyFinanceSettings,
   getPropertyOwner,
@@ -14,6 +15,7 @@ import {
   listAllTags,
   listAttachmentsForProperty,
   listChecklistDismissals,
+  listCleaningProviders,
   listEquipment,
   listInventoryCategories,
   listInventoryItems,
@@ -67,6 +69,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     profiles,
     ownersDirectory,
     allTags,
+    cleaningProviders,
+    propertyData,
   ] = await Promise.all([
     getCurrentProfile(),
     getPropertyOwner(id),
@@ -95,6 +99,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     listProfiles(),
     listOwnersDirectory(id),
     listAllTags(),
+    listCleaningProviders(),
+    getPropertyData(id),
   ]);
   // Préremplit l'affichage avec les coordonnées déjà renseignées sur un
   // autre bien du même propriétaire (identifié par email ou nom+prénom) —
@@ -220,6 +226,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
         ownersDirectory={ownersDirectory}
         allowedTabs={allowedSections}
         financeSettings={financeSettings}
+        cleaningProviders={cleaningProviders}
+        propertyData={propertyData}
       />
     </div>
   );

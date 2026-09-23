@@ -6,6 +6,7 @@ import { unstable_rethrow } from "next/navigation";
 import type {
   ActivityLogEntry,
   Attachment,
+  CleaningProvider,
   Equipment,
   InventoryCategoryRow,
   InventoryItem,
@@ -13,6 +14,7 @@ import type {
   Profile,
   Property,
   PropertyAgencement,
+  PropertyData,
   PropertyDetails,
   PropertyElement,
   PropertyFinanceSettings,
@@ -41,6 +43,7 @@ import { EquipmentTab } from "./EquipmentTab";
 import { InventoryTab } from "./InventoryTab";
 import { NotesTab } from "./NotesTab";
 import { DefautsTab } from "./DefautsTab";
+import { DataTab } from "./DataTab";
 import { PhotosTab } from "./PhotosTab";
 import { DocumentsTab } from "./DocumentsTab";
 import { BailTab } from "./BailTab";
@@ -83,6 +86,8 @@ export function PropertyTabs({
   ownersDirectory,
   allowedTabs,
   financeSettings,
+  cleaningProviders,
+  propertyData,
 }: {
   property: Property;
   isAdmin: boolean;
@@ -114,6 +119,8 @@ export function PropertyTabs({
   tasks: Task[];
   profiles: Profile[];
   ownersDirectory: OwnerDirectoryEntry[];
+  cleaningProviders: CleaningProvider[];
+  propertyData: PropertyData | null;
 }) {
   const role = useUserRole();
   const isPrestataire = role === "prestataire";
@@ -330,6 +337,9 @@ export function PropertyTabs({
         )}
         {activeTab === "defauts" && (
           <DefautsTab propertyId={property.id} elements={defautElements} attachments={elementAttachments} />
+        )}
+        {activeTab === "data" && (
+          <DataTab propertyId={property.id} cleaningProviders={cleaningProviders} propertyData={propertyData} />
         )}
         {activeTab === "agencement" && (
           <AgencementTab
