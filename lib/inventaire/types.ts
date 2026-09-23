@@ -165,6 +165,10 @@ export interface CleaningProvider {
 export interface PropertyData {
   propertyId: string;
   cleaningProviderId: string | null;
+  guestyListingId: string | null;
+  cleaningRate: number | null;
+  guestyLastSyncedAt: string | null;
+  guestyLastSyncError: string | null;
 }
 
 export type KeyType = "guest" | "menage" | "backup" | "autre";
