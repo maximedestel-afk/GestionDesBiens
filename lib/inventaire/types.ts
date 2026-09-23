@@ -170,6 +170,7 @@ export interface PropertyData {
   guestyCleaningFee: number | null;
   guestyLastSyncedAt: string | null;
   guestyLastSyncError: string | null;
+  bonusFdPercent: number | null;
 }
 
 export type KeyType = "guest" | "menage" | "backup" | "autre";
