@@ -42,6 +42,7 @@ export const TOP_MENU_ITEMS = [
   { key: "menu_completer", label: "Menu — Compléter" },
   { key: "menu_journal", label: "Menu — Journal" },
   { key: "menu_acces", label: "Menu — Accès" },
+  { key: "menu_api", label: "Menu — API" },
 ] as const;
 
 /** Options combinées (onglets de bien + items du menu du haut) proposées

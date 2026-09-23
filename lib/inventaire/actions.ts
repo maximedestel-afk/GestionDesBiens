@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash, randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -2564,4 +2565,44 @@ export async function undismissChecklistItem(propertyId: string, checkKey: strin
 
   revalidatePath("/inventaire");
   revalidateProperty(propertyId);
+}
+
+/* ------------------------------------------------------------------ */
+/* Clés API (admin) — accès pour un programme externe                  */
+/* ------------------------------------------------------------------ */
+
+const API_KEY_PREFIX = "mgb_live_";
+
+/** Crée une nouvelle clé API et la retourne EN CLAIR — seule occasion où
+ * elle est visible : seul son hash (SHA-256) est stocké en base. */
+export async function createApiKey(name: string): Promise<string> {
+  const supabase = await createClient();
+  const user = await requireAdmin(supabase);
+
+  const trimmedName = name.trim();
+  if (!trimmedName) throw new Error("Le nom est requis.");
+
+  const rawKey = `${API_KEY_PREFIX}${randomBytes(32).toString("hex")}`;
+  const keyHash = createHash("sha256").update(rawKey).digest("hex");
+
+  const { error } = await supabase.from("api_keys").insert({
+    name: trimmedName,
+    key_hash: keyHash,
+    key_prefix: rawKey.slice(0, API_KEY_PREFIX.length + 8),
+    created_by_email: user.email,
+  });
+  if (error) throw error;
+
+  revalidatePath("/inventaire/api-keys");
+  return rawKey;
+}
+
+export async function revokeApiKey(id: string) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const { error } = await supabase.from("api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+
+  revalidatePath("/inventaire/api-keys");
 }

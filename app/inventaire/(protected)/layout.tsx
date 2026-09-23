@@ -57,6 +57,11 @@ export default async function ProtectedLayout({ children }: { children: React.Re
                   Accès
                 </Link>
               )}
+              {canSee("menu_api") && (
+                <Link href="/inventaire/api-keys" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
+                  API
+                </Link>
+              )}
               {profile && <span className="hidden text-[#6e6e73] sm:inline">{profile.email}</span>}
               <form action={signOut}>
                 <button type="submit" className="text-[#6e6e73] transition hover:text-[#1d1d1f]">
