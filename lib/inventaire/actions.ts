@@ -1237,25 +1237,44 @@ export async function saveGuestyData(propertyId: string, formData: FormData) {
 /** Diagnostic manuel (bouton "Tester la connexion", page DATA) : retrouve
  * l'annonce Guesty par la référence du bien et lit la valeur actuelle de
  * "cleaning_rate" — remonte l'erreur brute de Guesty en cas d'échec, pour
- * ajuster l'intégration au besoin. */
+ * ajuster l'intégration au besoin. Met aussi à jour guesty_last_sync_error /
+ * guesty_last_synced_at (comme saveGuestyData), pour que le statut affiché
+ * sur la page ne reste jamais bloqué sur une ancienne erreur corrigée
+ * depuis sans qu'un test ou un enregistrement ne l'ait rafraîchi. */
 export async function testGuestyConnection(propertyId: string): Promise<string> {
   const supabase = await createClient();
   await requireUser(supabase);
 
-  if (!isGuestyConfigured()) throw new Error("Guesty n'est pas configuré (identifiants manquants).");
+  try {
+    if (!isGuestyConfigured()) throw new Error("Guesty n'est pas configuré (identifiants manquants).");
 
-  const { data: property } = await supabase.from("properties").select("reference").eq("id", propertyId).maybeSingle();
-  if (!property) throw new Error("Bien introuvable.");
+    const { data: property } = await supabase.from("properties").select("reference").eq("id", propertyId).maybeSingle();
+    if (!property) throw new Error("Bien introuvable.");
 
-  const listingId = await findGuestyListingIdByReference(property.reference);
-  if (!listingId) throw new Error(`Aucune annonce Guesty trouvée pour la référence « ${property.reference} ».`);
+    const listingId = await findGuestyListingIdByReference(property.reference);
+    if (!listingId) throw new Error(`Aucune annonce Guesty trouvée pour la référence « ${property.reference} ».`);
 
-  await supabase.from("property_data").update({ guesty_listing_id: listingId }).eq("property_id", propertyId);
+    const rate = await getGuestyCleaningRate(listingId);
 
-  const rate = await getGuestyCleaningRate(listingId);
-  return rate !== null
-    ? `Connexion réussie. Coût du ménage actuel sur Guesty (annonce « ${property.reference} ») : ${rate}.`
-    : `Connexion réussie (annonce « ${property.reference} »), mais le champ "cleaning_rate" est vide ou introuvable sur Guesty.`;
+    await supabase
+      .from("property_data")
+      .update({
+        guesty_listing_id: listingId,
+        guesty_last_synced_at: new Date().toISOString(),
+        guesty_last_sync_error: null,
+      })
+      .eq("property_id", propertyId);
+    revalidateProperty(propertyId);
+
+    return rate !== null
+      ? `Connexion réussie. Coût du ménage actuel sur Guesty (annonce « ${property.reference} ») : ${rate}.`
+      : `Connexion réussie (annonce « ${property.reference} »), mais le champ "cleaning_rate" est vide ou introuvable sur Guesty.`;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Erreur de synchronisation Guesty.";
+    await supabase.from("property_data").update({ guesty_last_sync_error: message }).eq("property_id", propertyId);
+    revalidateProperty(propertyId);
+    throw e instanceof Error ? e : new Error(message);
+  }
 }
 
 /** Crée l'abonnement webhook Guesty → MGB (page API), pour éviter de
