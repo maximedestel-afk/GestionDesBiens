@@ -39,11 +39,21 @@ async function getAccessToken(): Promise<string> {
 
   const supabase = createAdminClient();
 
-  const { data: persisted } = await supabase
+  const { data: persisted, error: persistedError } = await supabase
     .from("guesty_token_cache")
     .select("access_token, expires_at")
     .eq("id", TOKEN_CACHE_ROW_ID)
     .maybeSingle();
+  // Erreur remontée explicitement (plutôt que silencieusement ignorée) : si
+  // la table n'existe pas encore (migration 0072 non exécutée), le cache
+  // persistant est inopérant et chaque appel redemande un jeton à Guesty
+  // jusqu'à la limite de débit (429) — sans ce garde-fou, ce cas se
+  // confondait avec un vrai 429 côté Guesty.
+  if (persistedError && persistedError.code === "42P01") {
+    throw new Error(
+      "La table guesty_token_cache n'existe pas encore : exécutez la migration 0072_guesty_token_cache.sql sur Supabase."
+    );
+  }
   if (persisted && new Date(persisted.expires_at).getTime() > Date.now() + 30_000) {
     cachedToken = { value: persisted.access_token, expiresAt: new Date(persisted.expires_at).getTime() };
     return persisted.access_token;
