@@ -1,13 +1,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getGuestyCleaningRate, isGuestyConfigured } from "@/lib/inventaire/guesty";
+import { isGuestyConfigured, syncAllGuestyCleaningRates } from "@/lib/inventaire/guesty";
 
-/** Vérification périodique (Vercel Cron, voir vercel.json) du coût du
- * ménage sur Guesty pour chaque bien avec un ID Guesty renseigné —
- * solution de repli pour la synchronisation Guesty → MGB, le compte
- * Guesty de l'équipe n'ayant pas accès à la création de webhooks (scope
- * "endpoint:Create" indisponible, y compris depuis l'interface native de
- * Guesty). Sécurisé par CRON_SECRET (en-tête Authorization ajouté
- * automatiquement par Vercel Cron). */
+/** Synchronisation quotidienne (Vercel Cron, voir vercel.json) du coût du
+ * ménage depuis Guesty pour tous les biens — retrouve l'annonce Guesty
+ * correspondante par référence à chaque passage (pas seulement pour les
+ * biens déjà liés manuellement), pour que le champ soit renseigné sans
+ * action de l'utilisateur. Solution de repli pour la synchronisation
+ * Guesty → MGB, le compte Guesty de l'équipe n'ayant pas accès à la
+ * création de webhooks (scope "endpoint:Create" indisponible, y compris
+ * depuis l'interface native de Guesty). Sécurisé par CRON_SECRET (en-tête
+ * Authorization ajouté automatiquement par Vercel Cron). */
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
@@ -20,38 +22,46 @@ export async function GET(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { data: rows, error } = await supabase
-    .from("property_data")
-    .select("property_id, guesty_listing_id, cleaning_rate")
-    .not("guesty_listing_id", "is", null);
+  const { data: properties, error } = await supabase.from("properties").select("id, reference");
   if (error) throw error;
 
-  let checked = 0;
   let updated = 0;
   let failed = 0;
+  let skipped = 0;
+  const now = new Date().toISOString();
 
-  for (const row of rows ?? []) {
-    checked++;
-    try {
-      const rate = await getGuestyCleaningRate(row.guesty_listing_id as string);
-      if (rate !== row.cleaning_rate) {
-        await supabase
-          .from("property_data")
-          .update({ cleaning_rate: rate, guesty_last_synced_at: new Date().toISOString(), guesty_last_sync_error: null })
-          .eq("property_id", row.property_id);
-        updated++;
-      } else {
-        await supabase
-          .from("property_data")
-          .update({ guesty_last_synced_at: new Date().toISOString(), guesty_last_sync_error: null })
-          .eq("property_id", row.property_id);
-      }
-    } catch (e) {
-      failed++;
-      const message = e instanceof Error ? e.message : "Erreur de synchronisation Guesty.";
-      await supabase.from("property_data").update({ guesty_last_sync_error: message }).eq("property_id", row.property_id);
-    }
+  let results;
+  try {
+    results = await syncAllGuestyCleaningRates(properties ?? []);
+  } catch (e) {
+    return Response.json(
+      { ok: false, error: e instanceof Error ? e.message : "Erreur de synchronisation Guesty." },
+      { status: 500 }
+    );
   }
 
-  return Response.json({ ok: true, checked, updated, failed });
+  for (const { propertyId, listingId, rate, error: syncError } of results) {
+    if (!listingId) {
+      skipped++;
+      continue;
+    }
+    if (syncError) {
+      failed++;
+      await supabase.from("property_data").update({ guesty_last_sync_error: syncError }).eq("property_id", propertyId);
+      continue;
+    }
+    await supabase.from("property_data").upsert(
+      {
+        property_id: propertyId,
+        cleaning_rate: rate,
+        guesty_listing_id: listingId,
+        guesty_last_synced_at: now,
+        guesty_last_sync_error: null,
+      },
+      { onConflict: "property_id" }
+    );
+    updated++;
+  }
+
+  return Response.json({ ok: true, checked: results.length, updated, failed, skipped });
 }

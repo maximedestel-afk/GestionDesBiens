@@ -139,14 +139,18 @@ async function listGuestyListingOptions(): Promise<GuestyListingOption[]> {
   return options.sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
 
+function matchGuestyListingId(listings: GuestyListingOption[], reference: string): string | null {
+  const normalized = reference.trim().toLowerCase();
+  const match = listings.find((listing) => listing.name.trim().toLowerCase() === normalized);
+  return match?.id ?? null;
+}
+
 /** Trouve l'annonce Guesty dont le nom (nickname) correspond exactement à
  * la référence du bien (ex. bien "097STHON" ↔ annonce Guesty "097STHON") —
  * même logique que findVrPlatformListingIdByReference. */
 export async function findGuestyListingIdByReference(reference: string): Promise<string | null> {
-  const normalized = reference.trim().toLowerCase();
   const listings = await listGuestyListingOptions();
-  const match = listings.find((listing) => listing.name.trim().toLowerCase() === normalized);
-  return match?.id ?? null;
+  return matchGuestyListingId(listings, reference);
 }
 
 /** Sort le tableau d'un envelope Guesty {results:[...]} / {data:[...]} —
@@ -242,6 +246,48 @@ export async function getGuestyCleaningRate(listingId: string): Promise<number |
   if (!match || match.value === null || match.value === undefined) return null;
   const num = Number(match.value);
   return Number.isFinite(num) ? num : null;
+}
+
+export interface GuestyCleaningRateSyncResult {
+  propertyId: string;
+  listingId: string | null;
+  rate: number | null;
+  error: string | null;
+}
+
+/** Synchronise le coût du ménage de plusieurs biens en un seul passage —
+ * un seul appel de liste des annonces Guesty (pas un par bien, ce qui
+ * multiplierait les appels API et le risque de limite de débit), puis un
+ * appel /custom-fields par bien effectivement lié à une annonce. Utilisé
+ * par le cron quotidien pour couvrir tous les biens sans qu'un premier
+ * clic manuel sur "Actualiser depuis Guesty" soit nécessaire. Une erreur
+ * sur un bien n'interrompt pas les suivants. */
+export async function syncAllGuestyCleaningRates(
+  properties: { id: string; reference: string }[]
+): Promise<GuestyCleaningRateSyncResult[]> {
+  const listings = await listGuestyListingOptions();
+  const results: GuestyCleaningRateSyncResult[] = [];
+
+  for (const property of properties) {
+    const listingId = matchGuestyListingId(listings, property.reference);
+    if (!listingId) {
+      results.push({ propertyId: property.id, listingId: null, rate: null, error: null });
+      continue;
+    }
+    try {
+      const rate = await getGuestyCleaningRate(listingId);
+      results.push({ propertyId: property.id, listingId, rate, error: null });
+    } catch (e) {
+      results.push({
+        propertyId: property.id,
+        listingId,
+        rate: null,
+        error: e instanceof Error ? e.message : "Erreur de synchronisation Guesty.",
+      });
+    }
+  }
+
+  return results;
 }
 
 /** Diagnostic : réponse brute de Guesty pour les définitions de champs
