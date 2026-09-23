@@ -1118,6 +1118,7 @@ const BULK_FIELD_SOURCE: Record<string, { table: string; column: string }> = {
 
   // Data
   cleaning_provider: { table: "property_data", column: "cleaning_provider_id" },
+  bonus_fd: { table: "property_data", column: "bonus_fd_percent" },
 };
 
 export interface BulkFieldRow {
