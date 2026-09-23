@@ -7,6 +7,7 @@ import { ActionForm } from "@/components/inventaire/ActionForm";
 import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
+import { NoteField } from "@/components/inventaire/NoteField";
 import { useOutsideClick } from "@/components/inventaire/useOutsideClick";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { FieldRef } from "@/components/inventaire/FieldRef";
@@ -289,19 +290,12 @@ export function KeysTab({
                   />
                 </div>
               </div>
-              <div>
-                <label className="field-label flex items-center" htmlFor="keySetNote">
-                  Note (trousseau de clé)
-                  <FieldRef csvKey="keySetNote" />
-                </label>
-                <textarea
-                  id="keySetNote"
-                  name="keySetNote"
-                  defaultValue={details?.keySetNote ?? ""}
-                  rows={2}
-                  className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
-                />
-              </div>
+              <NoteField
+                label="Note (trousseau de clé)"
+                name="keySetNote"
+                defaultValue={details?.keySetNote}
+                labelExtra={<FieldRef csvKey="keySetNote" />}
+              />
             </Section>
           </>
         )}
