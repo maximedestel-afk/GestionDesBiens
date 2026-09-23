@@ -15,6 +15,7 @@ import {
   createGuestyWebhook,
   findGuestyListingIdByReference,
   getGuestyCleaningRate,
+  getGuestyRawCustomFields,
   isGuestyConfigured,
 } from "./guesty";
 import { CSV_FIELDS, csvFieldAliases, type CsvFieldKey } from "./csvFields";
@@ -1210,9 +1211,22 @@ export async function refreshGuestyCleaningRate(propertyId: string): Promise<str
       .eq("property_id", propertyId);
     revalidateProperty(propertyId);
 
-    return rate !== null
-      ? `Coût du ménage actualisé depuis Guesty (annonce « ${property.reference} ») : ${rate}.`
-      : `Connexion réussie (annonce « ${property.reference} »), mais le champ "cleaning_rate" est vide ou introuvable sur Guesty.`;
+    if (rate !== null) {
+      return `Coût du ménage actualisé depuis Guesty (annonce « ${property.reference} ») : ${rate}.`;
+    }
+
+    // Diagnostic : le champ n'a pas été trouvé par extractCustomField — on
+    // renvoie la réponse brute de Guesty (jamais vérifiée en conditions
+    // réelles avant ce diagnostic) pour ajuster l'extraction si le champ
+    // existe bien mais sous une forme différente de celle attendue.
+    let debugSuffix = "";
+    try {
+      const raw = await getGuestyRawCustomFields(listingId);
+      debugSuffix = ` Diagnostic (réponse Guesty) : ${JSON.stringify(raw).slice(0, 600)}`;
+    } catch {
+      // best-effort, on n'échoue pas l'actualisation pour ça
+    }
+    return `Connexion réussie (annonce « ${property.reference} »), mais le champ "cleaning_rate" est vide ou introuvable sur Guesty.${debugSuffix}`;
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur de synchronisation Guesty.";
     await supabase.from("property_data").update({ guesty_last_sync_error: message }).eq("property_id", propertyId);
