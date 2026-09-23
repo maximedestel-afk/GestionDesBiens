@@ -2,6 +2,7 @@ import { getAllowedSectionsForRole, getCurrentProfile, listApiKeys } from "@/lib
 import { canAccessSection } from "@/lib/inventaire/tabs";
 import { ApiKeysManager } from "./ApiKeysManager";
 import { ApiDocumentation } from "./ApiDocumentation";
+import { GuestyWebhookSetup } from "./GuestyWebhookSetup";
 
 export default async function ApiKeysPage() {
   const profile = await getCurrentProfile();
@@ -17,7 +18,7 @@ export default async function ApiKeysPage() {
     <div>
       <h1 className="text-[26px] font-semibold tracking-tight text-[#1d1d1f]">API</h1>
       <p className="mt-1 text-[15px] text-[#6e6e73]">
-        Permet à un autre programme de se connecter à M.G.B pour lire et modifier les données.
+        Permet à un autre programme de se connecter à M.G.B pour lire les données.
       </p>
 
       <div className="mt-6 card p-5">
@@ -28,6 +29,19 @@ export default async function ApiKeysPage() {
         </p>
         <div className="mt-4">
           <ApiKeysManager keys={keys} />
+        </div>
+      </div>
+
+      <div className="mt-4 card p-5">
+        <h2 className="text-sm font-semibold text-[#1d1d1f]">Guesty — webhook Coût du ménage</h2>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Crée l&apos;abonnement webhook Guesty → MGB pour l&apos;onglet DATA (Coût du ménage), sans
+          passer par la console Guesty. Nécessite GUESTY_CLIENT_ID / GUESTY_CLIENT_SECRET /
+          GUESTY_WEBHOOK_SECRET déjà configurés, et le scope « endpoint:Create » activé sur
+          l&apos;application Guesty.
+        </p>
+        <div className="mt-4">
+          <GuestyWebhookSetup />
         </div>
       </div>
 
