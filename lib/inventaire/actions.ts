@@ -1144,6 +1144,35 @@ export async function saveCleaningProvider(propertyId: string, formData: FormDat
   revalidateProperty(propertyId);
 }
 
+/** Bonus FD — pourcentage saisi manuellement (ex. 50 pour "50% en dessous
+ * du coût du ménage"), propre à MGB, sans lien avec Guesty. */
+export async function saveBonusFd(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const raw = optionalString(formData.get("bonusFdPercent"));
+  const bonusFdPercent = raw !== null ? Number(raw) : null;
+
+  const { data: existing } = await supabase
+    .from("property_data")
+    .select("bonus_fd_percent")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  await updatePropertyDetailRow(supabase, "property_data", propertyId, { bonus_fd_percent: bonusFdPercent }, !!existing);
+
+  if (existing?.bonus_fd_percent !== bonusFdPercent) {
+    await logActivity(supabase, {
+      propertyId,
+      entityType: "property_data",
+      action: "update",
+      summary: `${tabCode("data")} › Bonus FD mis à jour`,
+    });
+  }
+
+  revalidateProperty(propertyId);
+}
+
 /** Crée un nouveau prestataire de ménage dans la liste partagée (ou
  * réutilise celui du même nom s'il existe déjà) et l'assigne directement à
  * ce bien. */

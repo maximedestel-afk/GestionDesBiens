@@ -173,6 +173,7 @@ export function serializePropertyData(row: any): PropertyData {
     guestyCleaningFee: row.guesty_cleaning_fee,
     guestyLastSyncedAt: row.guesty_last_synced_at,
     guestyLastSyncError: row.guesty_last_sync_error,
+    bonusFdPercent: row.bonus_fd_percent,
   };
 }
 

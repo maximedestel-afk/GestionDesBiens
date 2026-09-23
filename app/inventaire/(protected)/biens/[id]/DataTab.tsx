@@ -6,6 +6,7 @@ import type { CleaningProvider, PropertyData, PropertyFinanceSettings } from "@/
 import {
   addCleaningProvider,
   savePropertyFinanceSettings,
+  saveBonusFd,
   saveCleaningProvider,
   refreshGuestyCleaningRate,
 } from "@/lib/inventaire/actions";
@@ -227,6 +228,35 @@ export function DataTab({
         )}
 
         <RefreshGuestyButton propertyId={propertyId} />
+      </fieldset>
+
+      <fieldset className="card p-5">
+        <legend className="px-1 text-sm font-semibold text-[#1d1d1f]">Bonus FD</legend>
+        <p className="mt-1 text-[13px] text-[#6e6e73]">
+          Pourcentage en dessous du coût du ménage (ex. 50 pour 50%).
+        </p>
+        <ActionForm className="mt-3" autoSave action={(formData) => saveBonusFd(propertyId, formData)}>
+          {({ pending, error, success }) => (
+            <>
+              <div className="max-w-xs">
+                <label className="block text-[12px] font-medium text-[#6e6e73]">Bonus FD (%)</label>
+                <input
+                  name="bonusFdPercent"
+                  type="number"
+                  step="any"
+                  min={0}
+                  max={100}
+                  defaultValue={propertyData?.bonusFdPercent ?? ""}
+                  placeholder="Non renseigné"
+                  className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                />
+              </div>
+              <div className="mt-1">
+                <SaveStatus pending={pending} error={error} success={success} />
+              </div>
+            </>
+          )}
+        </ActionForm>
       </fieldset>
     </div>
   );
