@@ -39,9 +39,9 @@ export default async function ApiKeysPage() {
           passer par la console Guesty. Nécessite GUESTY_CLIENT_ID / GUESTY_CLIENT_SECRET /
           GUESTY_WEBHOOK_SECRET déjà configurés, et le scope « endpoint:Create » activé sur le compte
           Guesty — indisponible sur certains comptes (y compris depuis l&apos;interface native de
-          Guesty, pas seulement l&apos;API). En attendant, la vérification périodique (toutes les 15
-          minutes, voir vercel.json) prend le relais automatiquement, sans configuration
-          supplémentaire.
+          Guesty, pas seulement l&apos;API). En attendant, la vérification périodique quotidienne (voir
+          vercel.json — plus fréquente si le plan Vercel le permet) prend le relais automatiquement,
+          sans configuration supplémentaire.
         </p>
         <div className="mt-4">
           <GuestyWebhookSetup />
