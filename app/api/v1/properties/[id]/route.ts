@@ -67,6 +67,18 @@ async function loadPropertyDetail(supabase: SupabaseAdminClient, propertyId: str
     supabase.from("property_data").select("*").eq("property_id", propertyId).maybeSingle(),
   ]);
 
+  // Éléments de l'onglet "UT - Eau / Élec" (robinet d'arrêt eau, tableau
+  // électrique, ballon d'eau chaude…) — mêmes lignes que WaterElecTab
+  // (property_elements, section "water_elec"), sans les photos/pièces
+  // jointes (hors périmètre de cette API en lecture seule).
+  const { data: waterElecElements } = await supabase
+    .from("property_elements")
+    .select("name, notes")
+    .eq("property_id", propertyId)
+    .eq("section", "water_elec")
+    .order("position");
+  const waterElecItems = (waterElecElements ?? []).map((el) => ({ name: el.name, notes: el.notes }));
+
   const taskIds = (taskRows ?? []).map((r) => r.id);
   const { data: commentRows } =
     taskIds.length > 0
@@ -95,7 +107,21 @@ async function loadPropertyDetail(supabase: SupabaseAdminClient, propertyId: str
     owner: owner ? serializePropertyOwner(owner) : null,
     details: details ? serializePropertyDetails(details) : null,
     agencement: agencement ? serializeAgencement(agencement) : null,
-    waterElec: waterElec ? serializeWaterElec(waterElec) : null,
+    waterElec:
+      waterElec || waterElecItems.length > 0
+        ? {
+            ...(waterElec
+              ? serializeWaterElec(waterElec)
+              : {
+                  propertyId,
+                  hotWaterProduction: null,
+                  hasGas: null,
+                  heatingProduction: null,
+                  heatingProductionNotes: null,
+                }),
+            items: waterElecItems,
+          }
+        : null,
     financeSettings: financeSettings ? serializePropertyFinanceSettings(financeSettings) : null,
     keys: (keys ?? []).map(serializePropertyKey),
     platforms: (platforms ?? []).map(serializePropertyPlatform),
