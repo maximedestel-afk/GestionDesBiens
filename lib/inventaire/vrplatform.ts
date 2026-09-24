@@ -104,6 +104,7 @@ interface VrPlatformReservation {
   guests: number | null;
   bookingPlatformLabel: string | null;
   bookingPlatform: string | null;
+  bookedAt: string | null;
 }
 
 interface VrPlatformReservationsResponse {
@@ -275,6 +276,9 @@ export interface UpcomingReservation {
   id: string;
   checkIn: string;
   checkOut: string;
+  /** Date à laquelle la réservation a été effectuée (distincte de
+   * l'arrivée/du départ du séjour). */
+  bookedAt: string | null;
   nights: number | null;
   guestName: string | null;
   guests: number | null;
@@ -332,6 +336,7 @@ export async function getUpcomingReservations(listingIds: string[], limit = 10):
           id: reservation.id,
           checkIn: reservation.checkIn,
           checkOut: reservation.checkOut,
+          bookedAt: reservation.bookedAt,
           nights: reservation.nights,
           guestName: reservation.guestName ?? reservation.bookerName ?? null,
           guests: reservation.guests,
