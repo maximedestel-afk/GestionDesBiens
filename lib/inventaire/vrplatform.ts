@@ -279,6 +279,10 @@ export interface UpcomingReservation {
   guestName: string | null;
   guests: number | null;
   bookingPlatformLabel: string | null;
+  /** Somme des lignes "Rents" de cette réservation (tarif du séjour, avant
+   * déduction de la commission de canal) — sert de base au prix/nuit brut
+   * (rentsCents / nights). */
+  rentsCents: number;
   /** rentsCents - channelFeesCents de cette réservation (même logique que
    * Net Commissionable Revenue du tableau mensuel, calculée par réservation
    * plutôt que cumulée par mois). */
@@ -332,6 +336,7 @@ export async function getUpcomingReservations(listingIds: string[], limit = 10):
           guestName: reservation.guestName ?? reservation.bookerName ?? null,
           guests: reservation.guests,
           bookingPlatformLabel: reservation.bookingPlatformLabel ?? reservation.bookingPlatform ?? null,
+          rentsCents,
           netRevenueCents: rentsCents - channelFeesCents,
         });
       }

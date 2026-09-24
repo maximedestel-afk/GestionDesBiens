@@ -36,6 +36,7 @@ interface UpcomingReservation {
   guestName: string | null;
   guests: number | null;
   bookingPlatformLabel: string | null;
+  rentsCents: number;
   netRevenueCents: number;
 }
 
@@ -185,23 +186,30 @@ export function FinanceTab({
                     <th className="py-2 pr-3">Voyageur</th>
                     <th className="py-2 pr-3">Voyageurs</th>
                     <th className="py-2 pr-3">Plateforme</th>
+                    <th className="py-2 pr-3">Prix / nuit (brut)</th>
                     <th className="py-2 pr-3">Net Commissionable Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {upcoming.map((r) => (
-                    <tr key={r.id} className="border-b border-black/5">
-                      <td className="py-2 pr-3 text-[#1d1d1f]">{formatDateFr(r.checkIn)}</td>
-                      <td className="py-2 pr-3 text-[#1d1d1f]">{formatDateFr(r.checkOut)}</td>
-                      <td className="py-2 pr-3 text-[#1d1d1f]">{r.nights ?? "—"}</td>
-                      <td className="py-2 pr-3 text-[#1d1d1f]">{r.guestName ?? "—"}</td>
-                      <td className="py-2 pr-3 text-[#1d1d1f]">{r.guests ?? "—"}</td>
-                      <td className="py-2 pr-3 text-[#1d1d1f]">{r.bookingPlatformLabel ?? "—"}</td>
-                      <td className="py-2 pr-3 font-semibold text-[#1d1d1f]">
-                        {formatEuros(r.netRevenueCents / 100)}
-                      </td>
-                    </tr>
-                  ))}
+                  {upcoming.map((r) => {
+                    const grossNightlyRate = r.nights && r.nights > 0 ? r.rentsCents / 100 / r.nights : null;
+                    return (
+                      <tr key={r.id} className="border-b border-black/5">
+                        <td className="py-2 pr-3 text-[#1d1d1f]">{formatDateFr(r.checkIn)}</td>
+                        <td className="py-2 pr-3 text-[#1d1d1f]">{formatDateFr(r.checkOut)}</td>
+                        <td className="py-2 pr-3 text-[#1d1d1f]">{r.nights ?? "—"}</td>
+                        <td className="py-2 pr-3 text-[#1d1d1f]">{r.guestName ?? "—"}</td>
+                        <td className="py-2 pr-3 text-[#1d1d1f]">{r.guests ?? "—"}</td>
+                        <td className="py-2 pr-3 text-[#1d1d1f]">{r.bookingPlatformLabel ?? "—"}</td>
+                        <td className="py-2 pr-3 text-[#1d1d1f]">
+                          {grossNightlyRate != null ? formatEuros(grossNightlyRate) : "—"}
+                        </td>
+                        <td className="py-2 pr-3 font-semibold text-[#1d1d1f]">
+                          {formatEuros(r.netRevenueCents / 100)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
