@@ -32,6 +32,7 @@ interface UpcomingReservation {
   id: string;
   checkIn: string;
   checkOut: string;
+  bookedAt: string | null;
   nights: number | null;
   guestName: string | null;
   guests: number | null;
@@ -180,6 +181,7 @@ export function FinanceTab({
               <table className="w-full text-[14px]">
                 <thead>
                   <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-wide text-[#6e6e73]">
+                    <th className="py-2 pr-3">Date de réservation</th>
                     <th className="py-2 pr-3">Arrivée</th>
                     <th className="py-2 pr-3">Départ</th>
                     <th className="py-2 pr-3">Nuits</th>
@@ -195,6 +197,9 @@ export function FinanceTab({
                     const grossNightlyRate = r.nights && r.nights > 0 ? r.rentsCents / 100 / r.nights : null;
                     return (
                       <tr key={r.id} className="border-b border-black/5">
+                        <td className="py-2 pr-3 text-[#1d1d1f]">
+                          {r.bookedAt ? formatDateFr(r.bookedAt.slice(0, 10)) : "—"}
+                        </td>
                         <td className="py-2 pr-3 text-[#1d1d1f]">{formatDateFr(r.checkIn)}</td>
                         <td className="py-2 pr-3 text-[#1d1d1f]">{formatDateFr(r.checkOut)}</td>
                         <td className="py-2 pr-3 text-[#1d1d1f]">{r.nights ?? "—"}</td>
