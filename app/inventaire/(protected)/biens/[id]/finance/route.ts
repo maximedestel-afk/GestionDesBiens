@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile, getProperty, getPropertyFinanceSettings } from "@/lib/inventaire/queries";
-import { findVrPlatformListingIdByReference, getListingMonthlyFinancials, isVrPlatformConfigured } from "@/lib/inventaire/vrplatform";
+import {
+  findVrPlatformListingIdByReference,
+  getListingMonthlyFinancials,
+  getUpcomingReservations,
+  isVrPlatformConfigured,
+} from "@/lib/inventaire/vrplatform";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -38,10 +43,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       );
     }
 
-    const months = await getListingMonthlyFinancials(listingIds, year);
+    const [months, upcoming] = await Promise.all([
+      getListingMonthlyFinancials(listingIds, year),
+      getUpcomingReservations(listingIds, 10),
+    ]);
     return NextResponse.json({
       year,
       months,
+      upcoming,
       warning: notFound.length > 0 ? `Référence VRPlatform introuvable : « ${notFound.join(", ")} ».` : null,
     });
   } catch (err) {

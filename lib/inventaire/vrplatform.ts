@@ -93,11 +93,17 @@ interface VrPlatformReservationLine {
 }
 
 interface VrPlatformReservation {
+  id: string;
   checkIn: string | null;
   checkOut: string | null;
   nights: number | null;
   status: "booked" | "canceled" | "inactive";
   lines: VrPlatformReservationLine[] | null;
+  guestName: string | null;
+  bookerName: string | null;
+  guests: number | null;
+  bookingPlatformLabel: string | null;
+  bookingPlatform: string | null;
 }
 
 interface VrPlatformReservationsResponse {
@@ -263,4 +269,78 @@ export async function getListingMonthlyFinancials(listingIds: string[], year: nu
     entry.fillRate = entry.daysInMonth > 0 ? entry.nightsBooked / entry.daysInMonth : 0;
   }
   return months;
+}
+
+export interface UpcomingReservation {
+  id: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number | null;
+  guestName: string | null;
+  guests: number | null;
+  bookingPlatformLabel: string | null;
+  /** rentsCents - channelFeesCents de cette réservation (même logique que
+   * Net Commissionable Revenue du tableau mensuel, calculée par réservation
+   * plutôt que cumulée par mois). */
+  netRevenueCents: number;
+}
+
+function formatDateInput(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+/** Prochaines réservations (arrivées à venir, non annulées) d'un ou
+ * plusieurs listings VRPlatform, triées par date d'arrivée — pour la
+ * liste sous le tableau mensuel de l'onglet Finances. Fenêtre d'un an à
+ * partir d'aujourd'hui (le filtre `date` de l'API VRPlatform n'accepte pas
+ * de borne de fin ouverte), largement suffisant pour "les prochaines
+ * réservations". */
+export async function getUpcomingReservations(listingIds: string[], limit = 10): Promise<UpcomingReservation[]> {
+  const accountByLineType = await getReservationLineAccountMap();
+  const today = new Date();
+  const todayStr = formatDateInput(today);
+  const rangeEnd = new Date(today);
+  rangeEnd.setUTCFullYear(rangeEnd.getUTCFullYear() + 1);
+  const rangeEndStr = formatDateInput(rangeEnd);
+
+  const results: UpcomingReservation[] = [];
+  for (const listingId of listingIds) {
+    let page = 1;
+    for (;;) {
+      const res = await vrPlatformFetch<VrPlatformReservationsResponse>("/reservations", {
+        listingId,
+        date: `${todayStr}...${rangeEndStr}`,
+        dateField: "checkIn",
+        status: "booked",
+        limit: "250",
+        page: String(page),
+        includeLines: "true",
+      });
+
+      for (const reservation of res.data) {
+        if (!reservation.checkIn || !reservation.checkOut) continue;
+        // Garde-fou si l'API inclut des réservations légèrement avant la
+        // borne de départ (ex. arrondi de fuseau horaire).
+        if (reservation.checkIn < todayStr) continue;
+
+        const { rentsCents, channelFeesCents } = classifyReservationLines(reservation.lines, accountByLineType);
+        results.push({
+          id: reservation.id,
+          checkIn: reservation.checkIn,
+          checkOut: reservation.checkOut,
+          nights: reservation.nights,
+          guestName: reservation.guestName ?? reservation.bookerName ?? null,
+          guests: reservation.guests,
+          bookingPlatformLabel: reservation.bookingPlatformLabel ?? reservation.bookingPlatform ?? null,
+          netRevenueCents: rentsCents - channelFeesCents,
+        });
+      }
+
+      if (page >= res.pagination.totalPage) break;
+      page++;
+    }
+  }
+
+  results.sort((a, b) => a.checkIn.localeCompare(b.checkIn));
+  return results.slice(0, limit);
 }
