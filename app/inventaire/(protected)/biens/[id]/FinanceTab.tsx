@@ -28,6 +28,21 @@ interface MonthlyFinance {
   fillRate: number;
 }
 
+interface UpcomingReservation {
+  id: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number | null;
+  guestName: string | null;
+  guests: number | null;
+  bookingPlatformLabel: string | null;
+  netRevenueCents: number;
+}
+
+function formatDateFr(value: string): string {
+  return new Date(`${value}T00:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+}
+
 function formatEuros(value: number): string {
   return `${value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€`;
 }
@@ -46,6 +61,7 @@ export function FinanceTab({
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [months, setMonths] = useState<MonthlyFinance[] | null>(null);
+  const [upcoming, setUpcoming] = useState<UpcomingReservation[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
@@ -67,8 +83,10 @@ export function FinanceTab({
         if (data.error) {
           setLoadError(data.error);
           setMonths(null);
+          setUpcoming(null);
         } else {
           setMonths(data.months);
+          setUpcoming(data.upcoming ?? null);
           setLoadWarning(data.warning ?? null);
         }
       } catch {
@@ -150,6 +168,46 @@ export function FinanceTab({
           </div>
         )}
       </div>
+
+      {!loading && !loadError && (
+        <div className="card space-y-4 p-5">
+          <h2 className="text-sm font-semibold text-[#1d1d1f]">Prochaines réservations</h2>
+          {!upcoming || upcoming.length === 0 ? (
+            <p className="text-[13px] text-[#6e6e73]">Aucune réservation à venir.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[14px]">
+                <thead>
+                  <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-wide text-[#6e6e73]">
+                    <th className="py-2 pr-3">Arrivée</th>
+                    <th className="py-2 pr-3">Départ</th>
+                    <th className="py-2 pr-3">Nuits</th>
+                    <th className="py-2 pr-3">Voyageur</th>
+                    <th className="py-2 pr-3">Voyageurs</th>
+                    <th className="py-2 pr-3">Plateforme</th>
+                    <th className="py-2 pr-3">Net Commissionable Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {upcoming.map((r) => (
+                    <tr key={r.id} className="border-b border-black/5">
+                      <td className="py-2 pr-3 text-[#1d1d1f]">{formatDateFr(r.checkIn)}</td>
+                      <td className="py-2 pr-3 text-[#1d1d1f]">{formatDateFr(r.checkOut)}</td>
+                      <td className="py-2 pr-3 text-[#1d1d1f]">{r.nights ?? "—"}</td>
+                      <td className="py-2 pr-3 text-[#1d1d1f]">{r.guestName ?? "—"}</td>
+                      <td className="py-2 pr-3 text-[#1d1d1f]">{r.guests ?? "—"}</td>
+                      <td className="py-2 pr-3 text-[#1d1d1f]">{r.bookingPlatformLabel ?? "—"}</td>
+                      <td className="py-2 pr-3 font-semibold text-[#1d1d1f]">
+                        {formatEuros(r.netRevenueCents / 100)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
