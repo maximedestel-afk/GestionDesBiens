@@ -210,7 +210,7 @@ function buildFieldMap(input: {
     productionchauffage_appart: formatProduction(waterElec?.heatingProduction ?? null),
     detailsyndic_appart: formatSyndic(details),
     clés_appart: formatKeys(details),
-    nombre_cles_appart: owner?.leaseKeyCount != null ? String(owner.leaseKeyCount) : "",
+    nombre_cles_appart: owner?.leaseKeyCount ?? "",
     // Durée / loyer
     startdate_agreement: formatDateFr(owner?.leaseStartDate ?? null),
     initialterm_agreement: owner?.leaseInitialTerm ?? "",

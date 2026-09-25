@@ -531,6 +531,7 @@ const OWNER_STRING_COLUMNS: [CsvFieldKey, string][] = [
   ["leaseTenantNotice", "lease_tenant_notice"],
   ["leaseOwnerTerminationDelay", "lease_owner_termination_delay"],
   ["leaseOwnerNotice", "lease_owner_notice"],
+  ["leaseKeyCount", "lease_key_count"],
   ["leaseNotes", "lease_notes"],
   ["ribNotes", "rib_notes"],
   ["rcpNotes", "rcp_notes"],
@@ -701,12 +702,6 @@ export async function importProperties(formData: FormData): Promise<ImportProper
       }
       if (hasColumn("chargesAmount")) ownerPatch.charges_amount = optionalAmount(get(row, "chargesAmount"), "Les charges");
       if (hasColumn("otherAmount")) ownerPatch.other_amount = optionalAmount(get(row, "otherAmount"), "Le montant « Autre »");
-      if (hasColumn("leaseKeyCount")) {
-        const leaseKeyCountRaw = get(row, "leaseKeyCount");
-        const leaseKeyCount = leaseKeyCountRaw ? Number.parseInt(leaseKeyCountRaw, 10) : null;
-        if (leaseKeyCount !== null && !Number.isInteger(leaseKeyCount)) throw new Error("Nombre de clés invalide.");
-        ownerPatch.lease_key_count = leaseKeyCount;
-      }
       if (Object.keys(ownerPatch).length > 0) {
         const { data: existingOwner } = await supabase
           .from("property_owner")
@@ -879,6 +874,7 @@ const PROPERTY_OWNER_STRING_FIELDS: [string, string, string][] = [
   ["leaseTenantNotice", "lease_tenant_notice", "Préavis locataire"],
   ["leaseOwnerTerminationDelay", "lease_owner_termination_delay", "Délai résiliation bailleur"],
   ["leaseOwnerNotice", "lease_owner_notice", "Préavis bailleur"],
+  ["leaseKeyCount", "lease_key_count", "Nombre Clé Appart"],
   ["leaseNotes", "lease_notes", "Note Bail"],
   ["ribNotes", "rib_notes", "Note RIB"],
   ["rcpNotes", "rcp_notes", "Note RCP"],
@@ -940,16 +936,6 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     patch.other_amount = optionalAmount(formData.get("otherAmount"), "Le montant « Autre »");
     labels.other_amount = "Autre (montant)";
   }
-  if (formData.has("leaseKeyCount")) {
-    const raw = optionalString(formData.get("leaseKeyCount"));
-    const leaseKeyCount = raw ? Number.parseInt(raw, 10) : null;
-    if (leaseKeyCount !== null && (!Number.isInteger(leaseKeyCount) || leaseKeyCount < 0)) {
-      throw new Error("Le nombre de clés doit être un entier positif.");
-    }
-    patch.lease_key_count = leaseKeyCount;
-    labels.lease_key_count = "Nombre Clé Appart";
-  }
-
   await updatePropertyDetailRow(supabase, "property_owner", propertyId, patch, !!existing);
 
   await logSectionChanges(supabase, {
