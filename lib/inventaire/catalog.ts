@@ -15,7 +15,8 @@ const STANDARD_EQUIPMENT_BY_ROOM_TYPE = {
   ],
   salon: ["Box internet/Wifi", "Climatisation", "Téléviseur", "Radiateurs", "Ventilateur"],
   chambre: ["Radiateurs", "Climatisation", "Ventilateur"],
-  "salle de bain": ["Radiateurs", "Douche/Mitigeur"],
+  "salle de bain": ["Radiateurs", "Douche/Mitigeur", "Toilettes"],
+  wc: ["Toilettes"],
 } as const;
 
 export type RoomType = keyof typeof STANDARD_EQUIPMENT_BY_ROOM_TYPE;
@@ -26,6 +27,7 @@ export function detectRoomType(roomName: string): RoomType | null {
   if (n.includes("salon") || n.includes("séjour") || n.includes("sejour")) return "salon";
   if (n.includes("chambre")) return "chambre";
   if (n.includes("salle de bain") || n.includes("salle d'eau") || n.includes("sdb")) return "salle de bain";
+  if (n.includes("wc") || n.includes("toilette")) return "wc";
   return null;
 }
 
