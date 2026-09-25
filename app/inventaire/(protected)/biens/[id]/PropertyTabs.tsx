@@ -49,6 +49,7 @@ import { PhotosTab } from "./PhotosTab";
 import { DocumentsTab } from "./DocumentsTab";
 import { BailTab } from "./BailTab";
 import { FinanceTab } from "./FinanceTab";
+import { CalendarTab } from "./CalendarTab";
 import { ActivityLogPanel } from "./ActivityLogPanel";
 import { TasksTab } from "./TasksTab";
 import { MissingDataTab } from "./MissingDataTab";
@@ -132,7 +133,13 @@ export function PropertyTabs({
   // est visible.
   const hasTabRestriction = !isAdmin && allowedTabs.length > 0;
   const visibleTabs = TABS.filter((tab) => {
-    if (tab.key === "proprietaire" || tab.key === "documents" || tab.key === "bail" || tab.key === "finances")
+    if (
+      tab.key === "proprietaire" ||
+      tab.key === "documents" ||
+      tab.key === "bail" ||
+      tab.key === "finances" ||
+      tab.key === "calendrier"
+    )
       return isAdmin;
     if (hasTabRestriction) return allowedTabsSet.has(tab.key);
     return true;
@@ -386,6 +393,7 @@ export function PropertyTabs({
         {activeTab === "finances" && isAdmin && (
           <FinanceTab propertyId={property.id} owner={owner} />
         )}
+        {activeTab === "calendrier" && isAdmin && <CalendarTab propertyId={property.id} />}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}
