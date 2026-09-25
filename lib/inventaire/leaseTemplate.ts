@@ -214,7 +214,6 @@ function buildFieldMap(input: {
     productionchauffage_appart: formatProduction(waterElec?.heatingProduction ?? null),
     detailsyndic_appart: formatSyndic(details),
     clés_appart: formatKeys(details),
-    nombre_cles_appart: owner?.leaseKeyCount != null ? String(owner.leaseKeyCount) : "",
     // Durée / loyer
     startdate_agreement: formatDateFr(owner?.leaseStartDate ?? null),
     initialterm_agreement: owner?.leaseInitialTerm ?? "",
@@ -276,6 +275,7 @@ const HASHTAG_FIELD_KEYS: CsvFieldKey[] = [
   "leaseTenantNotice",
   "leaseOwnerTerminationDelay",
   "leaseOwnerNotice",
+  "leaseKeyCount",
   "leaseNotes",
   "ribNotes",
   "rcpNotes",
@@ -337,6 +337,10 @@ function buildHashtagFieldMap(input: {
     leaseTenantNotice: owner?.leaseTenantNotice ?? "",
     leaseOwnerTerminationDelay: owner?.leaseOwnerTerminationDelay ?? "",
     leaseOwnerNotice: owner?.leaseOwnerNotice ?? "",
+    // owner.leaseKeyCount peut encore renvoyer un nombre tant que la base
+    // n'a pas fini de migrer la colonne vers text (voir migration 0077) —
+    // on force la conversion en chaîne pour ne pas planter dessus.
+    leaseKeyCount: owner?.leaseKeyCount != null ? String(owner.leaseKeyCount) : "",
     leaseNotes: owner?.leaseNotes ?? "",
     ribNotes: owner?.ribNotes ?? "",
     rcpNotes: owner?.rcpNotes ?? "",
