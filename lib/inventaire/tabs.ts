@@ -19,17 +19,19 @@ export const PROPERTY_TABS = [
   { key: "documents", code: "DOC", label: "DOC - Docs" },
   { key: "bail", code: "BL", label: "BL - Bail" },
   { key: "finances", code: "FIN", label: "FIN - Finances" },
+  { key: "calendrier", code: "CAL", label: "CAL - Calendrier" },
   { key: "proprietaire", code: "OW", label: "OW - Owner" },
   { key: "manquant", code: "MIS", label: "MIS - Manquant" },
 ] as const;
 
 export type PropertyTabKey = (typeof PROPERTY_TABS)[number]["key"];
 
-// Les onglets Propriétaire, Documents, Bail et Finances restent toujours
-// réservés aux administrateurs : on ne les propose pas dans le choix des
-// onglets d'un prestataire.
+// Les onglets Propriétaire, Documents, Bail, Finances et Calendrier restent
+// toujours réservés aux administrateurs : on ne les propose pas dans le
+// choix des onglets d'un prestataire.
 export const PRESTATAIRE_SELECTABLE_TABS = PROPERTY_TABS.filter(
-  (t) => t.key !== "proprietaire" && t.key !== "documents" && t.key !== "bail" && t.key !== "finances"
+  (t) =>
+    t.key !== "proprietaire" && t.key !== "documents" && t.key !== "bail" && t.key !== "finances" && t.key !== "calendrier"
 );
 
 // Items du menu du haut (réservés aux admins par défaut) — mêmes clés

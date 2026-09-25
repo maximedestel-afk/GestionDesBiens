@@ -354,3 +354,60 @@ export async function getUpcomingReservations(listingIds: string[], limit = 10):
   results.sort((a, b) => a.checkIn.localeCompare(b.checkIn));
   return results.slice(0, limit);
 }
+
+export interface CalendarReservation {
+  id: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number | null;
+  guestName: string | null;
+  guests: number | null;
+  bookingPlatformLabel: string | null;
+}
+
+/** Réservations (non annulées) qui chevauchent la période [startDate,
+ * endDateExclusive) d'un ou plusieurs listings VRPlatform — pour l'onglet
+ * Calendrier d'un bien. `dateField: "intersection"` (plutôt que "checkIn")
+ * pour inclure aussi un séjour commencé avant la période affichée et qui
+ * se termine dedans (ex. mois affiché commençant un mercredi : un séjour
+ * arrivé le mardi précédent doit quand même colorer les jours affichés de
+ * la semaine en cours). */
+export async function getReservationsInRange(
+  listingIds: string[],
+  startDate: string,
+  endDateExclusive: string
+): Promise<CalendarReservation[]> {
+  const results: CalendarReservation[] = [];
+  for (const listingId of listingIds) {
+    let page = 1;
+    for (;;) {
+      const res = await vrPlatformFetch<VrPlatformReservationsResponse>("/reservations", {
+        listingId,
+        date: `${startDate}...${endDateExclusive}`,
+        dateField: "intersection",
+        status: "booked",
+        limit: "250",
+        page: String(page),
+      });
+
+      for (const reservation of res.data) {
+        if (!reservation.checkIn || !reservation.checkOut) continue;
+        results.push({
+          id: reservation.id,
+          checkIn: reservation.checkIn,
+          checkOut: reservation.checkOut,
+          nights: reservation.nights,
+          guestName: reservation.guestName ?? reservation.bookerName ?? null,
+          guests: reservation.guests,
+          bookingPlatformLabel: reservation.bookingPlatformLabel ?? reservation.bookingPlatform ?? null,
+        });
+      }
+
+      if (page >= res.pagination.totalPage) break;
+      page++;
+    }
+  }
+
+  results.sort((a, b) => a.checkIn.localeCompare(b.checkIn));
+  return results;
+}
