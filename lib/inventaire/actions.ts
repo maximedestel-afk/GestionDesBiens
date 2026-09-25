@@ -1207,6 +1207,28 @@ export async function addCleaningProvider(propertyId: string, formData: FormData
   revalidateProperty(propertyId);
 }
 
+/** Coordonnées de contact d'un prestataire de ménage (nom, prénom, email,
+ * téléphone) — cleaning_providers est une liste partagée entre tous les
+ * biens (comme le nom), donc modifier ces coordonnées depuis la fiche d'un
+ * bien les met à jour partout où ce prestataire est utilisé. */
+export async function updateCleaningProviderContact(providerId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const lastName = optionalString(formData.get("lastName"));
+  const firstName = optionalString(formData.get("firstName"));
+  const email = optionalString(formData.get("email"));
+  const phone = optionalString(formData.get("phone"));
+
+  const { error } = await supabase
+    .from("cleaning_providers")
+    .update({ last_name: lastName, first_name: firstName, email, phone })
+    .eq("id", providerId);
+  if (error) throw error;
+
+  revalidatePath("/inventaire", "layout");
+}
+
 /** Actualise le coût du ménage et le prix du ménage facturé au voyageur
  * depuis Guesty (lecture seule — MGB ne modifie plus rien côté Guesty) :
  * retrouve l'annonce par la référence du bien (ex. bien "14ECO" ↔ annonce

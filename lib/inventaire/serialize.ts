@@ -161,6 +161,10 @@ export function serializeCleaningProvider(row: any): CleaningProvider {
   return {
     id: row.id,
     name: row.name,
+    lastName: row.last_name,
+    firstName: row.first_name,
+    email: row.email,
+    phone: row.phone,
   };
 }
 
