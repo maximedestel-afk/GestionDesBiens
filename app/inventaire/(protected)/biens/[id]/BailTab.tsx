@@ -79,9 +79,9 @@ export function BailTab({
                   <Field
                     label="Nombre Clé Appart"
                     name="leaseKeyCount"
-                    type="number"
-                    defaultValue={owner?.leaseKeyCount != null ? String(owner.leaseKeyCount) : null}
+                    defaultValue={owner?.leaseKeyCount}
                     csvKey="leaseKeyCount"
+                    placeholder="ex. 3 clés + 1 badge"
                   />
                   <Field
                     label="Société locataire"
