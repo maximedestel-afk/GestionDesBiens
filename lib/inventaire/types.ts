@@ -160,6 +160,10 @@ export interface ApiKey {
 export interface CleaningProvider {
   id: string;
   name: string;
+  lastName: string | null;
+  firstName: string | null;
+  email: string | null;
+  phone: string | null;
 }
 
 export interface PropertyData {

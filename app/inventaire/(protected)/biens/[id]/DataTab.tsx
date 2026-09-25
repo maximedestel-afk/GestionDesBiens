@@ -8,6 +8,7 @@ import {
   savePropertyFinanceSettings,
   saveBonusFd,
   saveCleaningProvider,
+  updateCleaningProviderContact,
   refreshGuestyCleaningRate,
 } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
@@ -65,6 +66,17 @@ export function DataTab({
   financeSettings: PropertyFinanceSettings | null;
 }) {
   const [addingProvider, setAddingProvider] = useState(false);
+  const [selectedProviderId, setSelectedProviderId] = useState(propertyData?.cleaningProviderId ?? "");
+  // Resynchronise si le prestataire assigné change côté serveur sans passer
+  // par le <select> local (ex. juste après la création d'un nouveau
+  // prestataire) — ajustement pendant le rendu plutôt que dans un effet
+  // (https://react.dev/learn/you-might-not-need-an-effect).
+  const [lastKnownProviderId, setLastKnownProviderId] = useState(propertyData?.cleaningProviderId ?? "");
+  if ((propertyData?.cleaningProviderId ?? "") !== lastKnownProviderId) {
+    setLastKnownProviderId(propertyData?.cleaningProviderId ?? "");
+    setSelectedProviderId(propertyData?.cleaningProviderId ?? "");
+  }
+  const selectedProvider = cleaningProviders.find((p) => p.id === selectedProviderId) ?? null;
   const [extraReferences, setExtraReferences] = useState<string[]>(
     financeSettings?.extraVrplatformReferences ?? []
   );
@@ -133,6 +145,7 @@ export function DataTab({
               <select
                 name="cleaningProviderId"
                 defaultValue={propertyData?.cleaningProviderId ?? ""}
+                onChange={(e) => setSelectedProviderId(e.target.value)}
                 className="w-full max-w-sm rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
               >
                 <option value="">Non renseigné</option>
@@ -148,6 +161,61 @@ export function DataTab({
             </>
           )}
         </ActionForm>
+
+        {selectedProvider && (
+          <ActionForm
+            key={selectedProvider.id}
+            className="mt-4 grid gap-3 border-t border-black/[0.06] pt-4 sm:grid-cols-2"
+            autoSave
+            action={(formData) => updateCleaningProviderContact(selectedProvider.id, formData)}
+          >
+            {({ pending, error, success }) => (
+              <>
+                <p className="text-[12px] text-[#6e6e73] sm:col-span-2">
+                  Coordonnées de « {selectedProvider.name} » — partagées avec tous les biens utilisant ce
+                  prestataire.
+                </p>
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6e6e73]">Nom</label>
+                  <input
+                    name="lastName"
+                    defaultValue={selectedProvider.lastName ?? ""}
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6e6e73]">Prénom</label>
+                  <input
+                    name="firstName"
+                    defaultValue={selectedProvider.firstName ?? ""}
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6e6e73]">Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    defaultValue={selectedProvider.email ?? ""}
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6e6e73]">Téléphone</label>
+                  <input
+                    name="phone"
+                    type="tel"
+                    defaultValue={selectedProvider.phone ?? ""}
+                    className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <SaveStatus pending={pending} error={error} success={success} />
+                </div>
+              </>
+            )}
+          </ActionForm>
+        )}
 
         {!addingProvider ? (
           <button
