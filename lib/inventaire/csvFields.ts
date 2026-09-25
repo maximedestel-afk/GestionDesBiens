@@ -102,6 +102,7 @@ export const CSV_FIELDS = {
   leaseTenantNotice: { header: "Préavis locataire" },
   leaseOwnerTerminationDelay: { header: "Délai résiliation bailleur" },
   leaseOwnerNotice: { header: "Préavis bailleur" },
+  leaseKeyCount: { header: "Nombre Clé Appart" },
   leaseNotes: { header: "Note Bail" },
   ribNotes: { header: "Note RIB" },
   rcpNotes: { header: "Note RCP" },

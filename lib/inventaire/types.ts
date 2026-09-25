@@ -83,6 +83,7 @@ export interface PropertyOwner {
   leaseTenantNotice: string | null;
   leaseOwnerTerminationDelay: string | null;
   leaseOwnerNotice: string | null;
+  leaseKeyCount: number | null;
   leaseNotes: string | null;
   ribNotes: string | null;
   rcpNotes: string | null;
