@@ -11,6 +11,10 @@ function escapeXml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // `<w:r>` porte presque toujours des attributs dans un document Word réel
 // (w:rsidR, w:rsidRPr…) : matcher `<w:r>` sans attributs (comme une première
 // version le faisait) ne trouve alors quasiment aucun run dans un vrai
@@ -408,7 +412,14 @@ export function generateLeaseDocx(input: {
   xml = applyConditionalBlocks(xml, { bailleur_individuel: !isCompany, bailleur_société: isCompany });
   const fields = { ...buildFieldMap(input), ...buildHashtagFieldMap(input) };
   for (const [key, value] of Object.entries(fields)) {
-    xml = xml.split(`[${key}]`).join(escapeXml(value));
+    // Insensible à la casse : Word capitalise souvent la première lettre
+    // d'une balise tapée en début de phrase/paragraphe (correction
+    // automatique), ex. "[Nombre_cles_appart]" au lieu de
+    // "[nombre_cles_appart]" — sans ça, la balise reste visible telle
+    // quelle dans le document généré au lieu d'être remplacée.
+    const tagRe = new RegExp(escapeRegExp(`[${key}]`), "gi");
+    const escapedValue = escapeXml(value);
+    xml = xml.replace(tagRe, () => escapedValue);
   }
 
   zip.file("word/document.xml", xml);
@@ -436,7 +447,8 @@ export function analyzeLeaseTemplateTags(templateBuffer: Buffer): { found: strin
   const found: string[] = [];
   const missing: string[] = [];
   for (const tag of listSupportedLeaseTags()) {
-    (xml.includes(`[${tag}]`) ? found : missing).push(tag);
+    const tagRe = new RegExp(escapeRegExp(`[${tag}]`), "i");
+    (tagRe.test(xml) ? found : missing).push(tag);
   }
   return { found, missing };
 }
