@@ -141,11 +141,12 @@ function formatSyndic(details: PropertyDetails | null): string {
   return parts.join(" — ");
 }
 
-function formatKeys(details: PropertyDetails | null): string {
+function formatKeys(details: PropertyDetails | null, keyCount: number | null): string {
   if (!details) return "";
   const typeLabel =
     details.keyContentType === "cle" ? "Clé" : details.keyContentType === "cle_vigik" ? "Clé Vigik" : "";
-  return [typeLabel, details.keyContentDetail].filter(Boolean).join(" — ");
+  const countedTypeLabel = keyCount != null && typeLabel ? `${keyCount} x ${typeLabel}` : typeLabel;
+  return [countedTypeLabel, details.keyContentDetail].filter(Boolean).join(" — ");
 }
 
 function formatAmountFr(value: number | null): string {
@@ -209,7 +210,7 @@ function buildFieldMap(input: {
     productioneau_appart: formatProduction(waterElec?.hotWaterProduction ?? null),
     productionchauffage_appart: formatProduction(waterElec?.heatingProduction ?? null),
     detailsyndic_appart: formatSyndic(details),
-    clés_appart: formatKeys(details),
+    clés_appart: formatKeys(details, owner?.leaseKeyCount ?? null),
     // Durée / loyer
     startdate_agreement: formatDateFr(owner?.leaseStartDate ?? null),
     initialterm_agreement: owner?.leaseInitialTerm ?? "",
