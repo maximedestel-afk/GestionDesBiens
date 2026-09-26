@@ -33,7 +33,7 @@ export function ScheduleFields({
           name="scheduledDate"
           type="date"
           defaultValue={defaultDate ?? ""}
-          className="mt-0 w-full rounded-[12px] border border-black/10 bg-white px-4 py-3.5 text-[18px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+          className="mt-0 h-16 w-full rounded-[12px] border-2 border-black/15 bg-white px-5 text-[22px] font-medium text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
         />
         <div className="flex flex-wrap items-center gap-1.5 text-[14px] text-[#1d1d1f]">
           <span className="text-[#6e6e73]">De</span>

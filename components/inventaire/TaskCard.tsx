@@ -26,6 +26,14 @@ function profileLabel(p: Profile): string {
   return p.fullName || p.email;
 }
 
+function AssigneeBadge({ assignee }: { assignee: Profile }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border-2 border-[#1d1d1f]/15 bg-black/[0.04] px-3 py-1 text-[14px] font-semibold text-[#1d1d1f]">
+      👤 {profileLabel(assignee)}
+    </span>
+  );
+}
+
 function ScheduleBadge({ task }: { task: Task }) {
   if (!task.scheduledDate) return null;
   const time = task.startTime ? `${task.startTime}${task.endTime ? `–${task.endTime}` : ""}` : null;
@@ -191,7 +199,7 @@ export function TaskCard({
             className="mt-1 h-4 w-4 shrink-0"
           />
           <div>
-            {(propertyLabel || task.scheduledDate) && (
+            {(propertyLabel || task.scheduledDate || assignee) && (
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
                 {propertyLabel && (
                   <Link
@@ -202,12 +210,12 @@ export function TaskCard({
                   </Link>
                 )}
                 <ScheduleBadge task={task} />
+                {assignee && <AssigneeBadge assignee={assignee} />}
               </div>
             )}
             <p className={`text-[15px] text-[#1d1d1f] ${task.done ? "line-through" : ""}`}>{task.text}</p>
             <p className="mt-1 text-[12px] text-[#6e6e73]">
               {task.createdByEmail ?? "?"} · {formatDateTime(task.createdAt)}
-              {assignee && <> · Assigné à {profileLabel(assignee)}</>}
               {task.done && task.doneAt && (
                 <>
                   {" "}
