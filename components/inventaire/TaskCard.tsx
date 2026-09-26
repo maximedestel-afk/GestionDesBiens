@@ -1,13 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import type { Attachment, Profile, Task } from "@/lib/inventaire/types";
-import { addTaskComment, deleteTask, toggleTaskDone } from "@/lib/inventaire/actions";
+import { addTaskComment, deleteTask, toggleTaskDone, updateTask } from "@/lib/inventaire/actions";
 import { ActionForm } from "./ActionForm";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 import { FileUploadButtons } from "./FileUploadButtons";
 import { AttachmentGallery } from "./AttachmentGallery";
+import { ScheduleFields } from "./ScheduleFields";
 
 export function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
@@ -19,6 +20,10 @@ export function formatScheduledDateFr(isoDate: string) {
     day: "numeric",
     month: "long",
   });
+}
+
+function profileLabel(p: Profile): string {
+  return p.fullName || p.email;
 }
 
 function ScheduleBadge({ task }: { task: Task }) {
@@ -55,6 +60,85 @@ function ReplyForm({ propertyId, taskId }: { propertyId: string; taskId: string 
   );
 }
 
+function EditPencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function EditTaskForm({
+  propertyId,
+  task,
+  profiles,
+  propertyLabel,
+  onDone,
+}: {
+  propertyId: string;
+  task: Task;
+  profiles: Profile[];
+  propertyLabel?: string;
+  onDone: () => void;
+}) {
+  return (
+    <div className="card p-5">
+      {propertyLabel && (
+        <span className="mb-2 inline-block text-[13px] font-semibold text-[#1d1d1f]">{propertyLabel}</span>
+      )}
+      <ActionForm action={(formData) => updateTask(propertyId, task.id, formData)} onSuccess={onDone}>
+        {({ pending, error }) => (
+          <>
+            <textarea
+              name="text"
+              defaultValue={task.text}
+              required
+              rows={2}
+              className="w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+            />
+            <div className="mt-2">
+              <select
+                name="assignedTo"
+                defaultValue={task.assignedTo ?? ""}
+                className="w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+              >
+                <option value="">Non assigné</option>
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {profileLabel(p)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mt-2">
+              <ScheduleFields
+                idPrefix={`edit-${task.id}`}
+                defaultDate={task.scheduledDate}
+                defaultStartTime={task.startTime}
+                defaultEndTime={task.endTime}
+              />
+            </div>
+            <label className="mt-2 flex items-center gap-2 text-[14px] text-[#1d1d1f]">
+              <input type="checkbox" name="done" defaultChecked={task.done} className="h-4 w-4" />
+              Terminée
+            </label>
+            {error && <p className="mt-2 text-[13px] text-red-600">{error}</p>}
+            <div className="mt-3 flex justify-end gap-2">
+              <button type="button" onClick={onDone} className="btn-secondary btn-sm">
+                Annuler
+              </button>
+              <button type="submit" disabled={pending} className="btn-primary btn-sm">
+                {pending ? "…" : "Enregistrer"}
+              </button>
+            </div>
+          </>
+        )}
+      </ActionForm>
+    </div>
+  );
+}
+
 export function TaskCard({
   propertyId,
   task,
@@ -75,7 +159,20 @@ export function TaskCard({
   propertyLabel?: string;
 }) {
   const [pending, startTransition] = useTransition();
+  const [editing, setEditing] = useState(false);
   const assignee = profiles.find((p) => p.id === task.assignedTo);
+
+  if (editing) {
+    return (
+      <EditTaskForm
+        propertyId={propertyId}
+        task={task}
+        profiles={profiles}
+        propertyLabel={propertyLabel}
+        onDone={() => setEditing(false)}
+      />
+    );
+  }
 
   return (
     <div className={`card p-5 ${task.done ? "opacity-60" : ""}`}>
@@ -110,7 +207,7 @@ export function TaskCard({
             <p className={`text-[15px] text-[#1d1d1f] ${task.done ? "line-through" : ""}`}>{task.text}</p>
             <p className="mt-1 text-[12px] text-[#6e6e73]">
               {task.createdByEmail ?? "?"} · {formatDateTime(task.createdAt)}
-              {assignee && <> · Assigné à {assignee.email}</>}
+              {assignee && <> · Assigné à {profileLabel(assignee)}</>}
               {task.done && task.doneAt && (
                 <>
                   {" "}
@@ -121,11 +218,21 @@ export function TaskCard({
             </p>
           </div>
         </div>
-        <ConfirmDeleteButton
-          confirmText="Supprimer cette tâche ?"
-          action={() => deleteTask(propertyId, task.id)}
-          allowRoleDeletePermission
-        />
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[#6e6e73] transition hover:bg-black/[0.04] hover:text-[#1d1d1f]"
+            aria-label="Modifier la tâche"
+          >
+            <EditPencilIcon />
+          </button>
+          <ConfirmDeleteButton
+            confirmText="Supprimer cette tâche ?"
+            action={() => deleteTask(propertyId, task.id)}
+            allowRoleDeletePermission
+          />
+        </div>
       </div>
 
       {task.comments.length > 0 && (

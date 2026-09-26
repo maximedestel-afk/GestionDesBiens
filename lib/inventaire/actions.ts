@@ -2394,6 +2394,36 @@ export async function deleteAttachment(propertyId: string, attachmentId: string)
 /* Tâches (TA)                                                          */
 /* ------------------------------------------------------------------ */
 
+// Les <input type="time"> natifs suivent le fuseau/la locale du navigateur
+// (AM/PM chez certains utilisateurs) et se sont révélés peu fiables sur
+// mobile — deux <select> heure (00-23, horaires "européennes") + minute
+// (par pas de 5) évitent complètement cette ambiguïté. L'heure est
+// "vide" (pas d'horaire) si le select heure est laissé sur "—" ; la
+// minute vaut alors "00" par défaut sans que ça n'ait d'effet.
+function combineTime(hourValue: FormDataEntryValue | null, minuteValue: FormDataEntryValue | null): string | null {
+  const hour = optionalString(hourValue);
+  if (!hour) return null;
+  const minute = optionalString(minuteValue) || "00";
+  return `${hour}:${minute}`;
+}
+
+function readTaskScheduleFields(formData: FormData): {
+  scheduledDate: string | null;
+  startTime: string | null;
+  endTime: string | null;
+} {
+  const scheduledDate = optionalString(formData.get("scheduledDate"));
+  const startTime = combineTime(formData.get("startHour"), formData.get("startMinute"));
+  const endTime = combineTime(formData.get("endHour"), formData.get("endMinute"));
+  if ((startTime || endTime) && !scheduledDate) {
+    throw new Error("Choisis une date pour planifier un horaire.");
+  }
+  if (startTime && endTime && endTime <= startTime) {
+    throw new Error("L'heure de fin doit être après l'heure de début.");
+  }
+  return { scheduledDate, startTime, endTime };
+}
+
 export async function createTask(formData: FormData) {
   const supabase = await createClient();
   const user = await requireUser(supabase);
@@ -2401,15 +2431,7 @@ export async function createTask(formData: FormData) {
   const propertyId = requireNonEmpty(formData.get("propertyId"), "Le bien");
   const text = requireNonEmpty(formData.get("text"), "La tâche");
   const assignedTo = optionalString(formData.get("assignedTo"));
-  const scheduledDate = optionalString(formData.get("scheduledDate"));
-  const startTime = optionalString(formData.get("startTime"));
-  const endTime = optionalString(formData.get("endTime"));
-  if ((startTime || endTime) && !scheduledDate) {
-    throw new Error("Choisis une date pour planifier un horaire.");
-  }
-  if (startTime && endTime && endTime <= startTime) {
-    throw new Error("L'heure de fin doit être après l'heure de début.");
-  }
+  const { scheduledDate, startTime, endTime } = readTaskScheduleFields(formData);
 
   const { error } = await supabase.from("tasks").insert({
     property_id: propertyId,
@@ -2428,6 +2450,46 @@ export async function createTask(formData: FormData) {
     entityType: "task",
     action: "create",
     summary: "Tâche ajoutée",
+  });
+
+  revalidateProperty(propertyId);
+  revalidatePath("/inventaire");
+  revalidatePath("/inventaire/planning");
+}
+
+export async function updateTask(propertyId: string, taskId: string, formData: FormData) {
+  const supabase = await createClient();
+  const user = await requireUser(supabase);
+
+  const text = requireNonEmpty(formData.get("text"), "La tâche");
+  const assignedTo = optionalString(formData.get("assignedTo"));
+  const { scheduledDate, startTime, endTime } = readTaskScheduleFields(formData);
+  const done = formData.get("done") === "on";
+
+  const { data: existing } = await supabase.from("tasks").select("done").eq("id", taskId).maybeSingle();
+
+  const patch: Record<string, unknown> = {
+    text,
+    assigned_to: assignedTo,
+    scheduled_date: scheduledDate,
+    start_time: startTime,
+    end_time: endTime,
+  };
+  if (existing && existing.done !== done) {
+    patch.done = done;
+    patch.done_by = done ? user.id : null;
+    patch.done_by_email = done ? user.email : null;
+    patch.done_at = done ? new Date().toISOString() : null;
+  }
+
+  const { error } = await supabase.from("tasks").update(patch).eq("id", taskId);
+  if (error) throw error;
+
+  await logActivity(supabase, {
+    propertyId,
+    entityType: "task",
+    action: "update",
+    summary: "Tâche modifiée",
   });
 
   revalidateProperty(propertyId);
