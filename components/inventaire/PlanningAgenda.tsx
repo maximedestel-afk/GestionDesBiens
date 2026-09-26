@@ -123,7 +123,7 @@ export function PlanningAgenda({
                       profiles={profiles}
                       attachments={attachments.filter((a) => a.entityType === "task" && a.entityId === task.id)}
                       propertyLabel={
-                        property ? `${property.reference}${property.name ? ` — ${property.name}` : ""}` : undefined
+                        property ? `${property.reference}${property.address ? ` — ${property.address}` : ""}` : undefined
                       }
                     />
                   );

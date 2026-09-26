@@ -315,13 +315,7 @@ export function TaskCard({
 
       {attachments !== undefined && (
         <div className="mt-3 space-y-2 border-t border-black/[0.06] pt-3">
-          <AttachmentGallery
-            propertyId={propertyId}
-            attachments={attachments}
-            emptyLabel="Aucune photo"
-            variant="grid"
-            scrollable
-          />
+          <AttachmentGallery propertyId={propertyId} attachments={attachments} emptyLabel="Aucune photo" variant="list" />
           <FileUploadButtons
             accept="image/*"
             showCamera
