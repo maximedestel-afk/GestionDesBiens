@@ -371,6 +371,11 @@ export interface CalendarReservation {
   guestName: string | null;
   guests: number | null;
   bookingPlatformLabel: string | null;
+  /** Somme des lignes "Rents" de la réservation (tarif brut, avant
+   * commission de canal) — sert à calculer le prix moyen/nuit affiché sur
+   * les nuits occupées du calendrier (rentsCents / nights), distinct du
+   * prix Guesty affiché sur les nuits libres. */
+  rentsCents: number;
 }
 
 /** Réservations (non annulées) qui chevauchent la période [startDate,
@@ -385,6 +390,7 @@ export async function getReservationsInRange(
   startDate: string,
   endDateExclusive: string
 ): Promise<CalendarReservation[]> {
+  const accountByLineType = await getReservationLineAccountMap();
   const results: CalendarReservation[] = [];
   for (const listingId of listingIds) {
     let page = 1;
@@ -396,10 +402,12 @@ export async function getReservationsInRange(
         status: "booked",
         limit: "250",
         page: String(page),
+        includeLines: "true",
       });
 
       for (const reservation of res.data) {
         if (!reservation.checkIn || !reservation.checkOut) continue;
+        const { rentsCents } = classifyReservationLines(reservation.lines, accountByLineType);
         results.push({
           id: reservation.id,
           checkIn: reservation.checkIn,
@@ -408,6 +416,7 @@ export async function getReservationsInRange(
           guestName: reservation.guestName ?? reservation.bookerName ?? null,
           guests: reservation.guests,
           bookingPlatformLabel: reservation.bookingPlatformLabel ?? reservation.bookingPlatform ?? null,
+          rentsCents,
         });
       }
 
