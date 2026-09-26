@@ -28,7 +28,7 @@ import type {
 } from "@/lib/inventaire/types";
 import { deleteProperty } from "@/lib/inventaire/actions";
 import { getCompletenessCheck, type CompletenessCheck } from "@/lib/inventaire/completeness";
-import { PROPERTY_TABS } from "@/lib/inventaire/tabs";
+import { ADMIN_ONLY_BY_DEFAULT_TABS, PROPERTY_TABS } from "@/lib/inventaire/tabs";
 import { platformTitle } from "@/components/inventaire/PlatformLogo";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
 import { DismissedChecksPanel } from "@/components/inventaire/DismissedChecksPanel";
@@ -132,16 +132,13 @@ export function PropertyTabs({
   // liste ; sans configuration (liste vide), comportement inchangé : tout
   // est visible.
   const hasTabRestriction = !isAdmin && allowedTabs.length > 0;
-  // Finances et Calendrier ne sont jamais visibles "par défaut" (même sans
-  // restriction d'onglets configurée) — seulement pour un admin, ou pour un
-  // rôle auquel ils ont été explicitement accordés dans "Autorisations par
-  // rôle".
-  const canSeeFinances = isAdmin || allowedTabsSet.has("finances");
-  const canSeeCalendrier = isAdmin || allowedTabsSet.has("calendrier");
+  // Propriétaire, Documents, Bail, Finances et Calendrier ne sont jamais
+  // visibles "par défaut" (même sans restriction d'onglets configurée pour
+  // le rôle) — seulement pour un admin, ou pour un rôle auquel ils ont été
+  // explicitement accordés dans "Autorisations par rôle".
+  const canSeeTab = (key: string) => isAdmin || allowedTabsSet.has(key);
   const visibleTabs = TABS.filter((tab) => {
-    if (tab.key === "proprietaire" || tab.key === "documents" || tab.key === "bail") return isAdmin;
-    if (tab.key === "finances") return canSeeFinances;
-    if (tab.key === "calendrier") return canSeeCalendrier;
+    if (ADMIN_ONLY_BY_DEFAULT_TABS.has(tab.key)) return canSeeTab(tab.key);
     if (hasTabRestriction) return allowedTabsSet.has(tab.key);
     return true;
   });
@@ -290,7 +287,7 @@ export function PropertyTabs({
 
         <fieldset disabled={isPrestataire} className="m-0 min-w-0 flex-1 border-0 p-0">
           <div className="mt-4 lg:mt-0">
-        {activeTab === "proprietaire" && isAdmin && (
+        {activeTab === "proprietaire" && canSeeTab("proprietaire") && (
           <OwnerTab
             propertyId={property.id}
             owner={owner}
@@ -373,7 +370,7 @@ export function PropertyTabs({
         {activeTab === "photos" && (
           <PhotosTab propertyId={property.id} albums={photoAlbums} attachments={elementAttachments} />
         )}
-        {activeTab === "documents" && (
+        {activeTab === "documents" && canSeeTab("documents") && (
           <DocumentsTab
             propertyId={property.id}
             owner={owner}
@@ -383,7 +380,7 @@ export function PropertyTabs({
             missingCheckKeys={missingCheckKeys}
           />
         )}
-        {activeTab === "bail" && isAdmin && (
+        {activeTab === "bail" && canSeeTab("bail") && (
           <BailTab
             propertyId={property.id}
             owner={owner}
@@ -391,10 +388,10 @@ export function PropertyTabs({
             missingCheckKeys={missingCheckKeys}
           />
         )}
-        {activeTab === "finances" && canSeeFinances && (
+        {activeTab === "finances" && canSeeTab("finances") && (
           <FinanceTab propertyId={property.id} owner={owner} />
         )}
-        {activeTab === "calendrier" && canSeeCalendrier && <CalendarTab propertyId={property.id} />}
+        {activeTab === "calendrier" && canSeeTab("calendrier") && <CalendarTab propertyId={property.id} />}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}

@@ -26,16 +26,18 @@ export const PROPERTY_TABS = [
 
 export type PropertyTabKey = (typeof PROPERTY_TABS)[number]["key"];
 
-// Les onglets Propriétaire, Documents et Bail restent toujours réservés aux
-// administrateurs : on ne les propose pas dans le choix des onglets d'un
-// rôle. Finances et Calendrier restent réservés aux administrateurs par
-// défaut mais peuvent être accordés explicitement à un rôle via
-// "Autorisations par rôle" (contrairement aux autres onglets, ils ne
-// s'ouvrent jamais "par défaut" même sans restriction configurée — voir
-// PropertyTabs.tsx).
-export const PRESTATAIRE_SELECTABLE_TABS = PROPERTY_TABS.filter(
-  (t) => t.key !== "proprietaire" && t.key !== "documents" && t.key !== "bail"
-);
+// Onglets fermés par défaut même sans restriction configurée pour un rôle
+// (contrairement aux autres onglets, qui restent visibles "par défaut" tant
+// qu'aucune restriction n'est configurée) : un admin les voit toujours, un
+// autre rôle doit se les voir accorder explicitement dans "Autorisations
+// par rôle" — voir PropertyTabs.tsx.
+export const ADMIN_ONLY_BY_DEFAULT_TABS = new Set([
+  "proprietaire",
+  "documents",
+  "bail",
+  "finances",
+  "calendrier",
+]);
 
 // Items du menu du haut (réservés aux admins par défaut) — mêmes clés
 // utilisées dans `role_permissions.allowed_tabs` pour donner à un rôle non-
@@ -51,11 +53,14 @@ export const TOP_MENU_ITEMS = [
   { key: "menu_planning", label: "Menu — Planning" },
 ] as const;
 
-/** Options combinées (onglets de bien + items du menu du haut) proposées
- * dans l'éditeur d'autorisations d'un rôle — une seule liste, un seul champ
- * `role_permissions.allowed_tabs`, comme demandé ("vaut aussi pour le menu
- * du dessus"). Partagé par tous les utilisateurs d'un même rôle. */
-export const SELECTABLE_SECTIONS = [...PRESTATAIRE_SELECTABLE_TABS, ...TOP_MENU_ITEMS];
+/** Options combinées (tous les onglets de bien + tous les items du menu du
+ * haut) proposées dans l'éditeur d'autorisations d'un rôle — une seule
+ * liste, un seul champ `role_permissions.allowed_tabs`, comme demandé
+ * ("vaut aussi pour le menu du dessus"). Partagé par tous les utilisateurs
+ * d'un même rôle. Dérivée directement de PROPERTY_TABS (la source unique) :
+ * tout nouvel onglet de bien apparaît donc automatiquement ici, sans liste
+ * à tenir à jour à la main. */
+export const SELECTABLE_SECTIONS = [...PROPERTY_TABS, ...TOP_MENU_ITEMS];
 
 /** Un admin voit toujours tout ; les autres rôles ne sont restreints que si
  * leur rôle a une liste `allowedTabs` non vide configurée dans
