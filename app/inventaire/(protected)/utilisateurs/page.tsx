@@ -10,6 +10,7 @@ import {
 import { canAccessSection } from "@/lib/inventaire/tabs";
 import type { UserRole } from "@/lib/inventaire/types";
 import { RoleSelect } from "@/components/inventaire/RoleSelect";
+import { FullNameEditor } from "@/components/inventaire/FullNameEditor";
 import { InviteUserForm } from "./InviteUserForm";
 import { CreateUserForm } from "./CreateUserForm";
 import { UserActions } from "./UserActions";
@@ -102,7 +103,9 @@ export default async function UsersPage() {
               <Fragment key={p.id}>
                 <tr className="border-b border-black/[0.06] last:border-0">
                   <td className="px-4 py-2">{p.email}</td>
-                  <td className="px-4 py-2">{p.fullName ?? "—"}</td>
+                  <td className="px-4 py-2">
+                    <FullNameEditor userId={p.id} fullName={p.fullName} />
+                  </td>
                   <td className="px-4 py-2">
                     <RoleSelect userId={p.id} role={p.role} />
                   </td>
