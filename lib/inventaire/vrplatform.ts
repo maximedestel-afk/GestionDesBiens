@@ -298,11 +298,11 @@ function formatDateInput(date: Date): string {
 }
 
 /** Prochaines réservations (arrivées à venir, non annulées) d'un ou
- * plusieurs listings VRPlatform, triées par date d'arrivée — pour la
- * liste sous le tableau mensuel de l'onglet Finances. Fenêtre d'un an à
- * partir d'aujourd'hui (le filtre `date` de l'API VRPlatform n'accepte pas
- * de borne de fin ouverte), largement suffisant pour "les prochaines
- * réservations". */
+ * plusieurs listings VRPlatform, triées par date de réservation la plus
+ * récente en premier — pour la liste sous le tableau mensuel de l'onglet
+ * Finances. Fenêtre d'un an à partir d'aujourd'hui (le filtre `date` de
+ * l'API VRPlatform n'accepte pas de borne de fin ouverte), largement
+ * suffisant pour "les prochaines réservations". */
 export async function getUpcomingReservations(listingIds: string[], limit = 10): Promise<UpcomingReservation[]> {
   const accountByLineType = await getReservationLineAccountMap();
   const today = new Date();
@@ -351,7 +351,15 @@ export async function getUpcomingReservations(listingIds: string[], limit = 10):
     }
   }
 
-  results.sort((a, b) => a.checkIn.localeCompare(b.checkIn));
+  // Dernière réservation effectuée en premier (date de résa la plus
+  // récente en haut) — pas la date d'arrivée. Une réservation sans
+  // bookedAt est reléguée en fin de liste plutôt que de fausser le tri.
+  results.sort((a, b) => {
+    if (!a.bookedAt && !b.bookedAt) return 0;
+    if (!a.bookedAt) return 1;
+    if (!b.bookedAt) return -1;
+    return b.bookedAt.localeCompare(a.bookedAt);
+  });
   return results.slice(0, limit);
 }
 
