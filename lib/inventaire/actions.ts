@@ -2517,6 +2517,20 @@ export async function toggleTaskDone(propertyId: string, taskId: string, done: b
   revalidatePath("/inventaire/planning");
 }
 
+/** Assignation rapide depuis le bouton dédié de la carte (sans passer par
+ * le formulaire d'édition complet) — ne touche que ce champ. */
+export async function assignTask(propertyId: string, taskId: string, assignedTo: string | null) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const { error } = await supabase.from("tasks").update({ assigned_to: assignedTo }).eq("id", taskId);
+  if (error) throw error;
+
+  revalidateProperty(propertyId);
+  revalidatePath("/inventaire");
+  revalidatePath("/inventaire/planning");
+}
+
 export async function addTaskComment(propertyId: string, taskId: string, formData: FormData) {
   const supabase = await createClient();
   const user = await requireUser(supabase);
