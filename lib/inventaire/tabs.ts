@@ -26,12 +26,15 @@ export const PROPERTY_TABS = [
 
 export type PropertyTabKey = (typeof PROPERTY_TABS)[number]["key"];
 
-// Les onglets Propriétaire, Documents, Bail, Finances et Calendrier restent
-// toujours réservés aux administrateurs : on ne les propose pas dans le
-// choix des onglets d'un prestataire.
+// Les onglets Propriétaire, Documents et Bail restent toujours réservés aux
+// administrateurs : on ne les propose pas dans le choix des onglets d'un
+// rôle. Finances et Calendrier restent réservés aux administrateurs par
+// défaut mais peuvent être accordés explicitement à un rôle via
+// "Autorisations par rôle" (contrairement aux autres onglets, ils ne
+// s'ouvrent jamais "par défaut" même sans restriction configurée — voir
+// PropertyTabs.tsx).
 export const PRESTATAIRE_SELECTABLE_TABS = PROPERTY_TABS.filter(
-  (t) =>
-    t.key !== "proprietaire" && t.key !== "documents" && t.key !== "bail" && t.key !== "finances" && t.key !== "calendrier"
+  (t) => t.key !== "proprietaire" && t.key !== "documents" && t.key !== "bail"
 );
 
 // Items du menu du haut (réservés aux admins par défaut) — mêmes clés
