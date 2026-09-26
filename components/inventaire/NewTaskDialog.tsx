@@ -56,7 +56,7 @@ export function NewTaskDialog({ properties, profiles }: { properties: Property[]
                 {properties.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.reference}
-                    {p.name ? ` — ${p.name}` : ""}
+                    {p.address ? ` — ${p.address}` : ""}
                   </option>
                 ))}
               </select>
