@@ -173,7 +173,7 @@ export function FinanceTab({
 
       {!loading && !loadError && (
         <div className="card space-y-4 p-5">
-          <h2 className="text-sm font-semibold text-[#1d1d1f]">Prochaines réservations</h2>
+          <h2 className="text-sm font-semibold text-[#1d1d1f]">Dernières réservations</h2>
           {!upcoming || upcoming.length === 0 ? (
             <p className="text-[13px] text-[#6e6e73]">Aucune réservation à venir.</p>
           ) : (
