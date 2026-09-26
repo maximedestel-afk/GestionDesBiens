@@ -82,6 +82,16 @@ export function NewTaskDialog({ properties, profiles }: { properties: Property[]
                 ))}
               </select>
             </div>
+            <div>
+              <label className="field-label" htmlFor="taskScheduledDate">
+                Planifier le (optionnel)
+              </label>
+              <div className="mt-1 grid grid-cols-3 gap-2">
+                <input id="taskScheduledDate" name="scheduledDate" type="date" className="field-input mt-0" />
+                <input name="startTime" type="time" aria-label="Heure de début" className="field-input mt-0" />
+                <input name="endTime" type="time" aria-label="Heure de fin" className="field-input mt-0" />
+              </div>
+            </div>
           </div>
           {error && <p className="mt-3 text-[13px] text-red-600">{error}</p>}
           <div className="mt-5 flex justify-end gap-2">

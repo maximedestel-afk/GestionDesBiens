@@ -559,6 +559,36 @@ export async function listAttachmentsForProperty(propertyId: string): Promise<At
   return rows.map((row, i) => serializeAttachment(row, signedUrls?.[i]?.signedUrl ?? null));
 }
 
+/** Pièces jointes d'un ensemble d'entités du même type (ex. plusieurs
+ * tâches) en une seule requête — pour le Planning, qui affiche des tâches
+ * de plusieurs biens à la fois et ne peut pas se permettre une requête par
+ * tâche. */
+export async function listAttachmentsForEntities(
+  entityType: AttachmentEntityType,
+  entityIds: string[]
+): Promise<Attachment[]> {
+  if (entityIds.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("attachments")
+    .select("*")
+    .eq("entity_type", entityType)
+    .in("entity_id", entityIds)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+
+  const rows = data ?? [];
+  if (rows.length === 0) return [];
+
+  const { data: signedUrls } = await supabase.storage
+    .from("property-files")
+    .createSignedUrls(
+      rows.map((row) => row.file_path),
+      SIGNED_URL_TTL_SECONDS
+    );
+  return rows.map((row, i) => serializeAttachment(row, signedUrls?.[i]?.signedUrl ?? null));
+}
+
 export async function listActivityLog(propertyId: string): Promise<ActivityLogEntry[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -660,6 +690,41 @@ export async function listTasksForProperties(propertyIds: string[]): Promise<Rec
   }
 
   return result;
+}
+
+/** Tâches planifiées (scheduled_date renseignée) d'un ensemble de biens,
+ * triées par date puis heure de début — pour le Planning (vue agenda
+ * chronologique, indépendante du regroupement par bien de la page
+ * Tâches). Les tâches sans date planifiée n'apparaissent jamais ici. */
+export async function listScheduledTasks(propertyIds: string[]): Promise<Task[]> {
+  if (propertyIds.length === 0) return [];
+  const supabase = await createClient();
+
+  const { data: taskRows, error: taskError } = await supabase
+    .from("tasks")
+    .select("*")
+    .in("property_id", propertyIds)
+    .not("scheduled_date", "is", null)
+    .order("scheduled_date", { ascending: true })
+    .order("start_time", { ascending: true, nullsFirst: false });
+  if (taskError) throw taskError;
+
+  const taskIds = (taskRows ?? []).map((r) => r.id);
+  const commentsQuery =
+    taskIds.length > 0
+      ? await supabase.from("task_comments").select("*").in("task_id", taskIds).order("created_at", { ascending: true })
+      : { data: [], error: null };
+  if (commentsQuery.error) throw commentsQuery.error;
+
+  const commentsByTask = new Map<string, ReturnType<typeof serializeTaskComment>[]>();
+  for (const row of commentsQuery.data ?? []) {
+    const comment = serializeTaskComment(row);
+    const list = commentsByTask.get(comment.taskId) ?? [];
+    list.push(comment);
+    commentsByTask.set(comment.taskId, list);
+  }
+
+  return (taskRows ?? []).map((row) => serializeTask(row, commentsByTask.get(row.id) ?? []));
 }
 
 export async function listProfiles(): Promise<Profile[]> {
@@ -946,6 +1011,25 @@ export async function listPropertiesOpenTasksCount(propertyIds: string[]): Promi
   }
 
   return result;
+}
+
+/** Nombre de tâches planifiées à venir (aujourd'hui inclus, non terminées)
+ * sur un ensemble de biens — pour le badge du lien "Planning" sur l'écran
+ * d'accueil. */
+export async function countUpcomingScheduledTasks(propertyIds: string[]): Promise<number> {
+  if (propertyIds.length === 0) return 0;
+  const supabase = await createClient();
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const { count, error } = await supabase
+    .from("tasks")
+    .select("id", { count: "exact", head: true })
+    .eq("done", false)
+    .gte("scheduled_date", todayIso)
+    .in("property_id", propertyIds);
+  if (error) throw error;
+
+  return count ?? 0;
 }
 
 export async function listPropertiesPlatforms(propertyIds: string[]): Promise<Record<string, PropertyPlatform[]>> {

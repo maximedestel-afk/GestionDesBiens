@@ -2401,6 +2401,15 @@ export async function createTask(formData: FormData) {
   const propertyId = requireNonEmpty(formData.get("propertyId"), "Le bien");
   const text = requireNonEmpty(formData.get("text"), "La tâche");
   const assignedTo = optionalString(formData.get("assignedTo"));
+  const scheduledDate = optionalString(formData.get("scheduledDate"));
+  const startTime = optionalString(formData.get("startTime"));
+  const endTime = optionalString(formData.get("endTime"));
+  if ((startTime || endTime) && !scheduledDate) {
+    throw new Error("Choisis une date pour planifier un horaire.");
+  }
+  if (startTime && endTime && endTime <= startTime) {
+    throw new Error("L'heure de fin doit être après l'heure de début.");
+  }
 
   const { error } = await supabase.from("tasks").insert({
     property_id: propertyId,
@@ -2408,6 +2417,9 @@ export async function createTask(formData: FormData) {
     created_by: user.id,
     created_by_email: user.email,
     assigned_to: assignedTo,
+    scheduled_date: scheduledDate,
+    start_time: startTime,
+    end_time: endTime,
   });
   if (error) throw error;
 
@@ -2420,6 +2432,7 @@ export async function createTask(formData: FormData) {
 
   revalidateProperty(propertyId);
   revalidatePath("/inventaire");
+  revalidatePath("/inventaire/planning");
 }
 
 export async function toggleTaskDone(propertyId: string, taskId: string, done: boolean) {
@@ -2439,6 +2452,7 @@ export async function toggleTaskDone(propertyId: string, taskId: string, done: b
 
   revalidateProperty(propertyId);
   revalidatePath("/inventaire");
+  revalidatePath("/inventaire/planning");
 }
 
 export async function addTaskComment(propertyId: string, taskId: string, formData: FormData) {
@@ -2456,6 +2470,7 @@ export async function addTaskComment(propertyId: string, taskId: string, formDat
   if (error) throw error;
 
   revalidateProperty(propertyId);
+  revalidatePath("/inventaire/planning");
 }
 
 export async function deleteTask(propertyId: string, taskId: string) {
@@ -2474,6 +2489,7 @@ export async function deleteTask(propertyId: string, taskId: string) {
 
   revalidateProperty(propertyId);
   revalidatePath("/inventaire");
+  revalidatePath("/inventaire/planning");
 }
 
 /* ------------------------------------------------------------------ */

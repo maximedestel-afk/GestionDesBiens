@@ -398,7 +398,9 @@ export function PropertyTabs({
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}
         {activeTab === "historique" && <ActivityLogPanel entries={activityLog} />}
-        {activeTab === "taches" && <TasksTab propertyId={property.id} tasks={tasks} profiles={profiles} />}
+        {activeTab === "taches" && (
+          <TasksTab propertyId={property.id} tasks={tasks} profiles={profiles} attachments={attachments} />
+        )}
         {activeTab === "manquant" && <MissingDataTab checks={missingChecks} onNavigate={navigateToCheck} />}
           </div>
         </fieldset>
