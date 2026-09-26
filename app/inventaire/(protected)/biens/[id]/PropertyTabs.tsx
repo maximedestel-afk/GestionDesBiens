@@ -132,15 +132,16 @@ export function PropertyTabs({
   // liste ; sans configuration (liste vide), comportement inchangé : tout
   // est visible.
   const hasTabRestriction = !isAdmin && allowedTabs.length > 0;
+  // Finances et Calendrier ne sont jamais visibles "par défaut" (même sans
+  // restriction d'onglets configurée) — seulement pour un admin, ou pour un
+  // rôle auquel ils ont été explicitement accordés dans "Autorisations par
+  // rôle".
+  const canSeeFinances = isAdmin || allowedTabsSet.has("finances");
+  const canSeeCalendrier = isAdmin || allowedTabsSet.has("calendrier");
   const visibleTabs = TABS.filter((tab) => {
-    if (
-      tab.key === "proprietaire" ||
-      tab.key === "documents" ||
-      tab.key === "bail" ||
-      tab.key === "finances" ||
-      tab.key === "calendrier"
-    )
-      return isAdmin;
+    if (tab.key === "proprietaire" || tab.key === "documents" || tab.key === "bail") return isAdmin;
+    if (tab.key === "finances") return canSeeFinances;
+    if (tab.key === "calendrier") return canSeeCalendrier;
     if (hasTabRestriction) return allowedTabsSet.has(tab.key);
     return true;
   });
@@ -390,10 +391,10 @@ export function PropertyTabs({
             missingCheckKeys={missingCheckKeys}
           />
         )}
-        {activeTab === "finances" && isAdmin && (
+        {activeTab === "finances" && canSeeFinances && (
           <FinanceTab propertyId={property.id} owner={owner} />
         )}
-        {activeTab === "calendrier" && isAdmin && <CalendarTab propertyId={property.id} />}
+        {activeTab === "calendrier" && canSeeCalendrier && <CalendarTab propertyId={property.id} />}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}

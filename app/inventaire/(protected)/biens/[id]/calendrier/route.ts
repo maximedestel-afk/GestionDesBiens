@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCurrentProfile, getProperty, getPropertyFinanceSettings } from "@/lib/inventaire/queries";
+import { getAllowedSectionsForRole, getCurrentProfile, getProperty, getPropertyFinanceSettings } from "@/lib/inventaire/queries";
+import { canAccessSection } from "@/lib/inventaire/tabs";
 import { findVrPlatformListingIdByReference, getReservationsInRange, isVrPlatformConfigured } from "@/lib/inventaire/vrplatform";
 import { findGuestyListingIdByReference, getGuestyCalendar, isGuestyConfigured } from "@/lib/inventaire/guesty";
 
@@ -22,7 +23,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const profile = await getCurrentProfile();
   if (!profile) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
-  if (profile.role !== "admin") return NextResponse.json({ error: "Réservé aux administrateurs." }, { status: 403 });
+  const allowedSections = await getAllowedSectionsForRole(profile.role);
+  if (!canAccessSection(profile.role, allowedSections, "calendrier")) {
+    return NextResponse.json({ error: "Réservé aux administrateurs." }, { status: 403 });
+  }
 
   if (!isVrPlatformConfigured()) {
     return NextResponse.json({ error: "VRPlatform n'est pas configuré sur ce déploiement." }, { status: 500 });
