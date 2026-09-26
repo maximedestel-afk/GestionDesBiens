@@ -107,6 +107,38 @@ function ReplyForm({ propertyId, taskId }: { propertyId: string; taskId: string 
   );
 }
 
+function DoneButton({
+  propertyId,
+  task,
+  pending,
+  startTransition,
+}: {
+  propertyId: string;
+  task: Task;
+  pending: boolean;
+  startTransition: (fn: () => Promise<void>) => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      onClick={() => {
+        const next = !task.done;
+        startTransition(async () => {
+          await toggleTaskDone(propertyId, task.id, next).catch(() => {});
+        });
+      }}
+      className={`inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition ${
+        task.done
+          ? "bg-emerald-500 text-white hover:bg-emerald-600"
+          : "border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+      }`}
+    >
+      ✓ {task.done ? "Fait" : "Terminé"}
+    </button>
+  );
+}
+
 function EditPencilIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
@@ -226,18 +258,6 @@ export function TaskCard({
     <div className={`card p-5 ${task.done ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-2.5">
-          <input
-            type="checkbox"
-            checked={task.done}
-            disabled={pending}
-            onChange={(e) => {
-              const done = e.target.checked;
-              startTransition(async () => {
-                await toggleTaskDone(propertyId, task.id, done).catch(() => {});
-              });
-            }}
-            className="mt-1 h-4 w-4 shrink-0"
-          />
           <div>
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
               {propertyLabel && (
@@ -284,6 +304,7 @@ export function TaskCard({
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <DoneButton propertyId={propertyId} task={task} pending={pending} startTransition={startTransition} />
           <button
             type="button"
             onClick={() => setEditing(true)}
