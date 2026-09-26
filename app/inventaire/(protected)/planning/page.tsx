@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  getAllowedSectionsForRole,
   getCurrentProfile,
   getPrestataireAllowedPropertyIds,
   listAttachmentsForEntities,
@@ -7,11 +8,16 @@ import {
   listProperties,
   listScheduledTasks,
 } from "@/lib/inventaire/queries";
+import { canAccessSection } from "@/lib/inventaire/tabs";
 import { NewTaskDialog } from "@/components/inventaire/NewTaskDialog";
 import { PlanningAgenda } from "@/components/inventaire/PlanningAgenda";
 
 export default async function PlanningPage() {
   const profile = await getCurrentProfile();
+  const allowedSections = await getAllowedSectionsForRole(profile?.role);
+  if (!canAccessSection(profile?.role, allowedSections, "menu_planning")) {
+    return <p className="text-sm text-[#6e6e73]">Réservé aux administrateurs.</p>;
+  }
   const isPrestataire = profile?.role === "prestataire";
   const allowedPropertyIds = isPrestataire ? await getPrestataireAllowedPropertyIds(profile!.id) : null;
   const properties = await listProperties(undefined, allowedPropertyIds);

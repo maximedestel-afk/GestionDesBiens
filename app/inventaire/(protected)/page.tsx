@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   countUpcomingScheduledTasks,
+  getAllowedSectionsForRole,
   getCurrentProfile,
   getPrestataireAllowedPropertyIds,
   listAllTags,
@@ -11,6 +12,7 @@ import {
   listPropertiesRentTypes,
   listPropertiesStats,
 } from "@/lib/inventaire/queries";
+import { canAccessSection } from "@/lib/inventaire/tabs";
 import { NewPropertyDialog } from "@/components/inventaire/NewPropertyDialog";
 import { PropertySearchInput } from "@/components/inventaire/PropertySearchInput";
 import { PropertyCompletenessBadge } from "@/components/inventaire/PropertyCompletenessBadge";
@@ -29,7 +31,7 @@ export default async function PropertiesPage({
   const allowedPropertyIds = isPrestataire ? await getPrestataireAllowedPropertyIds(profile!.id) : null;
   const properties = await listProperties(q, allowedPropertyIds, tag);
   const propertyIds = properties.map((p) => p.id);
-  const [missingChecks, stats, platforms, openTasksCounts, rentTypes, allTags, upcomingScheduledCount] =
+  const [missingChecks, stats, platforms, openTasksCounts, rentTypes, allTags, upcomingScheduledCount, allowedSections] =
     await Promise.all([
       listPropertiesMissingChecks(propertyIds),
       listPropertiesStats(propertyIds),
@@ -38,7 +40,9 @@ export default async function PropertiesPage({
       listPropertiesRentTypes(propertyIds),
       listAllTags(allowedPropertyIds),
       countUpcomingScheduledTasks(propertyIds),
+      getAllowedSectionsForRole(profile?.role),
     ]);
+  const canSeePlanning = canAccessSection(profile?.role, allowedSections, "menu_planning");
   const RENT_TYPE_LABELS = { fixe: "Fixe", variable: "Variable", fixe_variable: "Fixe + Variable" } as const;
   const totalOpenTasks = Object.values(openTasksCounts).reduce((sum, count) => sum + count, 0);
 
@@ -61,17 +65,19 @@ export default async function PropertiesPage({
               </span>
             )}
           </Link>
-          <Link
-            href="/inventaire/planning"
-            className="inline-flex items-center gap-1.5 rounded-full border-2 border-black/10 px-3.5 py-1.5 text-sm font-semibold text-[#1d1d1f] transition hover:bg-black/[0.03]"
-          >
-            🗓️ Planning
-            {upcomingScheduledCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-sky-500 px-1 text-[12px] font-semibold text-white">
-                {upcomingScheduledCount}
-              </span>
-            )}
-          </Link>
+          {canSeePlanning && (
+            <Link
+              href="/inventaire/planning"
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-black/10 px-3.5 py-1.5 text-sm font-semibold text-[#1d1d1f] transition hover:bg-black/[0.03]"
+            >
+              🗓️ Planning
+              {upcomingScheduledCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-sky-500 px-1 text-[12px] font-semibold text-white">
+                  {upcomingScheduledCount}
+                </span>
+              )}
+            </Link>
+          )}
           {!isPrestataire && <NewPropertyDialog />}
         </div>
       </div>
