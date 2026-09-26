@@ -21,6 +21,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     canSee("menu_journal") && { href: "/inventaire/journal", label: "Journal" },
     canSee("menu_acces") && { href: "/inventaire/acces", label: "Accès" },
     canSee("menu_api") && { href: "/inventaire/api-keys", label: "API" },
+    canSee("menu_planning") && { href: "/inventaire/planning", label: "Planning" },
   ].filter((item): item is { href: string; label: string } => !!item);
 
   return (
