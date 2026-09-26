@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import type { Attachment, Profile, Task } from "@/lib/inventaire/types";
-import { addTaskComment, deleteTask, toggleTaskDone, updateTask } from "@/lib/inventaire/actions";
+import { addTaskComment, assignTask, deleteTask, toggleTaskDone, updateTask } from "@/lib/inventaire/actions";
 import { ActionForm } from "./ActionForm";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 import { FileUploadButtons } from "./FileUploadButtons";
@@ -24,6 +24,53 @@ export function formatScheduledDateFr(isoDate: string) {
 
 function profileLabel(p: Profile): string {
   return p.fullName || p.email;
+}
+
+function AssigneeBadge({ assignee }: { assignee: Profile }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border-2 border-[#1d1d1f]/15 bg-black/[0.04] px-3 py-1 text-[14px] font-semibold text-[#1d1d1f]">
+      👤 {profileLabel(assignee)}
+    </span>
+  );
+}
+
+function AssignPicker({
+  propertyId,
+  task,
+  profiles,
+  onDone,
+}: {
+  propertyId: string;
+  task: Task;
+  profiles: Profile[];
+  onDone: () => void;
+}) {
+  const [pending, startTransition] = useTransition();
+
+  function assign(profileId: string) {
+    startTransition(async () => {
+      await assignTask(propertyId, task.id, profileId || null).catch(() => {});
+      onDone();
+    });
+  }
+
+  return (
+    <select
+      autoFocus
+      disabled={pending}
+      defaultValue={task.assignedTo ?? ""}
+      onChange={(e) => assign(e.target.value)}
+      onBlur={onDone}
+      className="rounded-full border-2 border-[#0071e3] bg-white px-3 py-1 text-[14px] font-semibold text-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+    >
+      <option value="">Non assigné</option>
+      {profiles.map((p) => (
+        <option key={p.id} value={p.id}>
+          {profileLabel(p)}
+        </option>
+      ))}
+    </select>
+  );
 }
 
 function ScheduleBadge({ task }: { task: Task }) {
@@ -160,6 +207,7 @@ export function TaskCard({
 }) {
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
+  const [assigning, setAssigning] = useState(false);
   const assignee = profiles.find((p) => p.id === task.assignedTo);
 
   if (editing) {
@@ -191,23 +239,40 @@ export function TaskCard({
             className="mt-1 h-4 w-4 shrink-0"
           />
           <div>
-            {(propertyLabel || task.scheduledDate) && (
-              <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                {propertyLabel && (
-                  <Link
-                    href={`/inventaire/biens/${propertyId}?tab=taches`}
-                    className="text-[13px] font-semibold text-[#1d1d1f] hover:text-[#0071e3]"
-                  >
-                    {propertyLabel}
-                  </Link>
-                )}
-                <ScheduleBadge task={task} />
-              </div>
-            )}
+            <div className="mb-1.5 flex flex-wrap items-center gap-2">
+              {propertyLabel && (
+                <Link
+                  href={`/inventaire/biens/${propertyId}?tab=taches`}
+                  className="text-[13px] font-semibold text-[#1d1d1f] hover:text-[#0071e3]"
+                >
+                  {propertyLabel}
+                </Link>
+              )}
+              <ScheduleBadge task={task} />
+              {assigning ? (
+                <AssignPicker
+                  propertyId={propertyId}
+                  task={task}
+                  profiles={profiles}
+                  onDone={() => setAssigning(false)}
+                />
+              ) : assignee ? (
+                <button type="button" onClick={() => setAssigning(true)} className="rounded-full">
+                  <AssigneeBadge assignee={assignee} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAssigning(true)}
+                  className="inline-flex items-center gap-1 rounded-full border-2 border-dashed border-black/20 px-3 py-1 text-[13px] font-medium text-[#6e6e73] transition hover:border-[#0071e3] hover:text-[#0071e3]"
+                >
+                  + Assigner
+                </button>
+              )}
+            </div>
             <p className={`text-[15px] text-[#1d1d1f] ${task.done ? "line-through" : ""}`}>{task.text}</p>
             <p className="mt-1 text-[12px] text-[#6e6e73]">
               {task.createdByEmail ?? "?"} · {formatDateTime(task.createdAt)}
-              {assignee && <> · Assigné à {profileLabel(assignee)}</>}
               {task.done && task.doneAt && (
                 <>
                   {" "}
