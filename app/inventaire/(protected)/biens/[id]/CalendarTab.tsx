@@ -27,6 +27,15 @@ interface CalendarReservation {
   guestName: string | null;
   guests: number | null;
   bookingPlatformLabel: string | null;
+  rentsCents: number;
+}
+
+/** Prix moyen/nuit d'une réservation (tarif brut RENTS, avant commission
+ * de canal) — affiché sur les nuits occupées, à la place du prix Guesty
+ * (qui ne reflète que les nuits encore libres à la vente). */
+function averageNightlyRate(reservation: CalendarReservation): number | null {
+  if (!reservation.nights || reservation.nights <= 0) return null;
+  return reservation.rentsCents / 100 / reservation.nights;
 }
 
 interface PlatformColor {
@@ -274,11 +283,16 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
                         {day.occupying.guestName ?? "Réservé"}
                       </span>
                     )}
-                    {day.price != null && (
-                      <span className="mt-auto text-[10px] font-semibold text-[#1d1d1f]/70">
-                        {formatPriceCompact(day.price)}
-                      </span>
-                    )}
+                    {(() => {
+                      const price = day.occupying ? averageNightlyRate(day.occupying) : day.price;
+                      return (
+                        price != null && (
+                          <span className="mt-auto text-[10px] font-semibold text-[#1d1d1f]/70">
+                            {formatPriceCompact(price)}
+                          </span>
+                        )
+                      );
+                    })()}
                   </div>
                 );
               })}
