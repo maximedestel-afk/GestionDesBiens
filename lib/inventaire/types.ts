@@ -295,7 +295,13 @@ export interface InventoryItem {
   stockUpdatedAt: string | null;
 }
 
-export type AttachmentEntityType = "property" | "equipment" | "inventory_item" | "property_element" | "property_key";
+export type AttachmentEntityType =
+  | "property"
+  | "equipment"
+  | "inventory_item"
+  | "property_element"
+  | "property_key"
+  | "task";
 
 export type AttachmentKind =
   | "access_video"
@@ -315,7 +321,8 @@ export type AttachmentKind =
   | "trash_room"
   | "equipment_instruction_video"
   | "plan"
-  | "key_photo";
+  | "key_photo"
+  | "task_photo";
 
 export interface Attachment {
   id: string;
@@ -360,6 +367,14 @@ export interface Task {
   done: boolean;
   doneByEmail: string | null;
   doneAt: string | null;
+  /** Date planifiée de l'intervention (YYYY-MM-DD), ou null si la tâche
+   * n'est pas planifiée (comportement historique, avant l'ajout du
+   * Planning). */
+  scheduledDate: string | null;
+  /** Heure de début (HH:MM), sans fuseau — l'heure locale de l'équipe. */
+  startTime: string | null;
+  /** Heure de fin (HH:MM), optionnelle même si scheduledDate est renseigné. */
+  endTime: string | null;
   comments: TaskComment[];
 }
 

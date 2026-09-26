@@ -357,6 +357,12 @@ export function serializeTask(row: any, comments: TaskComment[] = []): Task {
     done: row.done,
     doneByEmail: row.done_by_email,
     doneAt: row.done_at,
+    scheduledDate: row.scheduled_date,
+    // Postgres renvoie "HH:MM:SS" pour une colonne time — on tronque à
+    // "HH:MM" (format attendu par <input type="time"> et par les tris/
+    // comparaisons de chaînes utilisés partout ailleurs sur ces valeurs).
+    startTime: row.start_time ? String(row.start_time).slice(0, 5) : null,
+    endTime: row.end_time ? String(row.end_time).slice(0, 5) : null,
     comments,
   };
 }
