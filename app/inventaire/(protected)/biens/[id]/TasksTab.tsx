@@ -5,9 +5,14 @@ import type { Attachment, Profile, Task } from "@/lib/inventaire/types";
 import { createTask } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
 import { TaskCard } from "@/components/inventaire/TaskCard";
+import { ScheduleFields } from "@/components/inventaire/ScheduleFields";
 
 const FIELD_INPUT_CLASS =
   "mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[15px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15";
+
+function profileLabel(p: Profile): string {
+  return p.fullName || p.email;
+}
 
 function NewTaskForm({ propertyId, profiles }: { propertyId: string; profiles: Profile[] }) {
   return (
@@ -37,21 +42,12 @@ function NewTaskForm({ propertyId, profiles }: { propertyId: string; profiles: P
               <option value="">Non assigné</option>
               {profiles.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.email}
+                  {profileLabel(p)}
                 </option>
               ))}
             </select>
           </div>
-          <div>
-            <label className="field-label" htmlFor="scheduledDate">
-              Planifier le (optionnel)
-            </label>
-            <div className="mt-1 grid grid-cols-3 gap-2">
-              <input id="scheduledDate" name="scheduledDate" type="date" className="field-input mt-0" />
-              <input id="startTime" name="startTime" type="time" aria-label="Heure de début" className="field-input mt-0" />
-              <input id="endTime" name="endTime" type="time" aria-label="Heure de fin" className="field-input mt-0" />
-            </div>
-          </div>
+          <ScheduleFields idPrefix="newTask" />
           <div className="flex items-center justify-between">
             {error && <span className="text-sm text-red-600">{error}</span>}
             {success && <span className="text-sm text-emerald-600">Tâche ajoutée ✓</span>}

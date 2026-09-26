@@ -4,6 +4,11 @@ import { useRef, useState, useTransition } from "react";
 import { unstable_rethrow } from "next/navigation";
 import type { Profile, Property } from "@/lib/inventaire/types";
 import { createTask } from "@/lib/inventaire/actions";
+import { ScheduleFields } from "./ScheduleFields";
+
+function profileLabel(p: Profile): string {
+  return p.fullName || p.email;
+}
 
 export function NewTaskDialog({ properties, profiles }: { properties: Property[]; profiles: Profile[] }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -77,21 +82,12 @@ export function NewTaskDialog({ properties, profiles }: { properties: Property[]
                 <option value="">Non assigné</option>
                 {profiles.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.email}
+                    {profileLabel(p)}
                   </option>
                 ))}
               </select>
             </div>
-            <div>
-              <label className="field-label" htmlFor="taskScheduledDate">
-                Planifier le (optionnel)
-              </label>
-              <div className="mt-1 grid grid-cols-3 gap-2">
-                <input id="taskScheduledDate" name="scheduledDate" type="date" className="field-input mt-0" />
-                <input name="startTime" type="time" aria-label="Heure de début" className="field-input mt-0" />
-                <input name="endTime" type="time" aria-label="Heure de fin" className="field-input mt-0" />
-              </div>
-            </div>
+            <ScheduleFields idPrefix="task" />
           </div>
           {error && <p className="mt-3 text-[13px] text-red-600">{error}</p>}
           <div className="mt-5 flex justify-end gap-2">
