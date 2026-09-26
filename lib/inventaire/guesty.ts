@@ -331,15 +331,22 @@ export interface GuestyCalendarDay {
  * tarification, pas seulement les nuits réservées) — pour l'onglet
  * Calendrier (CAL) d'un bien. Endpoint déduit de la documentation
  * publique Guesty (non vérifié en conditions réelles, comme le reste de
- * ce module — voir l'avertissement en tête de fichier) :
- * `/listings/{id}/calendar/{startDate}/{endDate}`, un tableau de
- * `{ date, price, currency, status }` par jour. */
+ * ce module — voir l'avertissement en tête de fichier).
+ *
+ * Une première tentative avec les dates en segments d'URL
+ * (`/listings/{id}/calendar/{from}/{to}`) a échoué en production avec un
+ * 404 "Cannot GET" — mais la requête avait bien atteint le service
+ * calendrier de Guesty (le chemin de l'erreur montrait
+ * "api/v2/listings/.../calendar/..."), donc seul le format de la période
+ * était en cause : on passe maintenant `from`/`to` en paramètres de
+ * requête plutôt qu'en segments d'URL supplémentaires. */
 export async function getGuestyCalendar(
   listingId: string,
   startDate: string,
   endDate: string
 ): Promise<GuestyCalendarDay[]> {
-  const raw = await guestyFetch<unknown>(`/listings/${listingId}/calendar/${startDate}/${endDate}`);
+  const query = new URLSearchParams({ from: startDate, to: endDate });
+  const raw = await guestyFetch<unknown>(`/listings/${listingId}/calendar?${query}`);
   const rows = unwrapArray(raw) as { date?: string; price?: unknown; currency?: string; status?: string }[];
   return rows
     .map((row) => {
