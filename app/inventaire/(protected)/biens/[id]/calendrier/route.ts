@@ -8,6 +8,13 @@ function formatDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+// Valeurs du champ `status` du calendrier Guesty considérées comme "nuit
+// bloquée" (blocage manuel, maintenance, etc. — pas une réservation) —
+// d'après la documentation publique Guesty ("unavailable"), non vérifié en
+// conditions réelles comme le reste du module lib/inventaire/guesty.ts. Si
+// Guesty utilise en réalité un autre libellé, à ajuster une fois constaté.
+const GUESTY_BLOCKED_STATUSES = new Set(["unavailable", "blocked"]);
+
 /** Premier jour (lundi) de la grille calendrier d'un mois — peut être dans
  * le mois précédent si le 1er n'est pas un lundi. */
 function startOfGrid(year: number, month: number): Date {
@@ -72,6 +79,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     // introuvable, erreur Guesty) ne doit jamais empêcher d'afficher le
     // calendrier des réservations — seul le prix manque, en warning.
     let nightlyPrices: Record<string, number> = {};
+    let blockedDates: string[] = [];
     let guestyWarning: string | null = null;
     if (isGuestyConfigured()) {
       try {
@@ -85,6 +93,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           nightlyPrices = Object.fromEntries(
             calendarDays.filter((d) => d.price != null).map((d) => [d.date, d.price as number])
           );
+          blockedDates = calendarDays
+            .filter((d) => d.status && GUESTY_BLOCKED_STATUSES.has(d.status.toLowerCase()))
+            .map((d) => d.date);
         } else {
           guestyWarning = `Annonce Guesty introuvable pour la référence « ${property.reference} » — prix par nuit indisponibles.`;
         }
@@ -102,6 +113,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       gridStart: formatDateInput(gridStart),
       reservations,
       nightlyPrices,
+      blockedDates,
       warning: [vrPlatformWarning, guestyWarning].filter(Boolean).join(" ") || null,
     });
   } catch (err) {

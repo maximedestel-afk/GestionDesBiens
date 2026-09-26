@@ -95,6 +95,7 @@ interface DayInfo {
   arrivals: CalendarReservation[];
   departures: CalendarReservation[];
   price: number | null;
+  blocked: boolean;
 }
 
 export function CalendarTab({ propertyId }: { propertyId: string }) {
@@ -103,6 +104,7 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
   const [month, setMonth] = useState(now.getUTCMonth() + 1);
   const [reservations, setReservations] = useState<CalendarReservation[] | null>(null);
   const [nightlyPrices, setNightlyPrices] = useState<Record<string, number>>({});
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
@@ -119,9 +121,11 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
           setLoadError(data.error);
           setReservations(null);
           setNightlyPrices({});
+          setBlockedDates([]);
         } else {
           setReservations(data.reservations ?? []);
           setNightlyPrices(data.nightlyPrices ?? {});
+          setBlockedDates(data.blockedDates ?? []);
           setLoadWarning(data.warning ?? null);
         }
       } catch {
@@ -148,6 +152,8 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
   const monthStartIso = toISODate(new Date(Date.UTC(year, month - 1, 1)));
   const monthEndIso = toISODate(new Date(Date.UTC(year, month, 1)));
 
+  const blockedDatesSet = useMemo(() => new Set(blockedDates), [blockedDates]);
+
   const days: DayInfo[] = useMemo(() => {
     const gridStart = startOfGrid(year, month);
     return Array.from({ length: 42 }, (_, i) => {
@@ -165,9 +171,13 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
         arrivals,
         departures,
         price: nightlyPrices[iso] ?? null,
+        // Bloqué côté Guesty (blocage manuel, maintenance…) — sans lien avec
+        // une réservation VRPlatform, donc jamais affiché quand la nuit est
+        // déjà occupée (une réservation prime toujours sur un blocage).
+        blocked: !occupying && blockedDatesSet.has(iso),
       };
     });
-  }, [reservations, nightlyPrices, year, month, monthStartIso, monthEndIso, todayIso]);
+  }, [reservations, nightlyPrices, blockedDatesSet, year, month, monthStartIso, monthEndIso, todayIso]);
 
   const nightsOccupied = days.filter((d) => d.inMonth && d.occupying).length;
   const daysInMonth = days.filter((d) => d.inMonth).length;
@@ -180,6 +190,7 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
   const platformsInView = Array.from(
     new Set((reservations ?? []).map((r) => r.bookingPlatformLabel).filter((p): p is string => !!p))
   );
+  const hasBlockedInView = days.some((d) => d.inMonth && d.blocked);
 
   return (
     <div className="space-y-4">
@@ -243,20 +254,32 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
                     ]
                       .filter(Boolean)
                       .join(" — ")
-                  : day.departures.length > 0
-                    ? `Départ : ${day.departures.map((r) => r.guestName ?? "Voyageur").join(", ")}`
-                    : undefined;
+                  : day.blocked
+                    ? "Bloqué (Guesty)"
+                    : day.departures.length > 0
+                      ? `Départ : ${day.departures.map((r) => r.guestName ?? "Voyageur").join(", ")}`
+                      : undefined;
 
                 return (
                   <div
                     key={day.date}
                     title={title}
+                    style={
+                      day.blocked
+                        ? {
+                            backgroundImage:
+                              "repeating-linear-gradient(135deg, rgba(0,0,0,0.06), rgba(0,0,0,0.06) 4px, transparent 4px, transparent 9px)",
+                          }
+                        : undefined
+                    }
                     className={`flex min-h-[64px] flex-col gap-0.5 rounded-[8px] border p-1 text-left ${
                       day.occupying
                         ? `${color?.bg} ${color?.border}`
-                        : day.isToday
-                          ? "border-[#0071e3]/40 bg-[#0071e3]/[0.04]"
-                          : "border-black/[0.06] bg-white"
+                        : day.blocked
+                          ? "border-black/15 bg-black/[0.03]"
+                          : day.isToday
+                            ? "border-[#0071e3]/40 bg-[#0071e3]/[0.04]"
+                            : "border-black/[0.06] bg-white"
                     } ${!day.inMonth ? "opacity-40" : ""}`}
                   >
                     <div className="flex items-center justify-between">
@@ -283,8 +306,11 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
                         {day.occupying.guestName ?? "Réservé"}
                       </span>
                     )}
+                    {day.blocked && (
+                      <span className="truncate text-[11px] font-medium text-[#6e6e73]">🔒 Bloqué</span>
+                    )}
                     {(() => {
-                      const price = day.occupying ? averageNightlyRate(day.occupying) : day.price;
+                      const price = day.occupying ? averageNightlyRate(day.occupying) : day.blocked ? null : day.price;
                       return (
                         price != null && (
                           <span className="mt-auto text-[10px] font-semibold text-[#1d1d1f]/70">
@@ -298,7 +324,7 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
               })}
             </div>
 
-            {platformsInView.length > 0 && (
+            {(platformsInView.length > 0 || hasBlockedInView) && (
               <div className="flex flex-wrap items-center gap-3 border-t border-black/[0.06] pt-3 text-[12px] text-[#6e6e73]">
                 {platformsInView.map((label) => {
                   const color = colorForPlatform(label);
@@ -313,6 +339,12 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
                     </span>
                   );
                 })}
+                {hasBlockedInView && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-[3px] border border-black/15 bg-black/[0.06]" aria-hidden="true" />
+                    Bloqué (Guesty)
+                  </span>
+                )}
               </div>
             )}
           </>
