@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile, getProperty, getPropertyFinanceSettings } from "@/lib/inventaire/queries";
 import { findVrPlatformListingIdByReference, getReservationsInRange, isVrPlatformConfigured } from "@/lib/inventaire/vrplatform";
+import { findGuestyListingIdByReference, getGuestyCalendar, isGuestyConfigured } from "@/lib/inventaire/guesty";
 
 function formatDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -62,12 +63,42 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     const reservations = await getReservationsInRange(listingIds, formatDateInput(gridStart), formatDateInput(gridEnd));
 
+    // Prix par nuit (calendrier de tarification Guesty) : à part de la
+    // résolution VRPlatform ci-dessus, un échec ici (non configuré, annonce
+    // introuvable, erreur Guesty) ne doit jamais empêcher d'afficher le
+    // calendrier des réservations — seul le prix manque, en warning.
+    let nightlyPrices: Record<string, number> = {};
+    let guestyWarning: string | null = null;
+    if (isGuestyConfigured()) {
+      try {
+        const guestyListingId = await findGuestyListingIdByReference(property.reference);
+        if (guestyListingId) {
+          const calendarDays = await getGuestyCalendar(
+            guestyListingId,
+            formatDateInput(gridStart),
+            formatDateInput(gridEnd)
+          );
+          nightlyPrices = Object.fromEntries(
+            calendarDays.filter((d) => d.price != null).map((d) => [d.date, d.price as number])
+          );
+        } else {
+          guestyWarning = `Annonce Guesty introuvable pour la référence « ${property.reference} » — prix par nuit indisponibles.`;
+        }
+      } catch (err) {
+        guestyWarning = `Guesty (prix par nuit) : ${err instanceof Error ? err.message : "erreur inconnue"}.`;
+      }
+    }
+
+    const vrPlatformWarning =
+      notFound.length > 0 ? `Référence VRPlatform introuvable : « ${notFound.join(", ")} ».` : null;
+
     return NextResponse.json({
       year,
       month,
       gridStart: formatDateInput(gridStart),
       reservations,
-      warning: notFound.length > 0 ? `Référence VRPlatform introuvable : « ${notFound.join(", ")} ».` : null,
+      nightlyPrices,
+      warning: [vrPlatformWarning, guestyWarning].filter(Boolean).join(" ") || null,
     });
   } catch (err) {
     return NextResponse.json(

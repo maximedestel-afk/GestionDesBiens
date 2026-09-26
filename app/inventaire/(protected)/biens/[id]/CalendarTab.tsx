@@ -73,6 +73,10 @@ function formatDateFr(value: string): string {
   return new Date(`${value}T00:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
 
+function formatPriceCompact(value: number): string {
+  return `${value.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}€`;
+}
+
 interface DayInfo {
   date: string;
   dayNumber: number;
@@ -81,6 +85,7 @@ interface DayInfo {
   occupying: CalendarReservation | null;
   arrivals: CalendarReservation[];
   departures: CalendarReservation[];
+  price: number | null;
 }
 
 export function CalendarTab({ propertyId }: { propertyId: string }) {
@@ -88,6 +93,7 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
   const [year, setYear] = useState(now.getUTCFullYear());
   const [month, setMonth] = useState(now.getUTCMonth() + 1);
   const [reservations, setReservations] = useState<CalendarReservation[] | null>(null);
+  const [nightlyPrices, setNightlyPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
@@ -103,8 +109,10 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
         if (data.error) {
           setLoadError(data.error);
           setReservations(null);
+          setNightlyPrices({});
         } else {
           setReservations(data.reservations ?? []);
+          setNightlyPrices(data.nightlyPrices ?? {});
           setLoadWarning(data.warning ?? null);
         }
       } catch {
@@ -147,9 +155,10 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
         occupying,
         arrivals,
         departures,
+        price: nightlyPrices[iso] ?? null,
       };
     });
-  }, [reservations, year, month, monthStartIso, monthEndIso, todayIso]);
+  }, [reservations, nightlyPrices, year, month, monthStartIso, monthEndIso, todayIso]);
 
   const nightsOccupied = days.filter((d) => d.inMonth && d.occupying).length;
   const daysInMonth = days.filter((d) => d.inMonth).length;
@@ -263,6 +272,11 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
                     {day.occupying && (
                       <span className={`truncate text-[11px] font-medium ${color?.text}`}>
                         {day.occupying.guestName ?? "Réservé"}
+                      </span>
+                    )}
+                    {day.price != null && (
+                      <span className="mt-auto text-[10px] font-semibold text-[#1d1d1f]/70">
+                        {formatPriceCompact(day.price)}
                       </span>
                     )}
                   </div>

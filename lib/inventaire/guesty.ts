@@ -319,6 +319,41 @@ export async function getGuestyRawCustomFieldDefinitions(): Promise<unknown> {
   return guestyFetch<unknown>(`/accounts/${accountId}/custom-fields`);
 }
 
+export interface GuestyCalendarDay {
+  /** YYYY-MM-DD */
+  date: string;
+  price: number | null;
+  currency: string | null;
+  status: string | null;
+}
+
+/** Prix par nuit d'une annonce Guesty sur une période (calendrier de
+ * tarification, pas seulement les nuits réservées) — pour l'onglet
+ * Calendrier (CAL) d'un bien. Endpoint déduit de la documentation
+ * publique Guesty (non vérifié en conditions réelles, comme le reste de
+ * ce module — voir l'avertissement en tête de fichier) :
+ * `/listings/{id}/calendar/{startDate}/{endDate}`, un tableau de
+ * `{ date, price, currency, status }` par jour. */
+export async function getGuestyCalendar(
+  listingId: string,
+  startDate: string,
+  endDate: string
+): Promise<GuestyCalendarDay[]> {
+  const raw = await guestyFetch<unknown>(`/listings/${listingId}/calendar/${startDate}/${endDate}`);
+  const rows = unwrapArray(raw) as { date?: string; price?: unknown; currency?: string; status?: string }[];
+  return rows
+    .map((row) => {
+      const priceNum = Number(row.price);
+      return {
+        date: row.date ? row.date.slice(0, 10) : "",
+        price: row.price != null && Number.isFinite(priceNum) ? priceNum : null,
+        currency: row.currency ?? null,
+        status: row.status ?? null,
+      };
+    })
+    .filter((d) => d.date);
+}
+
 /** Crée l'abonnement webhook Guesty → MGB (voir page API, section Guesty).
  * Nécessite le scope "endpoint:Create" sur l'application Guesty. */
 export async function createGuestyWebhook(targetUrl: string, events: string[]): Promise<void> {
