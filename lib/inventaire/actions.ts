@@ -2582,6 +2582,21 @@ export async function updateUserRole(userId: string, role: UserRole) {
   revalidatePath("/inventaire/utilisateurs");
 }
 
+export async function updateProfileFullName(userId: string, fullName: string) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ full_name: fullName.trim() || null })
+    .eq("id", userId);
+  if (error) throw error;
+
+  revalidatePath("/inventaire/utilisateurs");
+  revalidatePath("/inventaire/taches");
+  revalidatePath("/inventaire/planning");
+}
+
 /** Enregistre les biens autorisés d'un nouvel utilisateur "prestataire" —
  * les onglets autorisés se configurent par rôle (page Utilisateurs), pas à
  * la création d'un utilisateur. */
