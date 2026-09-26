@@ -1027,7 +1027,11 @@ export async function countUpcomingScheduledTasks(propertyIds: string[]): Promis
     .eq("done", false)
     .gte("scheduled_date", todayIso)
     .in("property_id", propertyIds);
-  if (error) throw error;
+  // Un simple badge du nombre de tâches à venir ne doit jamais faire
+  // planter l'écran d'accueil (donc bloquer la connexion) — notamment si
+  // la migration 0078 (colonne scheduled_date) n'a pas encore été
+  // exécutée sur cette base : on affiche alors 0 plutôt que de lever.
+  if (error) return 0;
 
   return count ?? 0;
 }
