@@ -2,12 +2,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { apiErrorResponse, requireApiKey } from "@/lib/api/auth";
 import {
   serializeAgencement,
+  serializeAttachment,
   serializeCleaningProvider,
   serializeEquipment,
   serializeInventoryCategory,
   serializeInventoryItem,
   serializeProperty,
+  serializePropertyData,
   serializePropertyDetails,
+  serializePropertyElement,
   serializePropertyFinanceSettings,
   serializePropertyKey,
   serializePropertyOwner,
@@ -20,6 +23,13 @@ import {
 } from "@/lib/inventaire/serialize";
 
 type SupabaseAdminClient = ReturnType<typeof createAdminClient>;
+
+// Durée de validité des URL signées des photos/documents renvoyées par
+// cette API : plus longue que celle utilisée côté interface (1h, pensée
+// pour une session de consultation) car un appelant externe peut vouloir
+// synchroniser/traiter les fichiers en différé plutôt que les afficher
+// immédiatement.
+const API_SIGNED_URL_TTL_SECONDS = 60 * 60 * 24; // 24h
 
 async function loadPropertyDetail(supabase: SupabaseAdminClient, propertyId: string) {
   const { data: propertyRow, error: propertyError } = await supabase
@@ -67,17 +77,41 @@ async function loadPropertyDetail(supabase: SupabaseAdminClient, propertyId: str
     supabase.from("property_data").select("*").eq("property_id", propertyId).maybeSingle(),
   ]);
 
-  // Éléments de l'onglet "UT - Eau / Élec" (robinet d'arrêt eau, tableau
-  // électrique, ballon d'eau chaude…) — mêmes lignes que WaterElecTab
-  // (property_elements, section "water_elec"), sans les photos/pièces
-  // jointes (hors périmètre de cette API en lecture seule).
-  const { data: waterElecElements } = await supabase
+  // Tous les éléments "à tiroir" d'un bien (property_elements) — une ligne
+  // par section (UT - Eau/Élec, DEF - Défauts, AN - Annonce/photos,
+  // AU - Autres/notes, CL - éléments clés, DOC - Documents,
+  // OW - Documents propriétaire), chacune pouvant avoir des pièces jointes
+  // (voir `attachments` ci-dessous, entityType "property_element").
+  const { data: elementRows } = await supabase
     .from("property_elements")
-    .select("name, notes")
+    .select("*")
     .eq("property_id", propertyId)
-    .eq("section", "water_elec")
+    .order("section")
     .order("position");
-  const waterElecItems = (waterElecElements ?? []).map((el) => ({ name: el.name, notes: el.notes }));
+  const elements = (elementRows ?? []).map(serializePropertyElement);
+  const waterElecItems = elements
+    .filter((el) => el.section === "water_elec")
+    .map((el) => ({ name: el.name, notes: el.notes }));
+
+  // Toutes les pièces jointes du bien (photos, documents…), tous types
+  // d'entité confondus (bien, équipement, élément, clé, article
+  // d'inventaire, tâche) — avec URL signée temporaire vers le fichier.
+  const { data: attachmentRows } = await supabase
+    .from("attachments")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("created_at", { ascending: true });
+  const attachmentList = attachmentRows ?? [];
+  let attachments: ReturnType<typeof serializeAttachment>[] = [];
+  if (attachmentList.length > 0) {
+    const { data: signedUrls } = await supabase.storage
+      .from("property-files")
+      .createSignedUrls(
+        attachmentList.map((row) => row.file_path),
+        API_SIGNED_URL_TTL_SECONDS
+      );
+    attachments = attachmentList.map((row, i) => serializeAttachment(row, signedUrls?.[i]?.signedUrl ?? null));
+  }
 
   const taskIds = (taskRows ?? []).map((r) => r.id);
   const { data: commentRows } =
@@ -132,6 +166,9 @@ async function loadPropertyDetail(supabase: SupabaseAdminClient, propertyId: str
     inventoryCategories: (inventoryCategories ?? []).map(serializeInventoryCategory),
     tasks: (taskRows ?? []).map((row) => serializeTask(row, commentsByTask.get(row.id) ?? [])),
     cleaningProvider,
+    propertyData: propertyData ? serializePropertyData(propertyData) : null,
+    elements,
+    attachments,
   };
 }
 
