@@ -2,8 +2,11 @@
 
 import { useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { createAppDocument, deleteAppDocument } from "@/lib/inventaire/actions";
+import { createAppDocument, deleteAppDocument, updateAppDocumentNotes } from "@/lib/inventaire/actions";
+import { ActionForm } from "@/components/inventaire/ActionForm";
 import { ConfirmDeleteButton } from "@/components/inventaire/ConfirmDeleteButton";
+import { NoteField } from "@/components/inventaire/NoteField";
+import { SaveStatus } from "@/components/inventaire/SaveStatus";
 import type { AppDocument } from "@/lib/inventaire/types";
 
 function sanitizeFileName(name: string): string {
@@ -16,6 +19,7 @@ function sanitizeFileName(name: string): string {
 function AddAppDocumentForm() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -39,12 +43,14 @@ function AddAppDocumentForm() {
 
         await createAppDocument({
           title: trimmedTitle,
+          notes: notes.trim() || null,
           filePath: path,
           originalFilename: file.name,
           mimeType: file.type || null,
           sizeBytes: file.size,
         });
         setTitle("");
+        setNotes("");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Échec de l'envoi.");
       }
@@ -86,6 +92,19 @@ function AddAppDocumentForm() {
           }}
         />
       </div>
+      <div>
+        <label className="field-label" htmlFor="new-app-document-notes">
+          Note (optionnel)
+        </label>
+        <textarea
+          id="new-app-document-notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Précisions d'utilisation…"
+          rows={2}
+          className="mt-1 w-full rounded-[10px] border border-black/10 bg-white px-3.5 py-2.5 text-[14px] text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus:border-[#0071e3] focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
+        />
+      </div>
       {error && <p className="text-[13px] text-red-600">{error}</p>}
     </div>
   );
@@ -98,23 +117,35 @@ export function AppDocumentsSection({ documents }: { documents: AppDocument[] })
       {documents.length > 0 && (
         <ul className="card divide-y divide-black/[0.06]">
           {documents.map((doc) => (
-            <li key={doc.id} className="flex items-center justify-between gap-3 px-4 py-3">
-              <div className="min-w-0">
-                <p className="truncate text-[14px] font-medium text-[#1d1d1f]">{doc.title}</p>
-                <p className="truncate text-[13px] text-[#6e6e73]">{doc.originalFilename}</p>
+            <li key={doc.id} className="px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-[14px] font-medium text-[#1d1d1f]">{doc.title}</p>
+                  <p className="truncate text-[13px] text-[#6e6e73]">{doc.originalFilename}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  {doc.downloadUrl && (
+                    <a href={doc.downloadUrl} target="_blank" rel="noreferrer" className="link-quiet text-[13px]">
+                      Télécharger
+                    </a>
+                  )}
+                  <ConfirmDeleteButton
+                    label="Supprimer"
+                    confirmText={`Supprimer « ${doc.title} » ? Cette action est irréversible.`}
+                    action={() => deleteAppDocument(doc.id)}
+                  />
+                </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
-                {doc.downloadUrl && (
-                  <a href={doc.downloadUrl} target="_blank" rel="noreferrer" className="link-quiet text-[13px]">
-                    Télécharger
-                  </a>
+              <ActionForm className="mt-2" autoSave action={(formData) => updateAppDocumentNotes(doc.id, formData)}>
+                {({ pending, error, success }) => (
+                  <>
+                    <NoteField name="notes" defaultValue={doc.notes} placeholder="Précisions d'utilisation…" />
+                    <div className="mt-1 flex justify-end">
+                      <SaveStatus pending={pending} error={error} success={success} />
+                    </div>
+                  </>
                 )}
-                <ConfirmDeleteButton
-                  label="Supprimer"
-                  confirmText={`Supprimer « ${doc.title} » ? Cette action est irréversible.`}
-                  action={() => deleteAppDocument(doc.id)}
-                />
-              </div>
+              </ActionForm>
             </li>
           ))}
         </ul>
