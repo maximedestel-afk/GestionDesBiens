@@ -2770,6 +2770,7 @@ export async function recordLeaseTemplateUpload(input: { filePath: string; origi
 // stockage côté client, cette action n'enregistre que les métadonnées.
 export async function createAppDocument(input: {
   title: string;
+  notes?: string | null;
   filePath: string;
   originalFilename: string;
   mimeType: string | null;
@@ -2785,6 +2786,7 @@ export async function createAppDocument(input: {
 
   const { error } = await supabase.from("app_documents").insert({
     title,
+    notes: input.notes?.trim() || null,
     file_path: input.filePath,
     original_filename: input.originalFilename,
     mime_type: input.mimeType,
@@ -2792,6 +2794,18 @@ export async function createAppDocument(input: {
     position: count ?? 0,
     uploaded_by_email: user.email ?? null,
   });
+  if (error) throw error;
+
+  revalidatePath("/inventaire/acces");
+}
+
+export async function updateAppDocumentNotes(id: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const notes = optionalString(formData.get("notes"));
+
+  const { error } = await supabase.from("app_documents").update({ notes }).eq("id", id);
   if (error) throw error;
 
   revalidatePath("/inventaire/acces");

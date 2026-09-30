@@ -312,6 +312,7 @@ export function serializeAppDocument(row: any, downloadUrl: string | null = null
   return {
     id: row.id,
     title: row.title,
+    notes: row.notes,
     filePath: row.file_path,
     originalFilename: row.original_filename,
     mimeType: row.mime_type,

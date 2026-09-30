@@ -392,6 +392,7 @@ export interface LeaseTemplateInfo {
 export interface AppDocument {
   id: string;
   title: string;
+  notes: string | null;
   filePath: string;
   originalFilename: string;
   mimeType: string | null;
