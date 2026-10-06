@@ -391,7 +391,9 @@ export function PropertyTabs({
         {activeTab === "finances" && canSeeTab("finances") && (
           <FinanceTab propertyId={property.id} owner={owner} />
         )}
-        {activeTab === "calendrier" && canSeeTab("calendrier") && <CalendarTab propertyId={property.id} />}
+        {activeTab === "calendrier" && canSeeTab("calendrier") && (
+          <CalendarTab propertyId={property.id} profiles={profiles} />
+        )}
         {activeTab === "notes" && (
           <NotesTab propertyId={property.id} elements={noteElements} attachments={elementAttachments} />
         )}
