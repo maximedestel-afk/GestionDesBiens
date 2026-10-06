@@ -10,7 +10,7 @@ import {
 } from "@/lib/inventaire/queries";
 import { canAccessSection } from "@/lib/inventaire/tabs";
 import { NewTaskDialog } from "@/components/inventaire/NewTaskDialog";
-import { PlanningAgenda } from "@/components/inventaire/PlanningAgenda";
+import { PlanningViews } from "@/components/inventaire/PlanningViews";
 
 export default async function PlanningPage() {
   const profile = await getCurrentProfile();
@@ -42,7 +42,7 @@ export default async function PlanningPage() {
         Interventions planifiées sur les biens (installation, rendez-vous, réparation…), avec date et horaire.
       </p>
 
-      <PlanningAgenda properties={properties} tasks={tasks} profiles={profiles} attachments={attachments} />
+      <PlanningViews properties={properties} tasks={tasks} profiles={profiles} attachments={attachments} />
     </div>
   );
 }
