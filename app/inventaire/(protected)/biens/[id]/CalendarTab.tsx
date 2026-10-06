@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { Profile } from "@/lib/inventaire/types";
+import { TaskQuickCreateDialog, type TaskQuickCreateDialogHandle } from "@/components/inventaire/TaskQuickCreateDialog";
 
 const MONTH_LABELS = [
   "Janvier",
@@ -98,7 +100,7 @@ interface DayInfo {
   blocked: boolean;
 }
 
-export function CalendarTab({ propertyId }: { propertyId: string }) {
+export function CalendarTab({ propertyId, profiles }: { propertyId: string; profiles: Profile[] }) {
   const now = useMemo(() => new Date(), []);
   const [year, setYear] = useState(now.getUTCFullYear());
   const [month, setMonth] = useState(now.getUTCMonth() + 1);
@@ -108,6 +110,7 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
+  const newTaskDialogRef = useRef<TaskQuickCreateDialogHandle>(null);
 
   useEffect(() => {
     (async () => {
@@ -194,6 +197,7 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
 
   return (
     <div className="space-y-4">
+      <TaskQuickCreateDialog ref={newTaskDialogRef} propertyId={propertyId} profiles={profiles} />
       <div className="card space-y-4 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -264,6 +268,15 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
                   <div
                     key={day.date}
                     title={title}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => newTaskDialogRef.current?.open(day.date)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        newTaskDialogRef.current?.open(day.date);
+                      }
+                    }}
                     style={
                       day.blocked
                         ? {
@@ -272,7 +285,7 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
                           }
                         : undefined
                     }
-                    className={`flex min-h-[64px] flex-col gap-0.5 rounded-[8px] border p-1 text-left ${
+                    className={`group relative flex min-h-[64px] cursor-pointer flex-col gap-0.5 rounded-[8px] border p-1 text-left transition hover:ring-2 hover:ring-[#0071e3]/40 ${
                       day.occupying
                         ? `${color?.bg} ${color?.border}`
                         : day.blocked
@@ -282,6 +295,12 @@ export function CalendarTab({ propertyId }: { propertyId: string }) {
                             : "border-black/[0.06] bg-white"
                     } ${!day.inMonth ? "opacity-40" : ""}`}
                   >
+                    <span
+                      className="absolute right-1 top-1 hidden h-4 w-4 items-center justify-center rounded-full bg-[#0071e3] text-[11px] font-semibold leading-none text-white group-hover:flex"
+                      aria-hidden="true"
+                    >
+                      +
+                    </span>
                     <div className="flex items-center justify-between">
                       <span
                         className={`text-[11px] ${
