@@ -109,6 +109,7 @@ export function serializePropertyOwner(row: any): PropertyOwner {
     leaseOwnerNotice: row.lease_owner_notice,
     leaseKeyCount: row.lease_key_count,
     leaseNotes: row.lease_notes,
+    autoTransferSetUp: row.auto_transfer_set_up,
     ribNotes: row.rib_notes,
     rcpNotes: row.rcp_notes,
     rentType: row.rent_type,

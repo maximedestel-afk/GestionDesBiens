@@ -85,6 +85,7 @@ export interface PropertyOwner {
   leaseOwnerNotice: string | null;
   leaseKeyCount: string | null;
   leaseNotes: string | null;
+  autoTransferSetUp: boolean | null;
   ribNotes: string | null;
   rcpNotes: string | null;
   rentType: "fixe" | "variable" | "fixe_variable" | null;
