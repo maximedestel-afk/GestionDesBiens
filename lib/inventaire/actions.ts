@@ -914,6 +914,10 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     patch.is_company = formData.get("isCompany") === "true";
     labels.is_company = "Société";
   }
+  if (formData.has("autoTransferSetUp")) {
+    patch.auto_transfer_set_up = formData.get("autoTransferSetUp") === "true";
+    labels.auto_transfer_set_up = "Virement automatique configuré";
+  }
   if (formData.has("rentType")) {
     const rentTypeRaw = optionalString(formData.get("rentType"));
     patch.rent_type =

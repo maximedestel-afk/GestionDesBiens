@@ -565,6 +565,7 @@ export function OwnerTab({
     owner?.companyRole
   );
   const [isCompany, setIsCompany] = useState(!!owner?.isCompany || hasCompanyData);
+  const [autoTransferSetUp, setAutoTransferSetUp] = useState(!!owner?.autoTransferSetUp);
   // Remonté ici pour que CommissionFieldset (case séparée) sache si le
   // champ Commission doit être grisé, sans dupliquer l'état du type de loyer.
   const [rentType, setRentType] = useState(owner?.rentType ?? "");
@@ -752,6 +753,16 @@ export function OwnerTab({
               <p className="text-[13px] text-[#6e6e73]">
                 Le bail et la RCP se trouvent désormais dans l&apos;onglet Documents.
               </p>
+              <label className="flex items-center gap-2 text-[15px] text-[#1d1d1f]">
+                <input
+                  type="checkbox"
+                  checked={autoTransferSetUp}
+                  onChange={(e) => setAutoTransferSetUp(e.target.checked)}
+                  className="h-4 w-4 accent-[#0071e3]"
+                />
+                Virement automatique configuré
+              </label>
+              <input type="hidden" name="autoTransferSetUp" value={autoTransferSetUp ? "true" : "false"} />
               <DocumentField
                 propertyId={propertyId}
                 title="RIB"
