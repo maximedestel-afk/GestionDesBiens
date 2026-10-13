@@ -1,6 +1,7 @@
 import {
   getAllowedSectionsForRole,
   getCurrentProfile,
+  listAllTags,
   listCleaningProviders,
   listPropertiesForBulkField,
 } from "@/lib/inventaire/queries";
@@ -32,6 +33,7 @@ export default async function CompleterPage({
   }
 
   const rows = await listPropertiesForBulkField(fieldId);
+  const existingTags = fieldDef.inputType === "tags" ? await listAllTags() : [];
 
   return (
     <div>
@@ -45,7 +47,7 @@ export default async function CompleterPage({
       </div>
 
       <div className="mt-6 card overflow-visible p-0">
-        <BulkFieldTable field={fieldDef} rows={rows} />
+        <BulkFieldTable field={fieldDef} rows={rows} existingTags={existingTags} />
       </div>
     </div>
   );

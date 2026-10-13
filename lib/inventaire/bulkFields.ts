@@ -11,7 +11,7 @@ export interface BulkFieldDef {
   group: BulkFieldGroup;
   /** Nom du champ dans le FormData envoyé à l'action de sauvegarde correspondante. */
   formKey: string;
-  inputType: "text" | "number" | "select";
+  inputType: "text" | "number" | "select" | "tags";
   options?: BulkFieldOption[];
   placeholder?: string;
   /** "number" uniquement : attribut HTML step (ex. "1" pour un entier, "any" pour un montant). */
@@ -163,6 +163,7 @@ export const BULK_FIELDS: BulkFieldDef[] = [
 
   // Détails — Divers
   { id: "comment", label: "Commentaire", group: "Détails", formKey: "comment", inputType: "text" },
+  { id: "tags", label: "Tags", group: "Détails", formKey: "tags", inputType: "tags" },
 
   // Eau / Électricité / Gaz
   {
