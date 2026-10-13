@@ -1222,9 +1222,13 @@ export async function listPropertiesForBulkField(fieldId: string): Promise<BulkF
   if (!getBulkField(fieldId)) throw new Error("Champ inconnu.");
 
   const supabase = await createClient();
+  // "tags" vit directement sur `properties` (colonne tableau), contrairement
+  // aux autres champs qui viennent d'une table annexe (property_details,
+  // property_owner…) — toujours sélectionnée ici (coût négligeable) pour
+  // éviter un aller-retour séparé.
   const { data: properties, error } = await supabase
     .from("properties")
-    .select("id, reference, name")
+    .select("id, reference, name, tags")
     .order("reference", { ascending: true });
   if (error) throw error;
 
@@ -1243,6 +1247,10 @@ export async function listPropertiesForBulkField(fieldId: string): Promise<BulkF
     for (const platform of (platforms ?? []) as unknown as Record<string, unknown>[]) {
       const value = platform[platformField.column];
       if (value) valueByPropertyId.set(platform.property_id as string, String(value));
+    }
+  } else if (fieldId === "tags") {
+    for (const p of rows) {
+      if ((p.tags ?? []).length > 0) valueByPropertyId.set(p.id, p.tags.join(", "));
     }
   } else {
     const source = BULK_FIELD_SOURCE[fieldId];
