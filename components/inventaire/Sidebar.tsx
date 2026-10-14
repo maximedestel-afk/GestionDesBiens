@@ -27,11 +27,24 @@ export function Sidebar({
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
+  // Verrouille le défilement de la page derrière le tiroir pendant qu'il est
+  // ouvert. `overflow: hidden` seul ne bloque pas le scroll tactile sur
+  // Safari iOS (comportement connu) : on fige le <body> en position fixe
+  // (en mémorisant le scroll courant) plutôt que de juste masquer le
+  // débordement, et on restaure la position exacte à la fermeture.
   useEffect(() => {
     if (!open) return;
-    document.body.style.overflow = "hidden";
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
