@@ -180,6 +180,7 @@ export function serializePropertyData(row: any): PropertyData {
     guestyLastSyncedAt: row.guesty_last_synced_at,
     guestyLastSyncError: row.guesty_last_sync_error,
     bonusFdPercent: row.bonus_fd_percent,
+    bonusEciPercent: row.bonus_eci_percent,
   };
 }
 

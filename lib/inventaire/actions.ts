@@ -1178,6 +1178,34 @@ export async function saveBonusFd(propertyId: string, formData: FormData) {
   revalidateProperty(propertyId);
 }
 
+/** Bonus ECI — pourcentage saisi manuellement, même mécanique que Bonus FD. */
+export async function saveBonusEci(propertyId: string, formData: FormData) {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  const raw = optionalString(formData.get("bonusEciPercent"));
+  const bonusEciPercent = raw !== null ? Number(raw) : null;
+
+  const { data: existing } = await supabase
+    .from("property_data")
+    .select("bonus_eci_percent")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  await updatePropertyDetailRow(supabase, "property_data", propertyId, { bonus_eci_percent: bonusEciPercent }, !!existing);
+
+  if (existing?.bonus_eci_percent !== bonusEciPercent) {
+    await logActivity(supabase, {
+      propertyId,
+      entityType: "property_data",
+      action: "update",
+      summary: `${tabCode("data")} › Bonus ECI mis à jour`,
+    });
+  }
+
+  revalidateProperty(propertyId);
+}
+
 /** Crée un nouveau prestataire de ménage dans la liste partagée (ou
  * réutilise celui du même nom s'il existe déjà) et l'assigne directement à
  * ce bien. */
