@@ -198,6 +198,7 @@ export const BULK_FIELDS: BulkFieldDef[] = [
   // champ à BulkFieldTable.
   { id: "cleaning_provider", label: "Prestataire Ménage", group: "Data", formKey: "cleaningProviderId", inputType: "select", options: [] },
   { id: "bonus_fd", label: "Bonus FD (%)", group: "Data", formKey: "bonusFdPercent", inputType: "number", placeholder: "%", step: "any" },
+  { id: "bonus_eci", label: "Bonus ECI (%)", group: "Data", formKey: "bonusEciPercent", inputType: "number", placeholder: "%", step: "any" },
 ];
 
 export function getBulkField(id: string): BulkFieldDef | undefined {

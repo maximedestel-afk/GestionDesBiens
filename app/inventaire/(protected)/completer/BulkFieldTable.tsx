@@ -12,6 +12,7 @@ import {
   savePropertyDetails,
   saveWaterElec,
   saveBonusFd,
+  saveBonusEci,
   saveCleaningProvider,
   bulkUpdatePlatformField,
 } from "@/lib/inventaire/actions";
@@ -30,6 +31,7 @@ function actionFor(field: BulkFieldDef) {
   }
   if (field.id === "cleaning_provider") return saveCleaningProvider;
   if (field.id === "bonus_fd") return saveBonusFd;
+  if (field.id === "bonus_eci") return saveBonusEci;
   if (field.group === "Propriétaire") return savePropertyOwner;
   if (field.group === "Agencement") return saveAgencement;
   if (field.group === "Eau/Élec") return saveWaterElec;
