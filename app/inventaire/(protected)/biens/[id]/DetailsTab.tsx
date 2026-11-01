@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import type { Attachment, PropertyDetails } from "@/lib/inventaire/types";
 import { savePropertyDetails } from "@/lib/inventaire/actions";
 import { ActionForm } from "@/components/inventaire/ActionForm";
@@ -9,6 +9,7 @@ import { FileUploadButtons } from "@/components/inventaire/FileUploadButtons";
 import { AttachmentGallery } from "@/components/inventaire/AttachmentGallery";
 import { MissingFieldFlag } from "@/components/inventaire/MissingFieldFlag";
 import { FieldRef } from "@/components/inventaire/FieldRef";
+import { CopyButton } from "@/components/inventaire/CopyButton";
 import { NoteField } from "@/components/inventaire/NoteField";
 import type { CsvFieldKey } from "@/lib/inventaire/csvFields";
 
@@ -21,6 +22,7 @@ function Field({
   rows = 3,
   labelExtra,
   csvKey,
+  copyable = false,
 }: {
   label: string;
   name: string;
@@ -30,16 +32,23 @@ function Field({
   rows?: number;
   labelExtra?: ReactNode;
   csvKey?: CsvFieldKey;
+  /** Affiche un bouton "Copier" à côté du label, qui copie le contenu
+   * actuel du champ (y compris non encore enregistré). */
+  copyable?: boolean;
 }) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   return (
     <div>
       <label className="field-label flex items-center" htmlFor={name}>
         {label}
         {labelExtra}
         {csvKey && <FieldRef csvKey={csvKey} />}
+        {copyable && <CopyButton getText={() => textareaRef.current?.value ?? ""} />}
       </label>
       {textarea ? (
         <textarea
+          ref={textareaRef}
           id={name}
           name={name}
           defaultValue={defaultValue ?? ""}
@@ -228,6 +237,7 @@ export function DetailsTab({
                 textarea
                 rows={6}
                 csvKey="accessCodeClient"
+                copyable
               />
               <Field
                 label="Code & accès — Ménage/maintenance"
@@ -236,6 +246,7 @@ export function DetailsTab({
                 textarea
                 rows={6}
                 csvKey="accessCodeCleaning"
+                copyable
               />
               <Field
                 label="Code & accès — Back up"
@@ -244,6 +255,7 @@ export function DetailsTab({
                 textarea
                 rows={6}
                 csvKey="accessCodeBackup"
+                copyable
               />
             </div>
           </Section>
