@@ -158,9 +158,21 @@ export async function listProperties(
       .or(`last_name.ilike.%${escaped}%,first_name.ilike.%${escaped}%`);
     const ownerPropertyIds = (matchingOwners ?? []).map((o) => o.property_id);
 
+    // Permet de retrouver un bien à partir de l'identifiant d'une annonce
+    // (ex. ID Booking.com/Airbnb d'un relevé de commissions) — stocké dans
+    // property_platforms.reference, sans lien direct avec la référence MGB.
+    const { data: matchingPlatforms } = await supabase
+      .from("property_platforms")
+      .select("property_id")
+      .ilike("reference", `%${escaped}%`);
+    const platformPropertyIds = (matchingPlatforms ?? []).map((p) => p.property_id);
+
     const orParts = [`reference.ilike.%${escaped}%`, `name.ilike.%${escaped}%`];
     if (ownerPropertyIds.length > 0) {
       orParts.push(`id.in.(${ownerPropertyIds.join(",")})`);
+    }
+    if (platformPropertyIds.length > 0) {
+      orParts.push(`id.in.(${platformPropertyIds.join(",")})`);
     }
     query = query.or(orParts.join(","));
   }
