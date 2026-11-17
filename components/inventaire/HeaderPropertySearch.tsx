@@ -46,7 +46,7 @@ export function HeaderPropertySearch() {
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setOpen(results.length > 0)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder="Rechercher un bien (référence, nom, propriétaire…)"
+        placeholder="Rechercher un bien (référence, nom, propriétaire, ID plateforme…)"
         className="w-full rounded-full border border-black/10 bg-black/[0.03] px-3.5 py-1.5 text-[13px] text-[#1d1d1f] transition focus:border-[#0071e3] focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-[#0071e3]/15"
       />
       {open && (

@@ -25,7 +25,7 @@ export function PropertySearchInput({ initialValue }: { initialValue: string }) 
       type="search"
       value={value}
       onChange={(e) => setValue(e.target.value)}
-      placeholder="Rechercher par référence, nom ou propriétaire…"
+      placeholder="Rechercher par référence, nom, propriétaire ou ID plateforme…"
       className="field-input max-w-md"
     />
   );
