@@ -705,9 +705,13 @@ export async function importProperties(formData: FormData): Promise<ImportProper
       if (Object.keys(ownerPatch).length > 0) {
         const { data: existingOwner } = await supabase
           .from("property_owner")
-          .select("property_id")
+          .select("property_id, rent_type")
           .eq("property_id", propertyId)
           .maybeSingle();
+        // Un loyer "fixe" n'a jamais de commission — même règle qu'à la
+        // saisie manuelle (savePropertyOwner), imposée aussi à l'import.
+        const effectiveRentType = "rent_type" in ownerPatch ? ownerPatch.rent_type : existingOwner?.rent_type;
+        if (effectiveRentType === "fixe") ownerPatch.commission_percent = null;
         await updatePropertyDetailRow(supabase, "property_owner", propertyId, ownerPatch, !!existingOwner);
       }
 
@@ -940,6 +944,17 @@ export async function savePropertyOwner(propertyId: string, formData: FormData) 
     patch.other_amount = optionalAmount(formData.get("otherAmount"), "Le montant « Autre »");
     labels.other_amount = "Autre (montant)";
   }
+
+  // Un loyer "fixe" n'a jamais de commission (champ grisé dans l'onglet
+  // Propriétaire dès que le loyer est fixe) — imposé aussi côté serveur,
+  // pour qu'aucune autre voie (ex. Compléter en masse, où le champ n'est
+  // pas désactivé) ne puisse y laisser une valeur.
+  const effectiveRentType = formData.has("rentType") ? patch.rent_type : existing?.rent_type;
+  if (effectiveRentType === "fixe") {
+    patch.commission_percent = null;
+    labels.commission_percent = "Commission";
+  }
+
   await updatePropertyDetailRow(supabase, "property_owner", propertyId, patch, !!existing);
 
   await logSectionChanges(supabase, {
